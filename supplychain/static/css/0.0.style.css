@@ -265,6 +265,27 @@ tr:last-child td { border-bottom: none; }
 .table-custom td { padding: 15px 15px; border-bottom: 1px solid #f8f9fa; }
 .table-custom tr:hover td { background-color: #f8f9fa; }
 
+/* Unified table headers across all modules: only header visuals are normalized. */
+.main-content table thead,
+.content-body table thead {
+    background: var(--primary-main) !important;
+}
+
+.main-content table thead tr,
+.content-body table thead tr {
+    background: var(--primary-main) !important;
+    border-bottom: 1px solid #b91c1c !important;
+}
+
+.main-content table thead th,
+.content-body table thead th {
+    background: transparent !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
 .product-name { font-weight: 700; color: #212529; display: block; margin-bottom: 4px; }
 .product-meta { font-size: 0.85rem; color: #6c757d; display: block; }
 
