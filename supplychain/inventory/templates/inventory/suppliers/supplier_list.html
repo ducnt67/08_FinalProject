@@ -2,6 +2,7 @@
 {% load humanize %}
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +10,9 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap"
+        rel="stylesheet">
 
     <link rel="stylesheet" href="{% static 'css/0.0.style.css' %}">
 
@@ -25,311 +28,380 @@
     </script>
 
     <style>
-        .main-content { background-color: #F4F6F8; min-height: 100vh; }
-        .table-wrapper { overflow-x: auto; }
-        
-        .action-icons i { width: 32px; height: 32px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; background: #f8fafc; color: #64748b; margin: 0 2px;}
-        .action-icons i:hover { transform: translateY(-2px); background: #e2e8f0; color: var(--primary-main); }
-        
-        /* Modal Style theo mẫu NCC */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); display: none; align-items: center; justify-content: center; padding: 24px; z-index: 999; }
-        .modal-overlay.active { display: flex; }
+        .main-content {
+            background-color: #F4F6F8;
+            min-height: 100vh;
+        }
 
-        .modal-container { width: 100%; max-width: 900px; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); display: flex; flex-direction: column; }
-        .modal-header { background: var(--primary-main); color: #fff; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
-        .modal-header h2 { font-size: 18px; font-weight: 700; margin: 0; }
-        .btn-close { background: rgba(0,0,0,0.15); border: none; color: white; width: 32px; height: 32px; border-radius: 6px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; }
-        .btn-close:hover { background: rgba(0,0,0,0.3); }
-        .modal-body { padding: 24px; max-height: 80vh; overflow-y: auto; }
+        /* View Sections */
+        .view-section {
+            display: none;
+        }
 
-        /* Form Grid */
-        .form-grid-1-2 { display: grid; grid-template-columns: 1fr 2.5fr; gap: 20px; margin-bottom: 24px; }
-        .form-grid-1-1 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
-        .form-group { margin-bottom: 24px; }
-        .form-group:last-child { margin-bottom: 0; }
-        
-        .form-label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: #374151; }
-        .form-control { width: 100%; padding: 12px 14px; border: 1px solid #dcdcdc; border-radius: 8px; font-size: 14px; outline: none; transition: 0.2s; color: #333; }
-        .form-control:focus:not([readonly]) { border-color: var(--primary-main); box-shadow: 0 0 0 2px rgba(220,38,38,0.1); }
-        .form-control[readonly] { background-color: #f3f4f6; color: #6b7280; cursor: not-allowed; }
+        .view-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Form Controls */
+        .form-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 900;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            outline: none;
+            transition: all 0.2s;
+            background: #fff;
+        }
+
+        .form-control:focus:not([readonly]) {
+            border-color: #DC2626;
+            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.05);
+        }
+
+        .form-control[readonly] {
+            background-color: #f9fafb;
+            color: #6b7280;
+            border-color: #f3f4f6;
+            cursor: not-allowed;
+        }
+
+        input, select, button, textarea {
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+        }
     </style>
 </head>
+
 <body>
 
-  <nav class="sidebar" id="sidebar-container">
-    {% include 'partials/sidebar.html' %}
-  </nav>
+    <nav class="sidebar" id="sidebar-container">
+        {% include 'partials/sidebar.html' %}
+    </nav>
 
-  <main class="main-content">
+    <main class="main-content">
 
-        <div class="content-header">
-            <h1>QUẢN LÝ NHÀ CUNG CẤP</h1>
+        <!-- LIST VIEW -->
+        <div id="supplierListView" class="view-section active">
+            <div class="content-header p-8 flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-black text-gray-800 tracking-tight uppercase">Nhà cung cấp</h1>
+                    <p class="text-gray-500 text-sm mt-1 font-medium">Quản lý đối tác và nhà cung cấp hàng hóa</p>
+                </div>
+                <button onclick="openSupplierForm('create')"
+                    class="bg-primary hover:bg-black text-white px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-xl shadow-red-500/20 active:scale-95">
+                    <i class="fa-solid fa-plus text-xs"></i> THÊM NHÀ CUNG CẤP
+                </button>
+            </div>
+
+            <div class="content-body px-8 pb-8">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-6 bg-gray-50/50 border-b border-gray-100 flex gap-4 items-center">
+                        <div class="relative flex-1 max-w-md">
+                            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" id="searchInput" placeholder="Tìm kiếm tên, SĐT, Email..." oninput="filterSuppliers()"
+                                class="w-full pl-11 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm font-medium">
+                        </div>
+                        <div class="grow"></div>
+                        <button onclick="location.reload()" class="text-xs font-black text-gray-400 uppercase tracking-widest hover:text-primary transition-colors">Làm mới danh sách</button>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50/50 text-gray-500 border-b border-gray-100">
+                                    <th class="py-4 px-6 font-black uppercase tracking-widest text-[10px] text-center w-16">STT</th>
+                                    <th class="py-4 px-4 font-black uppercase tracking-widest text-[10px]">Mã NCC</th>
+                                    <th class="py-4 px-4 font-black uppercase tracking-widest text-[10px]">Tên nhà cung cấp</th>
+                                    <th class="py-4 px-4 font-black uppercase tracking-widest text-[10px]">Địa chỉ</th>
+                                    <th class="py-4 px-4 font-black uppercase tracking-widest text-[10px] text-center">Số điện thoại</th>
+                                    <th class="py-4 px-4 font-black uppercase tracking-widest text-[10px]">Email</th>
+                                    <th class="py-4 px-6 font-black uppercase tracking-widest text-[10px] text-center w-32">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="supplierTableBody" class="divide-y divide-gray-50">
+                                {% for s in suppliers %}
+                                <tr class="supplier-row hover:bg-gray-50/50 transition-colors group">
+                                    <td class="py-4 px-6 text-center text-gray-400 font-bold text-xs">{{ forloop.counter }}</td>
+                                    <td class="py-4 px-4">
+                                        <div class="font-black text-primary font-mono tracking-tighter">{{ s.maNCC }}</div>
+                                    </td>
+                                    <td class="py-4 px-4">
+                                        <div class="font-black text-gray-800 text-sm whitespace-nowrap">{{ s.tenNCC }}</div>
+                                    </td>
+                                    <td class="py-4 px-4 text-gray-600 font-medium text-sm max-w-xs truncate">{{ s.diaChi|default:"-" }}</td>
+                                    <td class="py-4 px-4 text-center">
+                                        <span class="inline-flex px-3 py-1 rounded-full bg-blue-50 text-blue-600 font-bold text-xs border border-blue-100">{{ s.soDienThoai }}</span>
+                                    </td>
+                                    <td class="py-4 px-4 text-gray-600 font-medium text-sm">{{ s.email|default:"-" }}</td>
+                                    <td class="py-4 px-6 text-center">
+                                        <div class="flex items-center justify-center gap-2 transition-all">
+                                            <button onclick="viewSupplierDetail('{{ s.maNCC }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm">
+                                                <i class="fa-solid fa-eye text-xs"></i>
+                                            </button>
+                                            <button onclick="openSupplierForm('edit', '{{ s.maNCC }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-green-500 hover:bg-green-500 hover:text-white transition-all shadow-sm">
+                                                <i class="fa-solid fa-pen-to-square text-xs"></i>
+                                            </button>
+                                            <button onclick="deleteSupplier('{{ s.maNCC }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-red-400 hover:bg-primary hover:text-white transition-all shadow-sm">
+                                                <i class="fa-solid fa-trash-can text-xs"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-20 text-gray-400 italic">Chưa có thông tin nhà cung cấp nào.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="content-body p-8">
-            
-
-            <div class="bg-white rounded-b-xl shadow-sm border border-gray-100 p-6">
-                
-                <div class="flex flex-nowrap gap-3 items-center justify-between mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                    <div class="frm-search-box"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Tìm kiếm tên, SĐT, Email..." oninput="filterSuppliers()" onkeyup="filterSuppliers()"></div>
-                    
-                    <button onclick="openModal('create')" class="bg-primary hover:bg-red-700 text-white px-4 py-2 whitespace-nowrap rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shadow-md">
-                        <i class="fa-solid fa-plus"></i> THÊM NHÀ CUNG CẤP
+        <!-- FORM VIEW -->
+        <div id="supplierFormView" class="view-section">
+            <div class="content-header p-8 flex items-center justify-between">
+                <div class="flex items-center gap-5">
+                    <button onclick="switchView('supplierListView')" class="w-12 h-12 rounded-2xl flex items-center justify-center bg-white border border-gray-200 text-gray-400 hover:text-primary transition-all shadow-sm">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div>
+                        <h1 id="formViewTitle" class="text-3xl font-black text-gray-800 tracking-tight uppercase">Thêm nhà cung cấp</h1>
+                        <p class="text-gray-500 text-sm mt-1 font-medium">Vui lòng nhập đầy đủ thông tin đối tác của bạn</p>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="switchView('supplierListView')" class="px-8 py-3 bg-white border border-gray-200 text-gray-500 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-gray-50 transition-all">HỦY BỎ</button>
+                    <button onclick="saveSupplier()" class="px-8 py-3 bg-primary text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-black shadow-xl shadow-red-500/20 active:scale-95 transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> LƯU THÔNG TIN
                     </button>
                 </div>
-
-                <div class="table-wrapper border border-gray-200 rounded-lg">
-                    <table class="w-full text-left border-collapse min-w-[900px]">
-                        <thead>
-                            <tr class="bg-red-50 border-b border-red-100">
-                                <th class="py-4 px-4 font-bold text-sm text-gray-800 text-center w-16">STT</th>
-                                <th class="py-4 px-4 font-bold text-sm text-gray-800">MÃ NCC</th>
-                                <th class="py-4 px-4 font-bold text-sm text-gray-800">TÊN NHÀ CUNG CẤP</th>
-                                <th class="py-4 px-4 font-bold text-sm text-gray-800">ĐỊA CHỈ</th>
-                                <th class="py-4 px-4 font-bold text-sm text-gray-800 text-center">SỐ ĐIỆN THOẠI</th>
-                                <th class="py-4 px-4 font-bold text-sm text-gray-800">EMAIL</th>
-                                <th class="py-4 px-4 font-bold text-sm text-gray-800 text-center w-32">THAO TÁC</th>
-                            </tr>
-                        </thead>
-                        <tbody id="supplierTableBody" class="text-sm">
-                            {% for supplier in suppliers %}
-                            <tr class="supplier-row border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
-                                <td class="py-4 px-4 text-gray-500 text-center col-index font-bold">{{ forloop.counter }}</td>
-                                <td class="py-4 px-4 font-semibold text-gray-800 ncc-code">{{ supplier.maNCC }}</td>
-                                <td class="py-4 px-4 text-gray-600 ncc-name">{{ supplier.tenNCC }}</td>
-                                <td class="py-4 px-4 text-gray-600">{{ supplier.diaChi }}</td>
-                                <td class="py-4 px-4 text-center text-gray-600">{{ supplier.soDienThoai }}</td>
-                                <td class="py-4 px-4 text-gray-600">{{ supplier.email }}</td>
-                                <td class="py-4 px-4 text-center">
-                                    <div class="action-icons">
-                                        <i class="fa-solid fa-eye" onclick="openModal('view', '{{ supplier.maNCC }}')" title="Xem chi tiết"></i>
-                                        <i class="fa-solid fa-edit" onclick="openModal('edit', '{{ supplier.maNCC }}')" title="Chỉnh sửa"></i>
-                                        <i class="fa-solid fa-trash-can" onclick="deleteSupplier('{{ supplier.maNCC }}')" title="Xóa"></i>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="7" class="text-center py-10">Không có nhà cung cấp nào</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-
-                <div id="supplierPagination" class="w-full mt-6"></div>
             </div>
 
-        </div>
-  </main>
-
-    <div id="supplierModal" class="modal-overlay">
-        <div class="modal-container">
-            <div class="modal-header">
-                <h2 id="modalTitle">Thêm mới nhà cung cấp</h2>
-                <button class="btn-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-
-            <div class="modal-body">
-                <form id="supplierForm">
-                    <div class="form-grid-1-2">
-                        <div class="form-group">
+            <div class="content-body px-8 pb-8">
+                <div class="bg-white rounded-3xl p-10 border border-gray-100 shadow-sm relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-red-50 rounded-full -mr-32 -mt-32 opacity-20"></div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        <div class="lg:col-span-1 space-y-2">
                             <label class="form-label">Mã nhà cung cấp</label>
-                            <input id="modalCode" type="text" class="form-control" placeholder="Hệ thống tự tạo" readonly="">
+                            <input id="formMaNCC" type="text" class="form-control" readonly placeholder="Hệ thống tự tạo">
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Tên nhà cung cấp <span class="text-red-500">*</span></label>
-                            <input id="modalName" type="text" class="form-control" placeholder="Nhập tên công ty / đối tác">
+                        <div class="lg:col-span-3 space-y-2 text-primary">
+                            <label class="form-label !text-primary">Tên nhà cung cấp *</label>
+                            <input id="formTenNCC" type="text" class="form-control" placeholder="Nhập tên đối tác / công ty">
+                        </div>
+                        
+                        <div class="md:col-span-2 space-y-2">
+                            <label class="form-label">Địa chỉ chi tiết</label>
+                            <input id="formDiaChi" type="text" class="form-control" placeholder="Số nhà, đường, phường/xã, quận/huyện...">
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label class="form-label !text-primary">Số điện thoại *</label>
+                            <input id="formSoDienThoai" type="text" class="form-control" placeholder="Nhập số điện thoại liên lạc">
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label class="form-label">Email công việc</label>
+                            <input id="formEmail" type="email" class="form-control" placeholder="example@company.com">
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Địa chỉ</label>
-                        <input id="modalAddress" type="text" class="form-control" placeholder="Nhập địa chỉ chi tiết">
+                    <div class="mt-12 pt-10 border-t border-gray-50 flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center flex-shrink-0"><i class="fas fa-info-circle"></i></div>
+                        <p class="text-sm text-gray-400 leading-relaxed font-medium">
+                            Các thông tin có dấu <span class="text-red-500 font-bold">*</span> là bắt buộc. Đảm bảo số điện thoại và email chính xác để thuận tiện cho việc gửi đơn đặt hàng và liên lạc sau này.
+                        </p>
                     </div>
-
-                    <div class="form-grid-1-1">
-                        <div class="form-group">
-                            <label class="form-label">Số điện thoại <span class="text-red-500">*</span></label>
-                            <input id="modalPhone" type="text" class="form-control" placeholder="Nhập số điện thoại liên hệ">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Email</label>
-                            <input id="modalEmail" type="email" class="form-control" placeholder="Nhập email">
-                        </div>
-                    </div>
-                </form>
-
-                <div class="flex justify-end gap-3 mt-8 pt-6 border-t border-gray-200">
-                    <button onclick="closeModal()" class="px-6 py-2.5 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-bold transition-colors shadow-sm">Hủy bỏ</button>
-                    <button id="btnSaveModal" onclick="saveSupplier()" class="px-6 py-2.5 bg-primary hover:bg-red-700 text-white rounded-lg font-bold transition-colors shadow-md">Lưu thay đổi</button>
                 </div>
             </div>
         </div>
-    </div>
+
+        <!-- DETAIL VIEW -->
+        <div id="supplierDetailView" class="view-section">
+            <!-- Injected via JS -->
+        </div>
+
+    </main>
 
     <script src="{% static 'js/0.0.app.js' %}"></script>
 
     <script>
-        // Lấy CSRF token từ cookie
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
+        const csrftoken = '{{ csrf_token }}';
+        let currentMode = 'create';
+
+        function switchView(id) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            window.scrollTo(0, 0);
         }
-        const csrftoken = getCookie('csrftoken');
 
-        let currentModalMode = '';
+        function openSupplierForm(mode, code = '') {
+            currentMode = mode;
+            document.getElementById('formMaNCC').value = '';
+            document.getElementById('formTenNCC').value = '';
+            document.getElementById('formDiaChi').value = '';
+            document.getElementById('formSoDienThoai').value = '';
+            document.getElementById('formEmail').value = '';
+            
+            document.getElementById('formViewTitle').textContent = mode === 'create' ? 'Thêm nhà cung cấp mới' : `Chỉnh sửa: ${code}`;
 
-        function openModal(mode, code = '') {
-            currentModalMode = mode;
-            const modal = document.getElementById('supplierModal');
-            const title = document.getElementById('modalTitle');
-            const btnSave = document.getElementById('btnSaveModal');
-            const form = document.getElementById('supplierForm');
-
-            form.reset();
-
-            if (mode === 'create') {
-                title.textContent = 'Thêm mới nhà cung cấp';
-                document.getElementById('modalCode').value = '';
-                btnSave.style.display = 'block';
-                btnSave.textContent = 'Lưu thông tin';
-                toggleInputs(false);
-                modal.classList.add('active');
-            }
-            else if (mode === 'edit' || mode === 'view') {
-                // Fetch data via AJAX
-                fetch(`?maNCC=${code}`, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => response.json())
+            if (mode === 'edit') {
+                fetch(`?maNCC=${code}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(res => res.json())
                 .then(data => {
-                    title.textContent = mode === 'edit' ? 'Chỉnh sửa thông tin' : 'Chi tiết nhà cung cấp';
-                    document.getElementById('modalCode').value = data.maNCC;
-                    document.getElementById('modalName').value = data.tenNCC;
-                    document.getElementById('modalAddress').value = data.diaChi;
-                    document.getElementById('modalPhone').value = data.soDienThoai;
-                    document.getElementById('modalEmail').value = data.email;
-
-                    if (mode === 'edit') {
-                        btnSave.style.display = 'block';
-                        btnSave.textContent = 'Lưu thay đổi';
-                        toggleInputs(false);
-                    } else {
-                        btnSave.style.display = 'none';
-                        toggleInputs(true);
-                    }
-                    modal.classList.add('active');
-                })
-                .catch(error => {
-                    alert('Lỗi khi lấy thông tin nhà cung cấp: ' + error);
+                    document.getElementById('formMaNCC').value = data.maNCC;
+                    document.getElementById('formTenNCC').value = data.tenNCC;
+                    document.getElementById('formDiaChi').value = data.diaChi || '';
+                    document.getElementById('formSoDienThoai').value = data.soDienThoai;
+                    document.getElementById('formEmail').value = data.email || '';
+                    switchView('supplierFormView');
                 });
+            } else {
+                switchView('supplierFormView');
             }
         }
 
-        function closeModal() {
-            document.getElementById('supplierModal').classList.remove('active');
-        }
-
-        function toggleInputs(readOnly) {
-            document.getElementById('modalName').readOnly = readOnly;
-            document.getElementById('modalAddress').readOnly = readOnly;
-            document.getElementById('modalPhone').readOnly = readOnly;
-            document.getElementById('modalEmail').readOnly = readOnly;
-        }
-
-        function saveSupplier() {
-            const tenNCC = document.getElementById('modalName').value.trim();
-            const soDienThoai = document.getElementById('modalPhone').value.trim();
-            const email = document.getElementById('modalEmail').value.trim();
-            const diaChi = document.getElementById('modalAddress').value.trim();
-            const maNCC = document.getElementById('modalCode').value.trim();
-
-            if(!tenNCC) return alert('Vui lòng nhập Tên nhà cung cấp!');
-            if(!soDienThoai) return alert('Vui lòng nhập Số điện thoại!');
-
-            const data = {
-                maNCC: maNCC,
-                tenNCC: tenNCC,
-                soDienThoai: soDienThoai,
-                email: email,
-                diaChi: diaChi
-            };
-
-            fetch(window.location.href, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
+        function viewSupplierDetail(code) {
+            fetch(`?maNCC=${code}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(res => res.json())
             .then(data => {
-                if (data.status === 'success') {
-                    alert(data.message);
-                    closeModal();
-                    window.location.reload(); // Tải lại trang để thấy dữ liệu mới
-                } else {
-                    alert('Lá»—i: ' + data.message);
-                }
-            })
-            .catch(error => {
-                alert('Lỗi khi lưu dữ liệu: ' + error);
+                document.getElementById('supplierDetailView').innerHTML = `
+                    <div class="content-header p-8 flex items-center justify-between">
+                        <div class="flex items-center gap-5">
+                            <button onclick="switchView('supplierListView')" class="w-12 h-12 rounded-2xl flex items-center justify-center bg-white border border-gray-200 text-gray-400 hover:text-primary transition-all shadow-sm">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <h1 class="text-3xl font-black text-gray-800 tracking-tight uppercase">Chi tiết nhà cung cấp: ${data.maNCC}</h1>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="openSupplierForm('edit', '${data.maNCC}')" class="px-8 py-3 bg-primary text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-black shadow-xl shadow-red-500/20 active:scale-95 transition-all">
+                                <i class="fas fa-edit mr-2"></i> CHỈNH SỬA THÔNG TIN
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="content-body px-8 pb-8">
+                        <div class="bg-white rounded-3xl p-12 border border-gray-100 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-12 relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-80 h-80 bg-blue-50 rounded-full -mr-40 -mt-40 opacity-20"></div>
+
+                            <div class="space-y-1 relative">
+                                <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Mã nhà cung cấp</p>
+                                <p class="text-3xl font-black text-primary font-mono tracking-tighter">${data.maNCC}</p>
+                            </div>
+
+                            <div class="space-y-1 relative">
+                                <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Tên nhà cung cấp</p>
+                                <p class="text-2xl font-black text-gray-900">${data.tenNCC}</p>
+                            </div>
+
+                            <div class="space-y-1 relative col-span-1 md:col-span-2 pb-8 border-b border-gray-50">
+                                <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Địa chỉ</p>
+                                <p class="text-xl font-bold text-gray-700 leading-relaxed">${data.diaChi || 'Chưa cập nhật'}</p>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-2xl bg-green-50 text-green-500 flex items-center justify-center text-xl shadow-sm"><i class="fas fa-phone-alt"></i></div>
+                                    <div class="space-y-1">
+                                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Số điện thoại</p>
+                                        <p class="text-lg font-black text-gray-800 tracking-wider">${data.soDienThoai}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center text-xl shadow-sm"><i class="fas fa-envelope"></i></div>
+                                    <div class="space-y-1">
+                                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Email liên hệ</p>
+                                        <p class="text-lg font-black text-gray-800">${data.email || 'Chưa cập nhật'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                switchView('supplierDetailView');
             });
         }
 
+        function saveSupplier() {
+            const data = {
+                maNCC: document.getElementById('formMaNCC').value,
+                tenNCC: document.getElementById('formTenNCC').value.trim(),
+                diaChi: document.getElementById('formDiaChi').value.trim(),
+                soDienThoai: document.getElementById('formSoDienThoai').value.trim(),
+                email: document.getElementById('formEmail').value.trim()
+            };
+
+            if (!data.tenNCC || !data.soDienThoai) {
+                alert('Vui lòng nhập đầy đủ các trường bắt buộc (*)');
+                return;
+            }
+
+            fetch(window.location.href, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.status === 'success') {
+                    alert(result.message);
+                    location.reload();
+                } else {
+                    alert('Lỗi: ' + result.message);
+                }
+            })
+            .catch(err => alert('Lỗi hệ thống: ' + err.message));
+        }
+
         function deleteSupplier(code) {
-            if(confirm(`Bạn có chắc chắn muốn xóa nhà cung cấp ${code}?`)) {
+            if (confirm(`Xác nhận xóa nhà cung cấp ${code}? Hành động này không thể hoàn tác.`)) {
                 fetch(window.location.href, {
                     method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrftoken
-                    },
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
                     body: JSON.stringify({ maNCC: code })
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        alert(data.message);
-                        window.location.reload();
+                .then(res => res.json())
+                .then(result => {
+                    if (result.status === 'success') {
+                        location.reload();
                     } else {
-                        alert('Lá»—i: ' + data.message);
+                        alert('Lỗi: ' + result.message);
                     }
-                })
-                .catch(error => {
-                    alert('Lỗi khi xóa dữ liệu: ' + error);
                 });
             }
         }
 
         function filterSuppliers() {
             const kw = document.getElementById('searchInput').value.toLowerCase();
-            const rows = document.querySelectorAll('.supplier-row');
-
-            rows.forEach(row => {
+            document.querySelectorAll('.supplier-row').forEach(row => {
                 const text = row.textContent.toLowerCase();
-                if (text.includes(kw)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
+                row.style.display = text.includes(kw) ? '' : 'none';
             });
         }
     </script>
 </body>
+
 </html>

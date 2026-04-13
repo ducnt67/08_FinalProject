@@ -301,13 +301,13 @@ class XuatKho(models.Model):
     maPhieuXuat = models.CharField(max_length=50, primary_key=True)
     ngayXuat = models.DateTimeField()
     noiXuat = models.CharField(max_length=255)
-    trangThai = models.IntegerField()
+    trangThai = models.IntegerField(default=0, choices=[(0, 'Nháp'), (1, 'Hoàn thành'), (-1, 'Đã hủy')])
 
     class Meta:
         constraints = [
             models.CheckConstraint(
-                check=Q(trangThai__gte=0),
-                name='xk_trangThai_gte_0'
+                check=Q(trangThai__gte=-1),
+                name='xk_trangThai_gte_minus_1'
             ),
         ]
 

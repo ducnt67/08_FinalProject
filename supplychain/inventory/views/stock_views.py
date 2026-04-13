@@ -1,4 +1,4 @@
-﻿import json
+import json
 from decimal import Decimal
 
 from django.http import JsonResponse
@@ -378,7 +378,7 @@ def xuatkho(request):
             trangThai = int(data.get('trangThai', 0)) # Mac dinh la Nhap (0)
             items = data.get('items', [])
 
-            if not items:
+            if not items and trangThai != -1:
                 return JsonResponse({'status': 'error', 'message': 'Phiếu xuất phải có ít nhất 1 sản phẩm.'}, status=400)
 
             if not maPhieuXuat:
@@ -437,7 +437,13 @@ def xuatkho(request):
                     if tonkho_obj.soluongTon < 0: tonkho_obj.soluongTon = 0
                     tonkho_obj.save()
 
-            msg = "Đã lưu nháp phiếu xuất!" if trangThai == 0 else "Đã xuất kho thành công!"
+            if trangThai == 1:
+                msg = "Đã xuất kho thành công!"
+            elif trangThai == -1:
+                msg = "Đã hủy phiếu xuất!"
+            else:
+                msg = "Đã lưu nháp phiếu xuất!"
+
             return JsonResponse({'status': 'success', 'message': msg, 'maPhieuXuat': export_record.maPhieuXuat})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)

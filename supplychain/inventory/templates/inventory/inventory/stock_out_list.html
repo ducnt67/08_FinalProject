@@ -33,6 +33,24 @@
         .view-section.active { display: block; }
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
         .modal-content { background-color: #fefefe; margin: 5% auto; padding: 0; border: 1px solid #888; width: 80%; max-width: 900px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        
+        .modal-overlay { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.45); display: none; align-items: center; justify-content: center; padding: 24px; z-index: 999; }
+        .modal-overlay.active { display: flex; }
+        .detail-modal { width: min(800px, 100%); max-height: 90vh; overflow-y: auto; background: #fff; border-radius: 16px; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2); }
+        .detail-modal-header { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: #fff; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .detail-modal-close { background: none; border: none; color: white; font-size: 24px; cursor: pointer; transition: 0.2s; }
+        .detail-modal-close:hover { transform: scale(1.1); }
+        .detail-modal-body { padding: 24px; }
+
+        .autocomplete-wrapper { position: relative; width: 100%; }
+        .autocomplete-wrapper .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            margin-top: 4px;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -47,8 +65,9 @@
         </div>
 
         <div class="content-body p-8">
+            <!-- View 1: Danh sách phiếu xuất -->
             <div id="exportListView" class="view-section active">
-                <div class="bg-white rounded-b-xl shadow-sm border border-gray-100 p-6">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <div class="flex flex-nowrap gap-3 items-center justify-between mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
                         <div class="flex flex-nowrap gap-3 flex-1 items-center">
                             <div class="frm-search-box">
@@ -65,8 +84,8 @@
                                 <i class="fa-solid fa-rotate"></i> Làm mới
                             </button>
                         </div>
-                        <button type="button" onclick="openCreateExport()" class="bg-primary hover:bg-red-700 text-white px-4 py-2 whitespace-nowrap rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shadow-md">
-                            <i class="fa-solid fa-plus"></i> TẠO PHIẾU XUẤT
+                        <button type="button" onclick="openCreateExport()" class="bg-primary hover:bg-red-700 text-white px-6 py-2.5 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shadow-md">
+                            <i class="fa-solid fa-plus text-xs"></i> TẠO PHIẾU XUẤT KHO
                         </button>
                     </div>
 
@@ -77,6 +96,7 @@
                                     <th class="py-4 px-4 font-bold text-sm text-gray-800 uppercase tracking-wide">STT</th>
                                     <th class="py-4 px-4 font-bold text-sm text-gray-800 uppercase tracking-wide">Mã Phiếu</th>
                                     <th class="py-4 px-4 font-bold text-sm text-gray-800 uppercase tracking-wide">Ngày Xuất</th>
+                                    <th class="py-4 px-4 font-bold text-sm text-gray-800 uppercase tracking-wide">Người Xuất</th>
                                     <th class="py-4 px-4 font-bold text-sm text-gray-800 uppercase tracking-wide">Nơi Nhận</th>
                                     <th class="py-4 px-4 font-bold text-sm text-gray-800 uppercase tracking-wide text-center">Trạng Thái</th>
                                     <th class="py-4 px-4 font-bold text-sm text-gray-800 uppercase tracking-wide text-center">Thao tác</th>
@@ -88,6 +108,7 @@
                                     <td class="py-4 px-4 text-gray-500 text-center col-index font-bold">{{ forloop.counter }}</td>
                                     <td class="py-4 px-4 font-semibold text-gray-800">{{ record.maPhieuXuat }}</td>
                                     <td class="py-4 px-4 text-gray-600">{{ record.ngayXuat|date:"d/m/Y H:i" }}</td>
+                                    <td class="py-4 px-4 text-gray-600 font-medium">{{ user.get_full_name|default:user.username|default:"Admin" }}</td>
                                     <td class="py-4 px-4 text-gray-600">{{ record.noiXuat }}</td>
                                     <td class="py-4 px-4 text-center">
                                         {% if record.trangThai == 1 %}
@@ -116,7 +137,7 @@
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="6" class="text-center py-10 text-gray-500">Không có phiếu xuất kho nào</td>
+                                    <td colspan="7" class="text-center py-10 text-gray-500">Không có phiếu xuất kho nào</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -124,126 +145,164 @@
                     </div>
                 </div>
             </div>
+
+            <!-- View 2: Tạo/Sửa Phiếu Xuất -->
+            <div id="exportCreateView" class="view-section">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 id="createViewTitle" class="text-2xl font-bold text-gray-800 uppercase tracking-tight">TẠO PHIẾU XUẤT KHO</h2>
+                        <p class="text-sm text-gray-500 mt-1">Xuất kho hàng hóa đến các chi nhánh, đại lý hoặc khách hàng</p>
+                    </div>
+                    <button onclick="switchView('exportListView')" class="px-5 py-2.5 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-bold transition-all flex items-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-arrow-left text-xs"></i> QUAY LẠI
+                    </button>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Phần Thông tin chung (Nằm ngang) -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <h3 class="font-bold text-gray-800 mb-6 flex items-center gap-2 border-b pb-4">
+                            <i class="fa-solid fa-info-circle text-primary"></i> THÔNG TIN CHUNG
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <input type="hidden" id="modalTrangThai" value="0">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Mã Phiếu (Tự động)</label>
+                                <input type="text" id="modalMaPhieu" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 bg-gray-50 text-gray-500 font-semibold outline-none" readonly placeholder="PXK-YYYYMMDD-XXX">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Ngày Xuất Kho <span class="text-primary">*</span></label>
+                                <input type="datetime-local" id="modalNgayXuat" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-1 focus:ring-primary outline-none font-medium">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Người Xuất Kho</label>
+                                <input type="text" id="modalNguoiXuat" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 bg-gray-50 text-gray-500 font-semibold outline-none" readonly value="{{ user.get_full_name|default:user.username|default:'Admin' }}">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Nơi Nhận Hàng <span class="text-primary">*</span></label>
+                                <input type="text" id="modalNoiXuat" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-1 focus:ring-primary outline-none font-medium" placeholder="Ví dụ: Chi nhánh 1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Phần Danh sách sản phẩm -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                            <h3 class="font-bold text-gray-800 flex items-center gap-2">
+                                <i class="fa-solid fa-box-open text-primary"></i> DANH SÁCH SẢN PHẨM
+                            </h3>
+                            
+                            <div class="w-full md:w-96">
+                                <div class="autocomplete-wrapper">
+                                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                    <input type="text" id="productSearchInput" class="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-1 focus:ring-primary outline-none shadow-sm font-medium" placeholder="Tìm và thêm sản phẩm...">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border border-gray-100 rounded-xl overflow-hidden mb-6">
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-50 text-gray-600 border-b">
+                                    <tr>
+                                        <th class="py-4 px-4 text-left font-bold uppercase tracking-wider">Sản phẩm</th>
+                                        <th class="py-4 px-4 text-center w-28 font-bold uppercase tracking-wider">ĐVT</th>
+                                        <th class="py-4 px-4 text-center w-28 font-bold uppercase tracking-wider">Tồn kho</th>
+                                        <th class="py-4 px-4 text-center w-36 font-bold uppercase tracking-wider">Số lượng xuất</th>
+                                        <th class="py-4 px-4 text-center w-20"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modalProductBody" class="divide-y divide-gray-50">
+                                    <!-- Products will be rendered here -->
+                                </tbody>
+                            </table>
+                            <div id="noProductsMsg" class="p-16 text-center text-gray-400 italic">
+                                Chưa có sản phẩm nào được chọn
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row justify-between items-center gap-6 pt-6 border-t border-gray-100">
+                            <div class="bg-gray-50 rounded-lg px-6 py-3 border border-gray-100 flex items-center gap-4">
+                                <div class="text-gray-500 text-sm">Tổng cộng: <strong id="totalItemCount" class="text-gray-900 text-xl font-black">0</strong> <span class="text-xs uppercase font-bold">sản phẩm</span></div>
+                                <div class="h-4 w-px bg-gray-300"></div>
+                                <button type="button" onclick="selectedProducts = []; renderSelectedProducts();" class="text-red-500 text-xs font-bold hover:text-red-700 transition-colors">
+                                    <i class="fa-solid fa-trash-can mr-1"></i> XÓA TẤT CẢ
+                                </button>
+                            </div>
+
+                            <div class="flex gap-3 w-full md:w-auto">
+                                <button type="button" id="btnHuyPhieu" onclick="saveExport(-1)" class="flex-1 md:flex-none px-6 py-3 bg-red-50 text-red-600 border border-red-100 rounded-xl font-bold hover:bg-red-100 transition-all hidden">
+                                    HỦY PHIẾU
+                                </button>
+                                <button type="button" id="btnLuuNhap" onclick="saveExport(0)" class="flex-1 md:flex-none px-8 py-3 bg-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-300 transition-all">
+                                    LƯU NHÁP
+                                </button>
+                                <button type="button" id="btnHoanThanh" onclick="saveExport(1)" class="flex-1 md:flex-none px-10 py-3 bg-primary text-white rounded-xl font-bold hover:bg-red-700 shadow-md transition-all flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-check"></i> HOÀN THÀNH
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View 3: Chi Tiết Phiếu Xuất -->
+            <div id="exportDetailView" class="view-section">
+                <div class="flex justify-between items-center mb-6 print:hidden">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800 uppercase tracking-tight">CHI TIẾT PHIẾU XUẤT KHO</h2>
+                        <p class="text-sm text-gray-500 mt-1">Thông tin chi tiết về phiếu xuất kho và danh sách hàng hóa</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="window.print()" class="px-5 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg font-bold transition-all flex items-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-print text-sm"></i> IN PHIẾU
+                        </button>
+                        <button onclick="switchView('exportListView')" class="px-5 py-2.5 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-bold transition-all flex items-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-arrow-left text-xs"></i> QUAY LẠI
+                        </button>
+                    </div>
+                </div>
+
+                <div id="detailViewContent" class="space-y-6">
+                    <!-- Content injected via JS -->
+                </div>
+
+                <div class="mt-8 flex justify-end gap-3 pt-6 border-t border-gray-100 print:hidden">
+                    <button type="button" onclick="switchView('exportListView')" class="px-8 py-3 bg-gray-800 text-white rounded-xl font-bold hover:bg-black transition-all shadow-md">
+                        ĐÓNG & QUAY LẠI
+                    </button>
+                </div>
+            </div>
         </div>
   </main>
 
-  <!-- Modal Tạo/Sửa Phiếu Xuất -->
-  <div id="exportModal" class="modal">
-    <div class="modal-content overflow-hidden">
-        <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
-            <h2 id="modalTitle" class="text-lg font-bold text-gray-800">TẠO PHIẾU XUẤT KHO</h2>
-            <button type="button" onclick="closeModal()" class="text-gray-500 hover:text-gray-700"><i class="fa-solid fa-times text-xl"></i></button>
-        </div>
-        <div class="p-6">
-            <input type="hidden" id="modalTrangThai" value="0">
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Mã Phiếu (Tự động)</label>
-                    <input type="text" id="modalMaPhieu" class="w-full border rounded-lg px-3 py-2 bg-gray-50" readonly placeholder="PXK-YYYYMMDD-XXX">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Ngày Xuất</label>
-                    <input type="datetime-local" id="modalNgayXuat" class="w-full border rounded-lg px-3 py-2">
-                </div>
-                <div class="col-span-2">
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Nơi Nhận</label>
-                    <input type="text" id="modalNoiXuat" class="w-full border rounded-lg px-3 py-2" placeholder="Ví dụ: Cửa hàng Chi nhánh 1">
-                </div>
-            </div>
 
-            <div class="border rounded-lg overflow-hidden mb-4">
-                <div class="bg-gray-50 p-3 border-b flex justify-between items-center">
-                    <span class="font-bold text-sm text-gray-700">DANH SÁCH SẢN PHẨM</span>
-                    <button type="button" onclick="openProductSelector()" class="text-primary text-xs font-bold hover:underline">
-                        <i class="fa-solid fa-plus"></i> THÊM SẢN PHẨM
-                    </button>
-                </div>
-                <table class="w-full text-sm">
-                    <thead class="bg-gray-100 text-gray-600">
-                        <tr>
-                            <th class="p-2 text-left">Sản phẩm</th>
-                            <th class="p-2 text-center w-24">ĐVT</th>
-                            <th class="p-2 text-center w-32">Số lượng</th>
-                            <th class="p-2 text-center w-16"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="modalProductBody"></tbody>
-                </table>
-            </div>
 
-            <div class="flex justify-end gap-3 mt-6">
-                <button type="button" onclick="closeModal()" class="px-6 py-2 border rounded-lg text-gray-700 font-bold hover:bg-gray-50">Hủy</button>
-                <button type="button" id="btnHuyPhieu" onclick="saveExport(-1)" class="px-6 py-2 bg-red-100 text-red-600 rounded-lg font-bold hover:bg-red-200 hidden">HỦY PHIẾU</button>
-                <button type="button" id="btnLuuNhap" onclick="saveExport(0)" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300">LƯU NHÁP</button>
-                <button type="button" id="btnHoanThanh" onclick="saveExport(1)" class="px-6 py-2 bg-primary text-white rounded-lg font-bold hover:bg-red-700 shadow-md">HOÀN THÀNH</button>
-            </div>
-        </div>
-    </div>
-  </div>
-
-  <!-- Modal Chọn Sản Phẩm -->
-  <div id="productSelectorModal" class="modal" style="z-index: 1100;">
-    <div class="modal-content max-w-2xl">
-        <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
-            <h3 class="font-bold">CHỌN SẢN PHẨM</h3>
-            <button type="button" onclick="closeProductSelector()" class="text-gray-500"><i class="fa-solid fa-times"></i></button>
-        </div>
-        <div class="p-4">
-            <div class="mb-4">
-                <input type="text" id="productSearch" onkeyup="filterProducts()" placeholder="Tìm tên hoặc mã sản phẩm..." class="w-full border rounded-lg px-3 py-2">
-            </div>
-            <div class="max-h-96 overflow-y-auto border rounded-lg">
-                <table class="w-full text-sm">
-                    <thead class="sticky top-0 bg-gray-50 shadow-sm">
-                        <tr class="text-gray-600 border-b">
-                            <th class="p-3 text-left">Sản phẩm</th>
-                            <th class="p-3 text-right">Tồn kho</th>
-                            <th class="p-3 text-center">Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody id="productSelectBody">
-                        {% for p in products %}
-                        <tr class="border-b hover:bg-gray-50 product-row" data-name="{{ p.tenSP }}" data-code="{{ p.maSP }}">
-                            <td class="p-3">
-                                <div class="font-semibold">{{ p.tenSP }}</div>
-                                <div class="text-xs text-gray-500">{{ p.maSP }}</div>
-                            </td>
-                            <td class="p-3 text-right font-bold text-gray-700">{{ p.tonkho.soluongTon }}</td>
-                            <td class="p-3 text-center">
-                                <button type="button" onclick="addProductToExport('{{ p.maSP }}', '{{ p.tenSP }}', '{{ p.donViTinh }}')" class="bg-blue-50 text-blue-600 px-3 py-1 rounded-md font-bold hover:bg-blue-100 text-xs">Chọn</button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-  </div>
-
-  <!-- Modal Chi Tiết -->
-  <div id="detailModal" class="modal">
-    <div class="modal-content max-w-3xl">
-        <div class="p-4 border-b bg-red-600 text-white flex justify-between items-center rounded-t-lg">
-            <h2 class="text-lg font-bold">CHI TIẾT PHIẾU XUẤT KHO</h2>
-            <button type="button" onclick="closeDetailModal()" class="hover:text-gray-200"><i class="fa-solid fa-times text-xl"></i></button>
-        </div>
-        <div class="p-6" id="detailContent"></div>
-        <div class="p-4 border-t bg-gray-50 flex justify-end gap-3 rounded-b-lg">
-            <button type="button" onclick="window.print()" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 font-bold hover:bg-gray-100 flex items-center gap-2">
-                <i class="fa-solid fa-print"></i> In phiếu
-            </button>
-            <button type="button" onclick="closeDetailModal()" class="px-6 py-2 bg-gray-800 text-white rounded-lg font-bold hover:bg-black">Đóng</button>
-        </div>
-    </div>
-  </div>
+  <script src="{% static 'js/0.0.app.js' %}"></script>
 
   <script>
     let selectedProducts = [];
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    // Data cho autocomplete
+    const productCatalog = [
+        {% for p in products %}
+        { 
+            maSP: "{{ p.maSP }}", 
+            tenSP: "{{ p.tenSP }}", 
+            donViTinh: "{{ p.donViTinh }}",
+            tonKho: {{ p.tonkho.soluongTon|default:0 }}
+        },
+        {% endfor %}
+    ];
+
+    function switchView(viewId) {
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+        document.getElementById(viewId).classList.add('active');
+        window.scrollTo(0, 0);
+    }
 
     function openCreateExport() {
-        document.getElementById('modalTitle').innerText = 'TẠO PHIẾU XUẤT KHO';
+        document.getElementById('createViewTitle').innerText = 'TẠO PHIẾU XUẤT KHO';
         document.getElementById('modalMaPhieu').value = '';
         document.getElementById('modalNgayXuat').value = new Date().toISOString().slice(0, 16);
         document.getElementById('modalNoiXuat').value = '';
@@ -251,26 +310,13 @@
         document.getElementById('btnHuyPhieu').classList.add('hidden');
         selectedProducts = [];
         renderSelectedProducts();
-        document.getElementById('exportModal').style.display = 'block';
+        switchView('exportCreateView');
     }
 
-    function closeModal() { document.getElementById('exportModal').style.display = 'none'; }
-    function openProductSelector() { document.getElementById('productSelectorModal').style.display = 'block'; }
-    function closeProductSelector() { document.getElementById('productSelectorModal').style.display = 'none'; }
-
-    function filterProducts() {
-        let input = document.getElementById('productSearch').value.toLowerCase();
-        document.querySelectorAll('.product-row').forEach(row => {
-            let matches = row.dataset.name.toLowerCase().includes(input) || row.dataset.code.toLowerCase().includes(input);
-            row.style.display = matches ? '' : 'none';
-        });
-    }
-
-    function addProductToExport(code, name, unit) {
+    function addProductToExport(code, name, unit, stock) {
         if (selectedProducts.find(p => p.maSP === code)) { alert('Sản phẩm đã có trong danh sách!'); return; }
-        selectedProducts.push({ maSP: code, tenSP: name, donViTinh: unit, qty: 1 });
+        selectedProducts.push({ maSP: code, tenSP: name, donViTinh: unit, tonKho: stock, qty: 1 });
         renderSelectedProducts();
-        closeProductSelector();
     }
 
     function removeProduct(code) {
@@ -280,74 +326,191 @@
 
     function updateQty(code, val) {
         let p = selectedProducts.find(p => p.maSP === code);
-        if (p) p.qty = parseInt(val) || 1;
+        if (p) {
+            let newVal = parseInt(val) || 1;
+            if (newVal > p.tonKho) {
+                alert(`Số lượng xuất (${newVal}) vượt quá tồn kho (${p.tonKho})!`);
+                // document.getElementById(`qty_input_${code}`).value = p.tonKho; // Optional: auto-adjust
+            }
+            p.qty = newVal;
+        }
+        document.getElementById('totalItemCount').innerText = selectedProducts.reduce((sum, p) => sum + p.qty, 0);
     }
 
     function renderSelectedProducts() {
         let html = '';
         selectedProducts.forEach(p => {
-            html += `<tr class="border-b"><td class="p-2"><div class="font-bold text-gray-800">${p.tenSP}</div><div class="text-[11px] text-gray-500">${p.maSP}</div></td><td class="p-2 text-center text-gray-600">${p.donViTinh}</td><td class="p-2 text-center"><input type="number" value="${p.qty}" min="1" onchange="updateQty('${p.maSP}', this.value)" class="w-20 border rounded px-2 py-1 text-center"></td><td class="p-2 text-center"><button type="button" onclick="removeProduct('${p.maSP}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+            html += `
+                <tr class="hover:bg-gray-50 border-b border-gray-50">
+                    <td class="py-4 px-4">
+                        <div class="font-bold text-gray-800">${p.tenSP}</div>
+                        <div class="text-[11px] text-gray-500 font-medium">${p.maSP}</div>
+                    </td>
+                    <td class="py-4 px-4 text-center text-gray-600 font-medium">${p.donViTinh}</td>
+                    <td class="py-4 px-4 text-center">
+                        <span class="inline-flex px-2 py-1 rounded-md bg-blue-50 text-blue-700 font-bold text-xs border border-blue-100">${p.tonKho}</span>
+                    </td>
+                    <td class="py-4 px-4 text-center">
+                        <div class="flex items-center justify-center gap-2">
+                             <input type="number" id="qty_input_${p.maSP}" value="${p.qty}" min="1" onchange="updateQty('${p.maSP}', this.value)" class="w-24 border border-gray-200 rounded-lg px-3 py-1.5 text-center font-bold text-gray-800 focus:ring-1 focus:ring-primary outline-none">
+                        </div>
+                    </td>
+                    <td class="py-4 px-4 text-center">
+                        <button type="button" onclick="removeProduct('${p.maSP}')" class="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-all">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                </tr>`;
         });
-        document.getElementById('modalProductBody').innerHTML = html || '<tr><td colspan="4" class="p-4 text-center text-gray-400 italic">Chưa có sản phẩm nào</td></tr>';
+        document.getElementById('modalProductBody').innerHTML = html;
+        document.getElementById('noProductsMsg').style.display = html ? 'none' : 'block';
+        document.getElementById('totalItemCount').innerText = selectedProducts.reduce((sum, p) => sum + p.qty, 0);
     }
 
     function saveExport(forceStatus = null) {
-        let trangThai = forceStatus !== null ? forceStatus : document.getElementById('modalTrangThai').value;
+        // 1. Thu thập dữ liệu
+        const maPhieu = document.getElementById('modalMaPhieu').value;
         const noiXuat = document.getElementById('modalNoiXuat').value;
+        const ngayXuat = document.getElementById('modalNgayXuat').value;
+        let trangThai = forceStatus !== null ? forceStatus : document.getElementById('modalTrangThai').value;
+
+        // 2. Kiểm tra nghiệp vụ
+        if (!ngayXuat) { alert('Vui lòng chọn ngày xuất!'); return; }
         if (!noiXuat) { alert('Vui lòng nhập nơi nhận!'); return; }
-        if (selectedProducts.length === 0) { alert('Vui lòng chọn ít nhất 1 sản phẩm!'); return; }
 
-        if (trangThai == -1 && !confirm('Xác nhận hủy phiếu xuất này?')) return;
+        if (trangThai != -1 && selectedProducts.length === 0) {
+            alert('Vui lòng chọn ít nhất 1 sản phẩm!');
+            return;
+        }
 
-        const data = {
-            maPhieuXuat: document.getElementById('modalMaPhieu').value,
-            ngayXuat: document.getElementById('modalNgayXuat').value,
+        // 3. Chuẩn bị dữ liệu gửi đi
+        const payload = {
+            maPhieuXuat: maPhieu,
+            ngayXuat: ngayXuat,
             noiXuat: noiXuat,
-            trangThai: trangThai,
+            trangThai: parseInt(trangThai),
             items: selectedProducts
         };
 
+        // 4. Gửi yêu cầu
         fetch("{% url 'inventory:xuatkho' %}", {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-            body: JSON.stringify(data)
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken 
+            },
+            body: JSON.stringify(payload)
         })
         .then(res => res.json())
-        .then(result => {
-            if (result.status === 'success') { alert(result.message); location.reload(); }
-            else { alert('Lỗi: ' + result.message); }
+        .then(data => {
+            if (data.status === 'success') {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Lỗi: ' + data.message);
+            }
         })
-        .catch(err => alert('Lỗi hệ thống: ' + err));
+        .catch(err => {
+            console.error('Fetch error:', err);
+            alert('Lỗi hệ thống: ' + err.message);
+        });
     }
 
     function viewExportDetail(maPhieu) {
         fetch(`{% url 'inventory:xuatkho' %}?maPhieuXuat=${maPhieu}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(res => res.json())
         .then(data => {
-            let itemsHtml = data.items.map((item, i) => `<tr class="border-b"><td class="py-2 px-3 text-center">${i + 1}</td><td class="py-2 px-3"><div class="font-bold">${item.tenSP}</div><div class="text-xs text-gray-500">${item.maSP}</div></td><td class="py-2 px-3 text-center">${item.donViTinh}</td><td class="py-2 px-3 text-center font-bold">${item.qty}</td></tr>`).join('');
-            document.getElementById('detailContent').innerHTML = `<div class="grid grid-cols-2 gap-6 mb-8"><div><p class="text-xs font-bold text-gray-400 uppercase mb-1">Mã phiếu xuất</p><p class="text-lg font-bold text-red-600">${data.maPhieuXuat}</p></div><div><p class="text-xs font-bold text-gray-400 uppercase mb-1">Trạng thái</p><span class="px-3 py-1 rounded-full text-xs font-bold ${data.trangThaiClass}">${data.trangThaiDisplay}</span></div><div><p class="text-xs font-bold text-gray-400 uppercase mb-1">Ngày xuất kho</p><p class="font-semibold text-gray-700">${data.ngayXuatDisplay}</p></div><div><p class="text-xs font-bold text-gray-400 uppercase mb-1">Nơi nhận</p><p class="font-semibold text-gray-700">${data.noiXuat}</p></div></div><div class="border rounded-lg overflow-hidden"><table class="w-full text-sm"><thead class="bg-gray-50 border-b"><tr><th class="py-3 px-3 text-center font-bold text-gray-600">STT</th><th class="py-3 px-3 text-left font-bold text-gray-600">Sản phẩm</th><th class="py-3 px-3 text-center font-bold text-gray-600">ĐVT</th><th class="py-3 px-3 text-center font-bold text-gray-600">Số lượng</th></tr></thead><tbody>${itemsHtml}</tbody></table></div>`;
-            document.getElementById('detailModal').style.display = 'block';
+            let itemsHtml = data.items.map((item, i) => `
+                <tr class="border-b border-gray-50 hover:bg-gray-50/30 transition-colors">
+                    <td class="py-4 px-4 text-center text-gray-400 font-bold">${i + 1}</td>
+                    <td class="py-4 px-4">
+                        <div class="font-extrabold text-gray-800">${item.tenSP}</div>
+                        <div class="text-xs text-gray-400 font-bold mt-0.5">${item.maSP}</div>
+                    </td>
+                    <td class="py-4 px-4 text-center text-gray-600 font-medium">${item.donViTinh}</td>
+                    <td class="py-4 px-4 text-center text-gray-900 font-black text-base">${item.qty}</td>
+                </tr>`).join('');
+            
+            document.getElementById('detailViewContent').innerHTML = `
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                    <h3 class="font-black text-gray-800 mb-8 flex items-center gap-3 border-b border-gray-50 pb-5">
+                        <i class="fa-solid fa-circle-info text-blue-500"></i> THÔNG TIN PHIẾU XUẤT
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-10">
+                        <div class="space-y-1">
+                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Mã phiếu xuất</p>
+                            <p class="text-xl font-black text-red-600 tabular-nums">${data.maPhieuXuat}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Trạng thái</p>
+                            <div>
+                                <span class="inline-flex px-4 py-1.5 rounded-full text-[11px] font-black ${data.trangThaiClass} border border-current">
+                                    ${data.trangThaiDisplay.toUpperCase()}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Ngày xuất kho</p>
+                            <p class="font-bold text-gray-700 text-base">${data.ngayXuatDisplay}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Người thực hiện</p>
+                            <p class="font-bold text-gray-700 text-base px-3 py-1 bg-gray-50 rounded-lg inline-block">Admin</p>
+                        </div>
+                        <div class="col-span-2 md:col-span-4 space-y-1 pt-4 border-t border-gray-50">
+                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Nơi nhận hàng</p>
+                            <p class="font-black text-gray-900 text-lg">${data.noiXuat}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                    <h3 class="font-black text-gray-800 mb-6 flex items-center gap-3">
+                        <i class="fa-solid fa-boxes-stacked text-blue-500"></i> DANH SÁCH HÀNG HÓA
+                    </h3>
+                    <div class="border border-gray-50 rounded-2xl overflow-hidden">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50/50 text-gray-500 border-b border-gray-50">
+                                <tr>
+                                    <th class="py-4 px-4 text-center font-black uppercase tracking-widest text-[10px]">#</th>
+                                    <th class="py-4 px-4 text-left font-black uppercase tracking-widest text-[10px]">Sản phẩm</th>
+                                    <th class="py-4 px-4 text-center font-black uppercase tracking-widest text-[10px]">Đơn vị</th>
+                                    <th class="py-4 px-4 text-center font-black uppercase tracking-widest text-[10px]">Số lượng</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                ${itemsHtml}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>`;
+            switchView('exportDetailView');
         });
     }
-
-    function closeDetailModal() { document.getElementById('detailModal').style.display = 'none'; }
 
     function editExport(maPhieu) {
         fetch(`{% url 'inventory:xuatkho' %}?maPhieuXuat=${maPhieu}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(res => res.json())
         .then(data => {
-            document.getElementById('modalTitle').innerText = 'CHỈNH SỬA PHIẾU XUẤT';
+            document.getElementById('createViewTitle').innerText = 'CHỈNH SỬA PHIẾU XUẤT';
             document.getElementById('modalMaPhieu').value = data.maPhieuXuat;
             document.getElementById('modalNgayXuat').value = data.ngayXuat;
             document.getElementById('modalNoiXuat').value = data.noiXuat;
             document.getElementById('modalTrangThai').value = data.trangThai;
 
-            // Hiện nút Hủy phiếu khi đang chỉnh sửa phiếu nháp
             document.getElementById('btnHuyPhieu').classList.remove('hidden');
 
-            selectedProducts = data.items;
+            // Map loaded items to catalog to get current stock
+            selectedProducts = data.items.map(item => {
+                let catalogProd = productCatalog.find(p => p.maSP === item.maSP);
+                return {
+                    ...item,
+                    tonKho: catalogProd ? catalogProd.tonKho : 0
+                };
+            });
+            
             renderSelectedProducts();
-            document.getElementById('exportModal').style.display = 'block';
+            switchView('exportCreateView');
         });
     }
 
@@ -373,6 +536,22 @@
     }
 
     function resetFilters() { document.getElementById('exportSearchInput').value = ''; document.getElementById('exportStatusFilter').value = 'all'; filterTable(); }
+
+    // Init Autocomplete
+    document.addEventListener('DOMContentLoaded', () => {
+        setupSearchAutocomplete(
+            'productSearchInput', 
+            (kw) => productCatalog.filter(p => p.tenSP.toLowerCase().includes(kw) || p.maSP.toLowerCase().includes(kw)),
+            (item, kw) => `
+                <div class="suggestion-title font-bold text-gray-800">${item.tenSP}</div>
+                <div class="suggestion-meta text-xs text-gray-500 uppercase font-medium">Mã: ${item.maSP} | Tồn: <span class="text-primary font-bold">${item.tonKho}</span> ${item.donViTinh}</div>
+            `,
+            (item, input) => {
+                addProductToExport(item.maSP, item.tenSP, item.donViTinh, item.tonKho);
+                input.value = '';
+            }
+        );
+    });
   </script>
 </body>
 </html>
