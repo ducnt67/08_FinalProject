@@ -9,7 +9,8 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap"
+          rel="stylesheet">
 
     <link rel="stylesheet" href="{% static 'css/0.0.style.css' %}">
 
@@ -55,496 +56,621 @@
 </head>
 <body>
 
-  <nav class="sidebar" id="sidebar-container">
+<nav class="sidebar" id="sidebar-container">
     {% include 'partials/sidebar.html' %}
-  </nav>
+</nav>
 
-  <main class="main-content">
-        <div class="content-header">
-            <h1>QUẢN LÝ SẢN PHẨM</h1>
-        </div>
+<main class="main-content">
+    <div class="content-header">
+        <h1>QUẢN LÝ SẢN PHẨM</h1>
+    </div>
 
-        <div class="content-body" style="padding-top: 20px;">
-            
-            <div class="content-block" style="margin-bottom: 15px; padding: 20px;">
-                <div class="row align-items-end">
-                    <div class="col-md-3">
-                        <div class="frm-search-box"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Tên, mã SP..." oninput="filterProducts()" onkeyup="filterProducts()"></div>
-                    </div>
-                    <div class="col-md-3">
-                        <select id="categoryFilter" class="frm-select" onchange="filterProducts()">
-                            <option value="all">Tất cả danh mục</option>
-                            {% for category in categories %}
-                            <option value="{{ category.maDanhMuc }}">{{ category.tenDanhMuc }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <select id="statusFilter" class="frm-select" onchange="filterProducts()">
-                            <option value="all">Tất cả</option>
-                            <option value="1">Đang bán</option>
-                            <option value="0">Ngừng bán</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3 d-flex justify-content-end gap-2">
-                        <button class="btn-search" style="padding: 8px 10px; flex: 1; font-size: 0.85rem; white-space: nowrap;" onclick="filterProducts()">Lọc dữ liệu</button>
-                        <button class="btn-cancel" style="padding: 8px 10px; flex: 1; font-size: 0.85rem; margin: 0; white-space: nowrap;" onclick="resetFilters()">Làm mới</button>
-                        <button class="btn-add" onclick="openProductModal('create')" style="padding: 8px 10px; flex: 1; font-size: 0.85rem; white-space: nowrap;">
-                            <i class="fa-solid fa-plus"></i> Thêm
-                        </button>
-                    </div>
+    <div class="content-body" style="padding-top: 20px;">
+
+        <div class="content-block" style="margin-bottom: 15px; padding: 20px;">
+            <div class="row align-items-end">
+                <div class="col-md-3">
+                    <div class="frm-search-box"><i class="fas fa-search"></i><input type="text" id="searchInput"
+                                                                                    placeholder="Tên, mã SP..."
+                                                                                    oninput="filterProducts()"
+                                                                                    onkeyup="filterProducts()"></div>
+                </div>
+                <div class="col-md-3">
+                    <select id="categoryFilter" class="frm-select" onchange="filterProducts()">
+                        <option value="all">Tất cả danh mục</option>
+                        {% for category in categories %}
+                        <option value="{{ category.maDanhMuc }}">{{ category.tenDanhMuc }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select id="statusFilter" class="frm-select" onchange="filterProducts()">
+                        <option value="all">Tất cả</option>
+                        <option value="1">Đang bán</option>
+                        <option value="0">Ngừng bán</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex justify-content-end gap-2">
+                    <button class="btn-search"
+                            style="padding: 8px 10px; flex: 1; font-size: 0.85rem; white-space: nowrap;"
+                            onclick="filterProducts()">Lọc dữ liệu
+                    </button>
+                    <button class="btn-cancel"
+                            style="padding: 8px 10px; flex: 1; font-size: 0.85rem; margin: 0; white-space: nowrap;"
+                            onclick="resetFilters()">Làm mới
+                    </button>
+                    <button class="btn-add" onclick="openProductModal('create')"
+                            style="padding: 8px 10px; flex: 1; font-size: 0.85rem; white-space: nowrap;">
+                        <i class="fa-solid fa-plus"></i> Thêm
+                    </button>
                 </div>
             </div>
-
-            <div class="table-block" style="padding: 20px;">
-                <div class="table-wrapper">
-                    <table class="table-custom" id="productTable">
-                        <thead>
-                            <tr><th width="60" class="col-index text-center ">STT</th>
-                                <th width="60" class="col-index">Mã</th>
-                                <th style="min-width: 200px;">Tên sản phẩm</th>
-                                <th style="min-width: 120px;">Danh mục</th>
-                                <th>Giá bán</th>
-                                <th>Tồn kho tối thiểu</th>
-                                <th>ĐVT</th>
-                                <th>Trạng thái</th>
-                                <th class="action-cell" style="text-align: right; padding-right: 25px;">Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                            <tr id="noResultRow" class="hidden"><td colspan="9" class="text-center py-8 text-gray-500 italic">Không tìm thấy sản phẩm nào.</td></tr>
-                            {% for product in products %}
-                            <tr class="product-row" data-category="{{ product.danhMuc.maDanhMuc }}" data-status="{{ product.trangThai }}">
-                                <td class="col-index text-center font-bold">{{ forloop.counter }}</td>
-                                <td class="col-index sp-code">{{ product.maSP }}</td>
-                                <td><span class="product-name">{{ product.tenSP }}</span><span class="product-meta">{{ product.nhaCungCap.tenNCC }}</span></td>
-                                <td>{{ product.danhMuc.tenDanhMuc }}</td>
-                                <td class="price-text">{{ product.giaBan|floatformat:0|intcomma }} ₫</td>
-                                <td class="{% if product.tonkho.soluongTon > 50 %}stock-high{% elif product.tonkho.soluongTon == 0 %}stock-low{% else %}stock-med{% endif %}">{{ product.tonKhoToiThieu|default:0 }}</td>
-                                <td>{{ product.donViTinh }}</td>
-                                <td><span class="badge-pill-custom {% if product.trangThai == 1 %}badge-active{% else %}badge-inactive{% endif %}">{% if product.trangThai == 1 %}Đang bán{% else %}Ngừng bán{% endif %}</span></td>
-                                <td class="action-cell">
-                                    <button class="btn-icon icon-view" onclick="openProductModal('view', '{{ product.maSP }}')"><i class="fas fa-eye"></i></button>
-                                    <button class="btn-icon icon-edit" onclick="openProductModal('edit', '{{ product.maSP }}')"><i class="fas fa-edit"></i></button>
-                                    <button class="btn-icon icon-del" onclick="deleteProduct('{{ product.maSP }}')"><i class="fas fa-trash-alt"></i></button>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <div id="paginationControls" class="w-full mt-6"></div>
-            </div>
         </div>
-  </main>
 
-    <!-- UNIFIED PRODUCT MODAL -->
-    <div id="productModal" class="modal-overlay">
-        <div class="custom-popup-card" style="max-width: 800px; width: 90%;">
-            <div class="popup-header bg-[#dc2626]">
-                <h5 class="popup-title"><i class="fa-solid fa-box-open"></i> <span id="modalTitle">Thêm sản phẩm</span></h5>
-                <button type="button" class="btn-close-custom" onclick="closeProductModal()"><i class="fas fa-times"></i></button>
+        <div class="table-block" style="padding: 20px;">
+            <div class="table-wrapper">
+                <table class="table-custom" id="productTable">
+                    <thead>
+                    <tr>
+                        <th width="60" class="col-index text-center ">STT</th>
+                        <th width="60" class="col-index">Mã</th>
+                        <th style="min-width: 200px;">Tên sản phẩm</th>
+                        <th style="min-width: 120px;">Danh mục</th>
+                        <th>Giá bán</th>
+                        <th>Tồn kho tối thiểu</th>
+                        <th>ĐVT</th>
+                        <th>Trạng thái</th>
+                        <th class="action-cell" style="text-align: right; padding-right: 25px;">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                    <tr id="noResultRow" class="hidden">
+                        <td colspan="9" class="text-center py-8 text-gray-500 italic">Không tìm thấy sản phẩm nào.</td>
+                    </tr>
+                    {% for product in products %}
+                    <tr class="product-row" data-category="{{ product.danhMuc.maDanhMuc }}"
+                        data-status="{{ product.trangThai }}">
+                        <td class="col-index text-center font-bold">{{ forloop.counter }}</td>
+                        <td class="col-index sp-code">{{ product.maSP }}</td>
+                        <td><span class="product-name">{{ product.tenSP }}</span><span class="product-meta">{{ product.nhaCungCap.tenNCC }}</span>
+                        </td>
+                        <td>{{ product.danhMuc.tenDanhMuc }}</td>
+                        <td class="price-text">{{ product.giaBan|floatformat:0|intcomma }} ₫</td>
+                        <td class="{% if product.tonkho.soluongTon > 50 %}stock-high{% elif product.tonkho.soluongTon == 0 %}stock-low{% else %}stock-med{% endif %}">
+                            {{ product.tonKhoToiThieu|default:0 }}
+                        </td>
+                        <td>{{ product.donViTinh }}</td>
+                        <td><span
+                                class="badge-pill-custom {% if product.trangThai == 1 %}badge-active{% else %}badge-inactive{% endif %}">{% if product.trangThai == 1 %}Đang bán{% else %}Ngừng bán{% endif %}</span>
+                        </td>
+                        <td class="action-cell">
+                            <button class="btn-icon icon-view" onclick="openProductModal('view', '{{ product.maSP }}')">
+                                <i class="fas fa-eye"></i></button>
+                            <button class="btn-icon icon-edit" onclick="openProductModal('edit', '{{ product.maSP }}')">
+                                <i class="fas fa-edit"></i></button>
+                            <button class="btn-icon icon-del" onclick="deleteProduct('{{ product.maSP }}')"><i
+                                    class="fas fa-trash-alt"></i></button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
             </div>
-            <div class="popup-body p-6 bg-[#fcfcfc]" style="max-height: 75vh; overflow-y: auto;">
-                <form id="productForm">
-                    <div class="flex flex-col md:flex-row gap-6">
-                        <!-- Left Column (Photos) -->
-                        <div class="w-full md:w-[200px] flex-shrink-0 flex flex-col gap-4">
-                            <div id="photoUploadContainer">
-                                <label class="block text-sm font-bold text-gray-700 mb-2">Ảnh sản phẩm</label>
-                                <div class="w-full aspect-square border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 flex flex-col items-center justify-center text-gray-400 hover:bg-gray-100 transition-colors cursor-pointer relative">
-                                    <i class="fa-solid fa-arrow-pointer text-2xl mb-2 text-gray-400"></i>
-                                    <span class="text-xs font-medium text-gray-500 text-center px-4">Kéo thả hoặc click để tải ảnh</span>
-                                </div>
-                            </div>
-                            
-                            <div id="statusToggleContainer" class="mt-4">
-                                <label class="block text-sm font-bold text-gray-700 mb-2">Trạng thái hoạt động</label>
-                                <div class="border border-gray-200 rounded-lg p-3 bg-white flex items-center justify-between shadow-sm">
-                                    <span class="text-sm font-bold text-[#16a34a]" id="statusToggleLabel">Đang bán</span>
-                                    <label class="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" id="modalStatus" checked class="sr-only peer">
-                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#16a34a]"></div>
-                                    </label>
-                                </div>
+            <div id="paginationControls" class="w-full mt-6"></div>
+        </div>
+    </div>
+</main>
+
+<!-- UNIFIED PRODUCT MODAL -->
+<div id="productModal" class="modal-overlay">
+    <div class="custom-popup-card" style="max-width: 800px; width: 90%;">
+        <div class="popup-header bg-[#dc2626]">
+            <h5 class="popup-title"><i class="fa-solid fa-box-open"></i> <span id="modalTitle">Thêm sản phẩm</span></h5>
+            <button type="button" class="btn-close-custom" onclick="closeProductModal()"><i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="popup-body p-6 bg-[#fcfcfc]" style="max-height: 75vh; overflow-y: auto;">
+            <form id="productForm">
+                <div class="flex flex-col md:flex-row gap-6">
+                    <!-- Left Column (Photos) -->
+                    <div class="w-full md:w-[200px] flex-shrink-0 flex flex-col gap-4">
+                        <div id="photoUploadContainer">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Ảnh sản phẩm</label>
+                            <div class="w-full aspect-square border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 flex flex-col items-center justify-center text-gray-400 hover:bg-gray-100 transition-colors cursor-pointer relative">
+                                <i class="fa-solid fa-arrow-pointer text-2xl mb-2 text-gray-400"></i>
+                                <span class="text-xs font-medium text-gray-500 text-center px-4">Kéo thả hoặc click để tải ảnh</span>
                             </div>
                         </div>
 
-                        <!-- Right Column (Form Details) -->
-                        <div class="flex-1 flex flex-col gap-4">
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-[13px] font-bold text-gray-700 mb-1">Mã sản phẩm</label>
-                                    <input type="text" id="modalProductCode" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[14px] bg-gray-50 text-gray-500 focus:outline-none cursor-not-allowed" placeholder="Hệ thống tự tạo" disabled>
-                                </div>
-                                <div>
-                                    <label class="block text-[13px] font-bold text-gray-700 mb-1">Tên sản phẩm <span class="text-red-500">*</span></label>
-                                    <input type="text" id="modalProductName" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[14px] focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none" placeholder="Nhập tên sản phẩm">
-                                </div>
+                        <div id="statusToggleContainer" class="mt-4">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Trạng thái hoạt động</label>
+                            <div class="border border-gray-200 rounded-lg p-3 bg-white flex items-center justify-between shadow-sm">
+                                <span class="text-sm font-bold text-[#16a34a]" id="statusToggleLabel">Đang bán</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="modalStatus" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#16a34a]"></div>
+                                </label>
                             </div>
-                            
-                            <div class="flex gap-4">
-                                <div class="flex-1">
-                                    <label class="block text-[13px] font-bold text-gray-700 mb-1">Danh mục <span class="text-red-500">*</span></label>
-                                    <select id="modalProductCategory" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[14px] focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none">
-                                        <option value="" disabled selected>Chọn danh mục...</option>
-                                        {% for cat in categories %}
-                                            <option value="{{ cat.maDanhMuc }}">{{ cat.tenDanhMuc }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="flex-1">
-                                    <label class="block text-[13px] font-bold text-gray-700 mb-1">Đơn vị tính <span class="text-red-500">*</span></label>
-                                    <select id="modalProductUnit" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[14px] focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none">
-                                        <option value="" disabled selected>Chọn ĐVT...</option>
-                                        <option value="Quyển">Quyển</option>
-                                        <option value="Cây">Cây</option>
-                                        <option value="Cuốn">Cuốn</option>
-                                        <option value="Hộp">Hộp</option>
-                                        <option value="Chiếc">Chiếc</option>
-                                        <option value="Bộ">Bộ</option>
-                                    </select>
-                                </div>
-                            </div>
+                        </div>
+                    </div>
 
-                            <div class="flex gap-4">
-                                <div class="flex-1">
-                                    <label class="block text-[13px] font-bold text-gray-700 mb-1">Giá bán (VNĐ) <span class="text-red-500">*</span></label>
-                                    <div class="relative flex items-center">
-                                        <input type="number" id="modalProductPrice" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[14px] focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none pr-8 text-right" placeholder="0">
-                                        <span class="absolute right-3 text-gray-500 text-[14px]">₫</span>
-                                    </div>
-                                </div>
-                                <div class="flex-1">
-                                    <label class="block text-[13px] font-bold text-gray-700 mb-1">Tồn kho tối thiểu</label>
-                                    <input type="number" id="modalProductMinStock" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[14px] focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none text-right" value="0">
-                                </div>
-                            </div>
-
+                    <!-- Right Column (Form Details) -->
+                    <div class="flex-1 flex flex-col gap-4">
+                        <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-[13px] font-bold text-gray-700 mb-1">Nhà cung cấp <span class="text-red-500">*</span></label>
-                                <select id="modalProductProvider" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[14px] focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none">
-                                    <option value="" disabled selected>Chọn nhà cung cấp...</option>
-                                    {% for sup in suppliers %}
-                                        <option value="{{ sup.maNCC }}">{{ sup.tenNCC }}</option>
+                                <label class="block text-[13px] font-bold text-gray-700 mb-1">Mã sản phẩm</label>
+                                <input type="text" id="modalProductCode"
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[14px] bg-gray-50 text-gray-500 focus:outline-none cursor-not-allowed"
+                                       placeholder="Hệ thống tự tạo" disabled>
+                            </div>
+                            <div>
+                                <label class="block text-[13px] font-bold text-gray-700 mb-1">Tên sản phẩm <span
+                                        class="text-red-500">*</span></label>
+                                <input type="text" id="modalProductName"
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[14px] focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none"
+                                       placeholder="Nhập tên sản phẩm">
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <div class="flex-1">
+                                <label class="block text-[13px] font-bold text-gray-700 mb-1">Danh mục <span
+                                        class="text-red-500">*</span></label>
+                                <select id="modalProductCategory"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[14px] focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none">
+                                    <option value="" disabled selected>Chọn danh mục...</option>
+                                    {% for cat in categories %}
+                                    <option value="{{ cat.maDanhMuc }}">{{ cat.tenDanhMuc }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
-
-                            <!-- Publisher Box (Optional) -->
-                            <div class="border border-dashed border-orange-300 bg-orange-50/30 rounded-lg p-4 mt-2">
-                                <h6 class="text-orange-500 font-bold text-[12px] uppercase mb-3 flex items-center gap-2">
-                                    <i class="fa-solid fa-book"></i> THÔNG TIN XUẤT BẢN (SÁCH)
-                                </h6>
-                                <div class="flex gap-4 mb-3">
-                                    <div class="flex-1">
-                                        <label class="block text-[12px] text-gray-600 mb-1">Tác giả</label>
-                                        <input type="text" id="modalAuthor" class="w-full border border-gray-300 bg-white rounded-md px-3 py-1.5 text-[13px] focus:ring-1 focus:ring-orange-400 outline-none" placeholder="Tên tác giả">
-                                    </div>
-                                    <div class="flex-1">
-                                        <label class="block text-[12px] text-gray-600 mb-1">Nhà xuất bản</label>
-                                        <input type="text" id="modalPublisher" class="w-full border border-gray-300 bg-white rounded-md px-3 py-1.5 text-[13px] focus:ring-1 focus:ring-orange-400 outline-none" placeholder="Tên NXB">
-                                    </div>
-                                </div>
-                                <div class="w-1/2 pr-2">
-                                    <label class="block text-[12px] text-gray-600 mb-1">Năm XB</label>
-                                    <input type="number" id="modalPublishYear" class="w-full border border-gray-300 bg-white rounded-md px-3 py-1.5 text-[13px] focus:ring-1 focus:ring-orange-400 outline-none" placeholder="YYYY">
-                                </div>
-                            </div>
-
-                            <div class="mt-2">
-                                <label class="block text-[13px] font-bold text-gray-700 mb-1">Mô tả sản phẩm</label>
-                                <textarea id="modalProductDesc" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[13px] focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none text-gray-600" rows="3" placeholder="Nhập mô tả chi tiết..."></textarea>
+                            <div class="flex-1">
+                                <label class="block text-[13px] font-bold text-gray-700 mb-1">Đơn vị tính <span
+                                        class="text-red-500">*</span></label>
+                                <select id="modalProductUnit"
+                                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[14px] focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none">
+                                    <option value="" disabled selected>Chọn ĐVT...</option>
+                                    <option value="Quyển">Quyển</option>
+                                    <option value="Cây">Cây</option>
+                                    <option value="Cuốn">Cuốn</option>
+                                    <option value="Hộp">Hộp</option>
+                                    <option value="Chiếc">Chiếc</option>
+                                    <option value="Bộ">Bộ</option>
+                                </select>
                             </div>
                         </div>
+
+                        <div class="flex gap-4">
+                            <div class="flex-1">
+                                <label class="block text-[13px] font-bold text-gray-700 mb-1">Giá bán (VNĐ) <span
+                                        class="text-red-500">*</span></label>
+                                <div class="relative flex items-center">
+                                    <input type="number" id="modalProductPrice"
+                                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[14px] focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none pr-8 text-right"
+                                           placeholder="0">
+                                    <span class="absolute right-3 text-gray-500 text-[14px]">₫</span>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <label class="block text-[13px] font-bold text-gray-700 mb-1">Tồn kho tối thiểu</label>
+                                <input type="number" id="modalProductMinStock"
+                                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[14px] focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none text-right"
+                                       value="0">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[13px] font-bold text-gray-700 mb-1">Nhà cung cấp <span
+                                    class="text-red-500">*</span></label>
+                            <select id="modalProductProvider"
+                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[14px] focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none">
+                                <option value="" disabled selected>Chọn nhà cung cấp...</option>
+                                {% for sup in suppliers %}
+                                <option value="{{ sup.maNCC }}">{{ sup.tenNCC }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Publisher Box (Optional) -->
+                        <div id="bookInfoSection"
+                             class="border border-dashed border-orange-300 bg-orange-50/30 rounded-lg p-4 mt-2 hidden">
+                            <h6 class="text-orange-500 font-bold text-[12px] uppercase mb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-book"></i> THÔNG TIN XUẤT BẢN (SÁCH)
+                            </h6>
+                            <div class="flex gap-4 mb-3">
+                                <div class="flex-1">
+                                    <label class="block text-[12px] text-gray-600 mb-1">Tác giả</label>
+                                    <input type="text" id="modalAuthor"
+                                           class="w-full border border-gray-300 bg-white rounded-md px-3 py-1.5 text-[13px] focus:ring-1 focus:ring-orange-400 outline-none"
+                                           placeholder="Tên tác giả">
+                                </div>
+                                <div class="flex-1">
+                                    <label class="block text-[12px] text-gray-600 mb-1">Nhà xuất bản</label>
+                                    <input type="text" id="modalPublisher"
+                                           class="w-full border border-gray-300 bg-white rounded-md px-3 py-1.5 text-[13px] focus:ring-1 focus:ring-orange-400 outline-none"
+                                           placeholder="Tên NXB">
+                                </div>
+                            </div>
+                            <div class="w-1/2 pr-2">
+                                <label class="block text-[12px] text-gray-600 mb-1">Năm XB</label>
+                                <input type="number" id="modalPublishYear"
+                                       class="w-full border border-gray-300 bg-white rounded-md px-3 py-1.5 text-[13px] focus:ring-1 focus:ring-orange-400 outline-none"
+                                       placeholder="YYYY">
+                            </div>
+                        </div>
+
+                        <div class="mt-2">
+                            <label class="block text-[13px] font-bold text-gray-700 mb-1">Mô tả sản phẩm</label>
+                            <textarea id="modalProductDesc"
+                                      class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[13px] focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none text-gray-600"
+                                      rows="3" placeholder="Nhập mô tả chi tiết..."></textarea>
+                        </div>
                     </div>
-                </form>
-            </div>
-            <div class="popup-footer bg-white flex justify-end gap-3 px-6 py-4 rounded-b-xl border-t border-gray-100">
-                <button type="button" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg text-sm transition-colors" onclick="closeProductModal()">Hủy bỏ</button>
-                <button type="button" id="btnSaveModal" class="bg-[#dc2626] hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg text-sm flex items-center gap-2 transition-colors shadow-sm" onclick="saveProduct()">
-                    <i class="fa-solid fa-floppy-disk"></i> Lưu sản phẩm
-                </button>
-            </div>
+                </div>
+            </form>
+        </div>
+        <div class="popup-footer bg-white flex justify-end gap-3 px-6 py-4 rounded-b-xl border-t border-gray-100">
+            <button type="button"
+                    class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg text-sm transition-colors"
+                    onclick="closeProductModal()">Hủy bỏ
+            </button>
+            <button type="button" id="btnSaveModal"
+                    class="bg-[#dc2626] hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg text-sm flex items-center gap-2 transition-colors shadow-sm"
+                    onclick="saveProduct()">
+                <i class="fa-solid fa-floppy-disk"></i> Lưu sản phẩm
+            </button>
         </div>
     </div>
+</div>
 
 
-    <script src="{% static 'js/0.0.app.js' %}"></script>
-    
-    <script>
-        // CSRF Token Setup
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
+<script src="{% static 'js/0.0.app.js' %}"></script>
+
+<script>
+    // CSRF Token Setup
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
                 }
             }
-            return cookieValue;
         }
-        const csrftoken = getCookie('csrftoken');
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
 
-        const searchInput = document.getElementById('searchInput');
-        const catFilter = document.getElementById('categoryFilter');
-        const statusFilter = document.getElementById('statusFilter');
-        const noResultRow = document.getElementById('noResultRow');
-        const allProductRows = Array.from(document.querySelectorAll('.product-row'));
-        
-        let filteredRows = [...allProductRows];
-        const itemsPerPage = 8; 
-        let currentPage = 1;
+    const searchInput = document.getElementById('searchInput');
+    const catFilter = document.getElementById('categoryFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const noResultRow = document.getElementById('noResultRow');
+    const allProductRows = Array.from(document.querySelectorAll('.product-row'));
 
-        function filterProducts() {
-            const searchText = searchInput.value.toLowerCase();
-            const catValue = catFilter.value;
-            const statusValue = statusFilter.value;
+    let filteredRows = [...allProductRows];
+    const itemsPerPage = 8;
+    let currentPage = 1;
 
-            filteredRows = allProductRows.filter(row => {
-                const textContent = row.innerText.toLowerCase();
-                const rowCat = row.getAttribute('data-category');
-                const rowStatus = row.getAttribute('data-status');
+    function filterProducts() {
+        const searchText = searchInput.value.toLowerCase();
+        const catValue = catFilter.value;
+        const statusValue = statusFilter.value;
 
-                const matchSearch = textContent.includes(searchText);
-                const matchCat = (catValue === 'all' || rowCat === catValue);
-                const matchStatus = (statusValue === 'all' || rowStatus === statusValue);
+        filteredRows = allProductRows.filter(row => {
+            const textContent = row.innerText.toLowerCase();
+            const rowCat = row.getAttribute('data-category');
+            const rowStatus = row.getAttribute('data-status');
 
-                return matchSearch && matchCat && matchStatus;
-            });
+            const matchSearch = textContent.includes(searchText);
+            const matchCat = (catValue === 'all' || rowCat === catValue);
+            const matchStatus = (statusValue === 'all' || rowStatus === statusValue);
 
-            currentPage = 1; 
-            renderTable();
+            return matchSearch && matchCat && matchStatus;
+        });
+
+        currentPage = 1;
+        renderTable();
+    }
+
+    function renderTable() {
+        allProductRows.forEach(row => row.classList.add('hidden'));
+
+        if (filteredRows.length === 0) {
+            if(noResultRow) noResultRow.classList.remove('hidden');
+            renderPagination(0);
+            return;
         }
+        if(noResultRow) noResultRow.classList.add('hidden');
 
-        function renderTable() {
-            allProductRows.forEach(row => row.classList.add('hidden'));
+        const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
 
-            if (filteredRows.length === 0) {
-                if(noResultRow) noResultRow.classList.remove('hidden');
-                renderPagination(0);
-                return;
-            }
-            if(noResultRow) noResultRow.classList.add('hidden');
+        const rowsToShow = filteredRows.slice(start, end);
+        rowsToShow.forEach(row => row.classList.remove('hidden'));
 
-            const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
-            const start = (currentPage - 1) * itemsPerPage;
-            const end = start + itemsPerPage;
+        renderPagination(totalPages);
+    }
 
-            const rowsToShow = filteredRows.slice(start, end);
-            rowsToShow.forEach(row => row.classList.remove('hidden'));
-
-            renderPagination(totalPages);
+    function renderPagination(totalPages) {
+        if(typeof renderGlobalPagination === 'function') {
+            renderGlobalPagination(filteredRows.length, itemsPerPage, currentPage, 'paginationControls', 'sản phẩm', 'changePage');
         }
+    }
 
-        function renderPagination(totalPages) {
-            if(typeof renderGlobalPagination === 'function') {
-                renderGlobalPagination(filteredRows.length, itemsPerPage, currentPage, 'paginationControls', 'sản phẩm', 'changePage');
-            }
-        }
+    function changePage(page) {
+        currentPage = page;
+        renderTable();
+    }
 
-        function changePage(page) {
-            currentPage = page;
-            renderTable();
-        }
+    function resetFilters() {
+        searchInput.value = '';
+        catFilter.value = 'all';
+        statusFilter.value = 'all';
+        filterProducts();
+    }
 
-        function resetFilters() {
-            searchInput.value = '';
-            catFilter.value = 'all';
-            statusFilter.value = 'all';
-            filterProducts();
-        }
+    // --- UNIFIED MODAL LOGIC ---
+    let currentModalMode = '';
 
-        // --- UNIFIED MODAL LOGIC ---
-        let currentModalMode = '';
+    function isBookCategory() {
+    const categorySelect = document.getElementById('modalProductCategory');
+    if (!categorySelect) return false;
 
-        function openProductModal(mode, code = '') {
-            currentModalMode = mode;
-            const modal = document.getElementById('productModal');
-            const title = document.getElementById('modalTitle');
-            const btnSave = document.getElementById('btnSaveModal');
-            const form = document.getElementById('productForm');
+    const selectedIndex = categorySelect.selectedIndex;
+    if (selectedIndex < 0) return false;
 
-            // Elements
-            const codeInput = document.getElementById('modalProductCode');
-            const nameInput = document.getElementById('modalProductName');
-            const catInput = document.getElementById('modalProductCategory');
-            const unitInput = document.getElementById('modalProductUnit');
-            const priceInput = document.getElementById('modalProductPrice');
-            const minStockInput = document.getElementById('modalProductMinStock');
-            const providerInput = document.getElementById('modalProductProvider');
-            const descInput = document.getElementById('modalProductDesc');
-            
+    const selectedOption = categorySelect.options[selectedIndex];
+    if (!selectedOption) return false;
+
+    const selectedText = selectedOption.text.trim().toLowerCase();
+    const selectedValue = categorySelect.value.trim().toLowerCase();
+
+    return selectedText.includes('sách') ||
+           selectedText.includes('sach') ||
+           selectedValue.includes('sach');
+}
+
+function toggleBookInfoSection(clearWhenHidden = false) {
+    const bookSection = document.getElementById('bookInfoSection');
+    if (!bookSection) return;
+
+    const shouldShow = isBookCategory();
+
+    if (shouldShow) {
+        bookSection.classList.remove('hidden');
+        bookSection.style.display = 'block';
+    } else {
+        bookSection.classList.add('hidden');
+        bookSection.style.display = 'none';
+
+        if (clearWhenHidden) {
             const authorInput = document.getElementById('modalAuthor');
-            const pubInput = document.getElementById('modalPublisher');
-            const yearInput = document.getElementById('modalPublishYear');
-            
-            const statusInput = document.getElementById('modalStatus');
-            const statusText = document.getElementById('statusToggleLabel');
-            const statusToggleContainer = document.getElementById('statusToggleContainer');
+            const publisherInput = document.getElementById('modalPublisher');
+            const publishYearInput = document.getElementById('modalPublishYear');
 
-            statusInput.onchange = function() {
-                statusText.textContent = this.checked ? 'Đang bán' : 'Ngừng bán';
-                statusText.className = this.checked ? 'text-sm font-bold text-[#16a34a]' : 'text-sm font-bold text-gray-500';
-            };
-
-            form.reset();
-
-            if (mode === 'create') {
-                title.textContent = 'Thêm sản phẩm mới';
-                codeInput.value = '';
-                statusInput.checked = true;
-                statusInput.onchange();
-                statusToggleContainer.style.display = 'block';
-
-                toggleInputs(false);
-                btnSave.style.display = 'flex';
-                modal.style.display = 'flex';
-            }
-            else if (mode === 'edit' || mode === 'view') {
-                // Fetch data via AJAX
-                fetch(`?maSP=${code}`, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    title.textContent = mode === 'edit' ? `Chỉnh sửa: ${data.tenSP}` : `Chi tiết: ${data.tenSP}`;
-
-                    codeInput.value = data.maSP;
-                    nameInput.value = data.tenSP;
-
-                    // Safe select set
-                    if(Array.from(catInput.options).some(o => o.value === data.danhMuc)) catInput.value = data.danhMuc;
-                    if(Array.from(unitInput.options).some(o => o.value === data.donViTinh)) unitInput.value = data.donViTinh;
-                    if(Array.from(providerInput.options).some(o => o.value === data.nhaCungCap)) providerInput.value = data.nhaCungCap;
-
-                    priceInput.value = data.giaBan;
-                    minStockInput.value = data.tonKhoToiThieu;
-                    descInput.value = data.moTa;
-
-                    authorInput.value = data.tacGia;
-                    pubInput.value = data.nhaXuatBan;
-                    yearInput.value = data.namXuatBan || '';
-
-                    statusInput.checked = (data.trangThai === 1);
-                    statusInput.onchange();
-                    statusToggleContainer.style.display = 'block';
-
-                    toggleInputs(mode === 'view');
-                    btnSave.style.display = mode === 'view' ? 'none' : 'flex';
-
-                    modal.style.display = 'flex';
-                })
-                .catch(error => {
-                    alert('Lỗi khi lấy thông tin sản phẩm: ' + error);
-                });
-            }
+            if (authorInput) authorInput.value = '';
+            if (publisherInput) publisherInput.value = '';
+            if (publishYearInput) publishYearInput.value = '';
         }
+    }
+}
+    function openProductModal(mode, code = '') {
+    currentModalMode = mode;
+    const modal = document.getElementById('productModal');
+    const title = document.getElementById('modalTitle');
+    const btnSave = document.getElementById('btnSaveModal');
+    const form = document.getElementById('productForm');
 
-        function closeProductModal() {
-            document.getElementById('productModal').style.display = 'none';
-        }
+    // Elements
+    const codeInput = document.getElementById('modalProductCode');
+    const nameInput = document.getElementById('modalProductName');
+    const catInput = document.getElementById('modalProductCategory');
+    const unitInput = document.getElementById('modalProductUnit');
+    const priceInput = document.getElementById('modalProductPrice');
+    const minStockInput = document.getElementById('modalProductMinStock');
+    const providerInput = document.getElementById('modalProductProvider');
+    const descInput = document.getElementById('modalProductDesc');
 
-        function toggleInputs(readOnly) {
-            const inputs = ['modalProductName', 'modalProductCategory', 'modalProductUnit', 'modalProductPrice',
-                            'modalProductMinStock', 'modalProductProvider', 'modalProductDesc',
-                            'modalAuthor', 'modalPublisher', 'modalPublishYear'];
-            
-            inputs.forEach(id => {
-                const el = document.getElementById(id);
-                if(el) {
-                    if(el.tagName === 'SELECT' || el.type === 'checkbox') {
-                        el.disabled = readOnly;
-                    } else {
-                        el.readOnly = readOnly;
-                    }
+    const authorInput = document.getElementById('modalAuthor');
+    const pubInput = document.getElementById('modalPublisher');
+    const yearInput = document.getElementById('modalPublishYear');
 
-                    if(readOnly) {
-                        el.classList.add('bg-gray-50', 'text-gray-500');
-                    } else {
-                        el.classList.remove('bg-gray-50', 'text-gray-500');
-                    }
+    const statusInput = document.getElementById('modalStatus');
+    const statusText = document.getElementById('statusToggleLabel');
+    const statusToggleContainer = document.getElementById('statusToggleContainer');
+
+    statusInput.onchange = function() {
+        statusText.textContent = this.checked ? 'Đang bán' : 'Ngừng bán';
+        statusText.className = this.checked
+            ? 'text-sm font-bold text-[#16a34a]'
+            : 'text-sm font-bold text-gray-500';
+    };
+
+    form.reset();
+
+    // Mặc định ẩn phần thông tin sách khi reset form
+    toggleBookInfoSection(true);
+
+    if (mode === 'create') {
+        title.textContent = 'Thêm sản phẩm mới';
+        codeInput.value = '';
+        statusInput.checked = true;
+        statusInput.onchange();
+        statusToggleContainer.style.display = 'block';
+
+        toggleInputs(false);
+        btnSave.style.display = 'flex';
+
+        // Sau khi reset, nếu user chưa chọn danh mục thì vẫn ẩn
+        toggleBookInfoSection(true);
+
+        modal.style.display = 'flex';
+    }
+    else if (mode === 'edit' || mode === 'view') {
+        fetch(`?maSP=${code}`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            title.textContent = mode === 'edit'
+                ? `Chỉnh sửa: ${data.tenSP}`
+                : `Chi tiết: ${data.tenSP}`;
+
+            codeInput.value = data.maSP;
+            nameInput.value = data.tenSP;
+
+            if (Array.from(catInput.options).some(o => o.value === data.danhMuc)) {
+                catInput.value = data.danhMuc;
+            }
+
+            if (Array.from(unitInput.options).some(o => o.value === data.donViTinh)) {
+                unitInput.value = data.donViTinh;
+            }
+
+            if (Array.from(providerInput.options).some(o => o.value === data.nhaCungCap)) {
+                providerInput.value = data.nhaCungCap;
+            }
+
+            priceInput.value = data.giaBan;
+            minStockInput.value = data.tonKhoToiThieu;
+            descInput.value = data.moTa;
+
+            authorInput.value = data.tacGia;
+            pubInput.value = data.nhaXuatBan;
+            yearInput.value = data.namXuatBan || '';
+
+            statusInput.checked = (data.trangThai === 1);
+            statusInput.onchange();
+            statusToggleContainer.style.display = 'block';
+
+            // Sau khi set category xong thì kiểm tra hiện/ẩn phần sách
+            toggleBookInfoSection(false);
+
+            toggleInputs(mode === 'view');
+            btnSave.style.display = mode === 'view' ? 'none' : 'flex';
+
+            modal.style.display = 'flex';
+        })
+        .catch(error => {
+            alert('Lỗi khi lấy thông tin sản phẩm: ' + error);
+        });
+    }
+}
+
+    function closeProductModal() {
+        document.getElementById('productModal').style.display = 'none';
+    }
+
+    function toggleInputs(readOnly) {
+        const inputs = ['modalProductName', 'modalProductCategory', 'modalProductUnit', 'modalProductPrice',
+                        'modalProductMinStock', 'modalProductProvider', 'modalProductDesc',
+                        'modalAuthor', 'modalPublisher', 'modalPublishYear'];
+
+        inputs.forEach(id => {
+            const el = document.getElementById(id);
+            if(el) {
+                if(el.tagName === 'SELECT' || el.type === 'checkbox') {
+                    el.disabled = readOnly;
+                } else {
+                    el.readOnly = readOnly;
                 }
-            });
-            document.getElementById('modalStatus').disabled = readOnly;
+
+                if(readOnly) {
+                    el.classList.add('bg-gray-50', 'text-gray-500');
+                } else {
+                    el.classList.remove('bg-gray-50', 'text-gray-500');
+                }
+            }
+        });
+        document.getElementById('modalStatus').disabled = readOnly;
+    }
+
+    function saveProduct() {
+        const data = {
+            maSP: document.getElementById('modalProductCode').value.trim(),
+            tenSP: document.getElementById('modalProductName').value.trim(),
+            danhMuc: document.getElementById('modalProductCategory').value,
+            donViTinh: document.getElementById('modalProductUnit').value,
+            giaBan: document.getElementById('modalProductPrice').value || 0,
+            tonKhoToiThieu: document.getElementById('modalProductMinStock').value || 0,
+            nhaCungCap: document.getElementById('modalProductProvider').value,
+            moTa: document.getElementById('modalProductDesc').value.trim(),
+            trangThai: document.getElementById('modalStatus').checked ? 1 : 0,
+            tacGia: document.getElementById('modalAuthor').value.trim(),
+            nhaXuatBan: document.getElementById('modalPublisher').value.trim(),
+            namXuatBan: document.getElementById('modalPublishYear').value || 0
+        };
+
+        if(!data.tenSP || !data.danhMuc || !data.donViTinh || !data.nhaCungCap || !data.giaBan) {
+            alert("Vui lòng nhập đầy đủ thông tin bắt buộc (*)");
+            return;
         }
 
-        function saveProduct() {
-            const data = {
-                maSP: document.getElementById('modalProductCode').value.trim(),
-                tenSP: document.getElementById('modalProductName').value.trim(),
-                danhMuc: document.getElementById('modalProductCategory').value,
-                donViTinh: document.getElementById('modalProductUnit').value,
-                giaBan: document.getElementById('modalProductPrice').value || 0,
-                tonKhoToiThieu: document.getElementById('modalProductMinStock').value || 0,
-                nhaCungCap: document.getElementById('modalProductProvider').value,
-                moTa: document.getElementById('modalProductDesc').value.trim(),
-                trangThai: document.getElementById('modalStatus').checked ? 1 : 0,
-                tacGia: document.getElementById('modalAuthor').value.trim(),
-                nhaXuatBan: document.getElementById('modalPublisher').value.trim(),
-                namXuatBan: document.getElementById('modalPublishYear').value || 0
-            };
-
-            if(!data.tenSP || !data.danhMuc || !data.donViTinh || !data.nhaCungCap || !data.giaBan) {
-                alert("Vui lòng nhập đầy đủ thông tin bắt buộc (*)");
-                return;
+        fetch(window.location.href, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert(data.message);
+                closeProductModal();
+                window.location.reload();
+            } else {
+                alert('Lỗi: ' + data.message);
             }
+        })
+        .catch(error => {
+            alert('Lỗi khi lưu dữ liệu: ' + error);
+        });
+    }
 
+    function deleteProduct(code) {
+        if(confirm(`Bạn có chắc chắn muốn xóa sản phẩm ${code}?`)) {
             fetch(window.location.href, {
-                method: 'POST',
+                method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': csrftoken
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify({ maSP: code })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
                     alert(data.message);
-                    closeProductModal();
                     window.location.reload();
                 } else {
                     alert('Lỗi: ' + data.message);
                 }
             })
             .catch(error => {
-                alert('Lỗi khi lưu dữ liệu: ' + error);
+                alert('Lỗi khi xóa dữ liệu: ' + error);
             });
         }
+    }
 
-        function deleteProduct(code) {
-            if(confirm(`Bạn có chắc chắn muốn xóa sản phẩm ${code}?`)) {
-                fetch(window.location.href, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrftoken
-                    },
-                    body: JSON.stringify({ maSP: code })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        alert(data.message);
-                        window.location.reload();
-                    } else {
-                        alert('Lỗi: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    alert('Lỗi khi xóa dữ liệu: ' + error);
-                });
-            }
-        }
+    document.addEventListener('DOMContentLoaded', () => {
+    renderTable();
 
-        document.addEventListener('DOMContentLoaded', () => {
-            renderTable();
+    const categorySelect = document.getElementById('modalProductCategory');
+    if (categorySelect) {
+        categorySelect.addEventListener('change', function () {
+            console.log('Danh mục đang chọn:', this.options[this.selectedIndex].text);
+            toggleBookInfoSection(true);
         });
-    </script>
+    }
+
+    toggleBookInfoSection(true);
+});
+</script>
 </body>
 </html>
