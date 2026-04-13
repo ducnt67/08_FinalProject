@@ -1,0 +1,251 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tổng quan - Cẩm Lệ Books</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'css/0.0.style.css' %}">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#DC2626', bglight: '#F4F6F8' },
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        .modal-overlay { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.6); display: none; align-items: center; justify-content: center; padding: 24px; z-index: 9999; }
+        .modal-overlay.active { display: flex; }
+        .card-pointer { cursor: pointer; transition: 0.2s; }
+        .card-pointer:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+
+  <nav class="sidebar" id="sidebar-container">
+    {% include 'partials/sidebar.html' %}
+  </nav>
+
+  <main class="main-content">
+    <div class="content-header">
+        <h1>TỔNG QUAN HOẠT ĐỘNG</h1>
+    </div>
+
+    <div class="content-body">
+        
+        <div class="grid-4">
+            <div class="card card-pointer" onclick="location.href='{% url 'inventory:sanpham' %}'">
+                <div class="card-icon-wrapper">
+                    <div class="icon-box icon-blue"><i class="fa-solid fa-book"></i></div>
+                </div>
+                <div class="stat-num">{{ total_products }}</div>
+                <div class="stat-label">Tổng đầu sách</div>
+            </div>
+            <div class="card card-pointer" onclick="location.href='{% url 'inventory:tonkho' %}'">
+                <div class="card-icon-wrapper">
+                    <div class="icon-box icon-red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <span class="badge badge-warn">Sắp hết</span>
+                </div>
+                <div class="stat-num">{{ low_stock_products }}</div>
+                <div class="stat-label">Sản phẩm sắp hết</div>
+            </div>
+            <div class="card card-pointer" onclick="location.href='{% url 'inventory:nhapkho' %}'">
+                <div class="card-icon-wrapper">
+                    <div class="icon-box icon-green"><i class="fa-solid fa-file-import"></i></div>
+                </div>
+                <div class="stat-num">{{ inbound_records.count }}</div>
+                <div class="stat-label">Phiếu nhập tháng này</div>
+            </div>
+            <div class="card card-pointer" onclick="location.href='{% url 'inventory:dathang' %}'">
+                <div class="card-icon-wrapper">
+                    <div class="icon-box icon-orange"><i class="fa-solid fa-cart-shopping"></i></div>
+                </div>
+                <div class="stat-num">{{ orders.count }}</div>
+                <div class="stat-label">Đơn chờ duyệt</div>
+            </div>
+        </div>
+
+        <div class="content-block table-block p-0">
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-white rounded-t-xl">
+                <h3 style="margin-bottom: 0px; color: #111827; font-weight: 800; font-size: 16px;">Biến động kho gần đây</h3>
+            </div>
+            <div class="table-wrapper">
+                <table class="table-custom min-w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th width="60" class="text-center">STT</th>
+                            <th>Mã Phiếu</th>
+                            <th>Loại phiếu</th>
+                            <th>Ngày tạo</th>
+                            <th>Người thực hiện</th>
+                            <th class="text-center">Trạng thái</th>
+                            <th width="100" class="text-center">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for activity in recent_activities %}
+                        <tr class="hover:bg-gray-50/50">
+                            <td class="text-center col-index font-bold">{{ forloop.counter }}</td>
+                            <td class="font-bold text-gray-800">{{ activity.ma_phieu }}</td>
+                            <td><span style="color: {{ activity.color }}; font-weight: 600;"><i class="fa-solid {{ activity.icon }} mr-1"></i> {{ activity.loai_phieu }}</span></td>
+                            <td>{{ activity.ngay_tao }}</td>
+                            <td>{{ activity.nguoi_thuc_hien }}</td>
+                            <td class="text-center"><span class="badge {{ activity.badge_class }}">{{ activity.trang_thai }}</span></td>
+                            <td class="text-center">
+                                <button onclick="viewQuickDetail('{{ activity.type }}', '{{ activity.ma_phieu }}')" class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 hover:bg-primary hover:text-white transition-all inline-flex items-center justify-center" title="Xem nhanh">
+                                    <i class="fas fa-eye text-xs"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-10 text-gray-500">Không có hoạt động gần đây</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+     </div>
+  </main>
+
+  <!-- Modal Chi Tiết Chung -->
+  <div id="quickDetailModal" class="modal-overlay" onclick="if(event.target==this) closeQuickModal()">
+    <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl animate-in fade-in zoom-in duration-200">
+        <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+            <div>
+                <h3 class="text-xl font-bold text-gray-800" id="qdTitle">CHI TIẾT PHIẾU</h3>
+                <p class="text-sm text-gray-500 mt-1" id="qdSubtitle">Đang tải dữ liệu...</p>
+            </div>
+            <button onclick="closeQuickModal()" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
+                <i class="fas fa-times text-gray-500"></i>
+            </button>
+        </div>
+        <div class="p-8 overflow-y-auto" id="qdContent">
+            <div id="qdInfo" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"></div>
+            <div class="overflow-x-auto border border-gray-200 rounded-xl">
+                <table class="w-full text-sm border-collapse">
+                    <thead class="bg-gray-50 text-gray-700" id="qdTableHead"></thead>
+                    <tbody id="qdTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="p-6 bg-gray-50 border-t border-gray-100 flex justify-end">
+            <button onclick="closeQuickModal()" class="px-6 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-50 shadow-sm">ĐÓNG</button>
+        </div>
+    </div>
+  </div>
+
+  <script>
+    const API_ENDPOINTS = {
+        'nhapkho': "{% url 'inventory:nhapkho' %}",
+        'xuatkho': "{% url 'inventory:xuatkho' %}",
+        'kiemke': "{% url 'inventory:kiemke' %}"
+    };
+
+    function viewQuickDetail(type, id) {
+        const baseUrl = API_ENDPOINTS[type];
+        if (!baseUrl) {
+            alert("Lỗi: Không tìm thấy đường dẫn cho loại phiếu này.");
+            return;
+        }
+
+        // Tạo tham số truy vấn dựa trên loại phiếu
+        let param = '';
+        if (type === 'nhapkho') param = 'maPhieuNhap';
+        else if (type === 'xuatkho') param = 'maPhieuXuat';
+        else if (type === 'kiemke') param = 'maKiemKe';
+
+        const url = `${baseUrl}?${param}=${encodeURIComponent(id)}`;
+
+        // Reset modal
+        document.getElementById('qdSubtitle').innerText = "Vui lòng đợi...";
+        document.getElementById('qdInfo').innerHTML = '';
+        document.getElementById('qdTableHead').innerHTML = '';
+        document.getElementById('qdTableBody').innerHTML = '<tr><td colspan="5" class="py-10 text-center"><i class="fas fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu...</td></tr>';
+        document.getElementById('quickDetailModal').classList.add('active');
+
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(res => {
+            if (!res.ok) throw new Error("Server error: " + res.status);
+            return res.json();
+        })
+        .then(data => {
+            document.getElementById('qdTitle').innerText = data.maPhieuNhap || data.maPhieuXuat || data.maKiemKe;
+            document.getElementById('qdSubtitle').innerText = "Ngày tạo: " + (data.ngayNhapDisplay || data.ngayXuatDisplay || data.ngayKiemDisplay);
+
+            const info = document.getElementById('qdInfo');
+            if (type === 'nhapkho') {
+                info.innerHTML = `
+                    <div class="bg-blue-50 p-4 rounded-xl border border-blue-100"><p class="text-[11px] text-blue-500 font-bold uppercase mb-1">Nhà cung cấp</p><p class="font-bold text-gray-800">${data.nhaCungCap}</p></div>
+                    <div class="bg-green-50 p-4 rounded-xl border border-green-100"><p class="text-[11px] text-green-500 font-bold uppercase mb-1">Trạng thái</p><p class="font-bold text-gray-800">${data.trangThai}</p></div>
+                `;
+            } else if (type === 'xuatkho') {
+                info.innerHTML = `
+                    <div class="bg-blue-50 p-4 rounded-xl border border-blue-100"><p class="text-[11px] text-blue-500 font-bold uppercase mb-1">Nơi xuất</p><p class="font-bold text-gray-800">${data.noiXuat}</p></div>
+                    <div class="bg-green-50 p-4 rounded-xl border border-green-100"><p class="text-[11px] text-green-500 font-bold uppercase mb-1">Trạng thái</p><p class="font-bold text-gray-800">${data.trangThaiDisplay}</p></div>
+                `;
+            } else if (type === 'kiemke') {
+                info.innerHTML = `
+                    <div class="bg-blue-50 p-4 rounded-xl border border-blue-100"><p class="text-[11px] text-blue-500 font-bold uppercase mb-1">Người kiểm</p><p class="font-bold text-gray-800">${data.nguoiKiem}</p></div>
+                    <div class="bg-green-50 p-4 rounded-xl border border-green-100"><p class="text-[11px] text-green-500 font-bold uppercase mb-1">Trạng thái</p><p class="font-bold text-gray-800">${data.trangThaiDisplay}</p></div>
+                `;
+            }
+
+            const head = document.getElementById('qdTableHead');
+            head.innerHTML = `
+                <tr>
+                    <th class="py-4 px-4 text-left font-bold border-b">Tên sản phẩm</th>
+                    <th class="py-4 px-4 text-center font-bold border-b">${type === 'kiemke' ? 'Tồn hệ thống' : 'Số lượng'}</th>
+                    ${type === 'kiemke' ? '<th class="py-4 px-4 text-center font-bold border-b">Thực tế</th>' : ''}
+                    ${type === 'nhapkho' ? '<th class="py-4 px-4 text-right font-bold border-b">Đơn giá</th><th class="py-4 px-4 text-right font-bold border-b">Thành tiền</th>' : ''}
+                </tr>
+            `;
+
+            const tbody = document.getElementById('qdTableBody');
+            tbody.innerHTML = '';
+
+            data.items.forEach(item => {
+                let row = \`<tr class="border-b border-gray-100"><td class="py-4 px-4 font-medium text-gray-700">\${item.tenSP}</td>\`;
+                if (type === 'kiemke') {
+                    row += \`<td class="py-4 px-4 text-center text-gray-600">\${item.slTonKho}</td>\`;
+                    row += \`<td class="py-4 px-4 text-center font-bold text-gray-900">\${item.slThucTe}</td>\`;
+                } else {
+                    row += \`<td class="py-4 px-4 text-center font-bold text-gray-800">\${item.qty}</td>\`;
+                }
+
+                if (type === 'nhapkho') {
+                    const price = parseFloat(item.price).toLocaleString();
+                    const amount = parseFloat(item.amount).toLocaleString();
+                    row += \`<td class="py-4 px-4 text-right text-gray-600">\${price}Ä'</td><td class="py-4 px-4 text-right font-bold text-gray-900">\${amount}Ä'</td>\`;
+                }
+                row += '</tr>';
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById('qdTableBody').innerHTML = `<tr><td colspan="5" class="py-10 text-center text-red-500 font-bold">Lỗi: Không thể tải dữ liệu.</td></tr>`;
+        });
+    }
+
+    function closeQuickModal() {
+        document.getElementById('quickDetailModal').classList.remove('active');
+    }
+  </script>
+
+  <script src="{% static 'js/0.0.app.js' %}"></script>
+
+</body>
+</html>

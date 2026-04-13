@@ -1,0 +1,781 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Nhập kho (PO) - Cẩm Lệ Books</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'css/0.0.style.css' %}">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#DC2626', bglight: '#F4F6F8' },
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .main-content { background-color: #F4F6F8; min-height: 100vh; }
+        .table-wrapper { overflow-x: auto; }
+        
+        .readonly-input { background: #e5e7eb; color: #374151; border-color: #d1d5db; opacity: 0.9; }
+        .action-icons i { width: 32px; height: 32px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; background: #f8fafc; color: #64748b; margin: 0 2px;}
+        .action-icons i:hover { transform: translateY(-2px); background: #e2e8f0; color: var(--primary-main); }
+        
+        .modal-overlay { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.45); display: none; align-items: center; justify-content: center; padding: 24px; z-index: 999; }
+        .modal-overlay.active { display: flex; }
+
+        .detail-modal { width: min(1000px, 100%); max-height: 90vh; overflow-y: auto; background: #fff; border-radius: 16px; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2); }
+        .detail-modal-header { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: #fff; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .detail-modal-close { background: none; border: none; color: white; font-size: 24px; cursor: pointer; transition: 0.2s; }
+        .detail-modal-close:hover { transform: scale(1.1); }
+        .detail-modal-body { padding: 24px; }
+        
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        .autocomplete-wrapper { position: relative; width: 100%; }
+        .autocomplete-wrapper .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+  {% csrf_token %}
+  <nav class="sidebar" id="sidebar-container">
+    {% include 'partials/sidebar.html' %}
+  </nav>
+
+  <main class="main-content">
+        <div class="content-header">
+            <h1>QUẢN LÝ NHẬP KHO (PO)</h1>
+        </div>
+
+        <div class="content-body p-8">
+            <!-- View 1: Nhập kho List -->
+            <div id="importListView" class="view-section active">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    <div class="flex flex-nowrap gap-3 items-center justify-between mb-6">
+                        <div class="frm-search-box"><i class="fas fa-search"></i><input type="text" id="importSearchInput" placeholder="Tìm mã phiếu, NCC, người nhập..."></div>
+                        
+                        <div class="flex gap-2">
+                            <button onclick="switchView('returnListView')" class="bg-orange-100 hover:bg-orange-200 text-orange-700 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2">
+                                <i class="fa-solid fa-rotate-left"></i> Trả hàng
+                            </button>
+                            <div class="relative" id="createImportDropdownWrapper">
+                                <button onclick="toggleCreateImportDropdown()" class="bg-primary hover:bg-red-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2">
+                                    <i class="fa-solid fa-plus"></i> Tạo phiếu nhập <i class="fa-solid fa-chevron-down ml-1 text-[10px]"></i>
+                                </button>
+                                
+                                <div id="createImportDropdown" class="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-gray-100 py-2 hidden z-50">
+                                    <button onclick="openCreateImport('PO')" class="w-full text-left px-5 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50">
+                                        <div class="font-bold text-gray-800 text-sm mb-1">Từ đơn đặt hàng (PO)</div>
+                                        <div class="text-xs text-gray-500 leading-relaxed">Dành cho hàng về theo kế hoạch, đối soát theo số lượng và giá đã đặt.</div>
+                                    </button>
+                                    <button onclick="openCreateImport('DIRECT')" class="w-full text-left px-5 py-3 hover:bg-gray-50 transition-colors">
+                                        <div class="font-bold text-gray-800 text-sm mb-1">Nhập trực tiếp</div>
+                                        <div class="text-xs text-gray-500 leading-relaxed">Dành cho hàng mua lẻ, hàng tặng hoặc ký gửi không qua PO.</div>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="w-full text-left border-collapse min-w-[900px]">
+                            <thead>
+                                <tr class="bg-gray-50 border-y border-gray-200">
+                                    <th width="60" class="py-4 px-4 font-bold text-sm text-primary uppercase text-center">STT</th>
+                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase">Mã phiếu</th>
+                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase">Nhà cung cấp</th>
+                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase">Ngày nhập</th>
+                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase">Tổng tiền</th>
+                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase">Trạng thái</th>
+                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase text-right">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="importTableBody">
+                                {% for record in inbound_records %}
+                                <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+                                    <td class="py-4 px-4 text-gray-500 text-center font-bold">{{ forloop.counter }}</td>
+                                    <td class="py-4 px-4 font-semibold text-gray-800">{{ record.maPhieuNhap }}</td>
+                                    <td class="py-4 px-4 text-gray-600">{{ record.nhaCungCap.tenNCC }}</td>
+                                    <td class="py-4 px-4 text-gray-600">{{ record.ngayNhap|date:"d/m/Y H:i" }}</td>
+                                    <td class="py-4 px-4 font-bold text-gray-900">{{ record.tongtienNhap|floatformat:0|intcomma }} ₫</td>
+                                    <td class="py-4 px-4">
+                                        {% if record.trangthaiNhap == 1 %}
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-green-100 text-green-700 border border-green-200">
+                                            <i class="fa-solid fa-circle-check"></i> Hoàn thành
+                                        </span>
+                                        {% elif record.trangthaiNhap == 0 %}
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-yellow-100 text-yellow-700 border border-yellow-200">
+                                            <i class="fa-solid fa-clock"></i> Đang xử lý
+                                        </span>
+                                        {% else %}
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-red-100 text-red-700 border border-red-200">
+                                            <i class="fa-solid fa-times"></i> Hủy
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-4 px-4 text-right">
+                                        <div class="action-icons">
+                                            <i class="fa-solid fa-eye" onclick="openImportDetail('{{ record.maPhieuNhap }}')" title="Xem chi tiết"></i>
+                                            <i class="fa-solid fa-edit" onclick="openEditImport('{{ record.maPhieuNhap }}')" title="Chỉnh sửa"></i>
+                                            <i class="fa-solid fa-trash-can" onclick="deleteImport('{{ record.maPhieuNhap }}')" title="Xóa"></i>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="7" class="text-center py-10">Không có phiếu nhập kho nào</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View 2: Nhập kho Create/Edit -->
+            <div id="importCreateView" class="view-section">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 id="createImportTitle" class="text-2xl font-bold text-gray-800">Tạo phiếu nhập từ đơn hàng</h2>
+                        <p id="createImportSubtitle" class="text-sm text-gray-500 mt-1">Đối soát hàng về theo PO đã đặt</p>
+                    </div>
+                    <button onclick="switchView('importListView')" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-semibold transition-colors flex items-center gap-2">
+                        <i class="fa-solid fa-xmark"></i> Quay lại
+                    </button>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <h3 class="font-bold text-gray-800 mb-4">Thông tin phiếu nhập</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label class="block text-sm text-gray-600 mb-2 font-bold">Mã phiếu nhập</label>
+                                <input id="create_maphieu" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary outline-none" placeholder="Để trống hệ thống sẽ tự sinh (VD: PNK-2023...)">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-600 mb-2 font-bold">Ngày nhập</label>
+                                <input id="create_ngaynhap" type="datetime-local" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary outline-none">
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 transition-all" id="create_row_2">
+                            <div>
+                                <label class="block text-sm text-gray-600 mb-2 font-bold">Người nhập kho</label>
+                                <input id="create_nguoinhap" type="text" class="w-full px-4 py-2 border border-gray-200 bg-gray-50 rounded-lg text-gray-700" value="Admin" readonly>
+                            </div>
+                            <div id="create_po_container">
+                                <label class="block text-sm text-gray-600 mb-2 font-bold">Chọn Đơn hàng (PO) <span class="text-primary">*</span></label>
+                                <div class="autocomplete-wrapper">
+                                    <input type="text" id="create_mpo_search" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary outline-none text-gray-800" placeholder="Tìm/chọn mã đơn hàng">
+                                </div>
+                            </div>
+                            <div id="create_supplier_container">
+                                <label class="block text-sm text-gray-600 mb-2 font-bold">Nhà cung cấp <span class="text-primary">*</span></label>
+                                <div class="autocomplete-wrapper">
+                                    <input type="text" id="create_nhacungcap" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-1 focus:ring-primary outline-none text-gray-800" placeholder="Chọn nhà cung cấp">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <h3 class="font-bold text-gray-800 mb-4">Danh sách hàng hóa</h3>
+                        <div class="mb-6" id="product_search_container">
+                            <label class="block text-sm text-gray-600 mb-2 font-bold">Tìm kiếm sản phẩm</label>
+                            <div class="autocomplete-wrapper">
+                                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                <input type="text" id="create_goods_search" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary outline-none" placeholder="Nhập tên hoặc mã sách để thêm...">
+                            </div>
+                        </div>
+
+                        <div class="table-wrapper mb-6 border border-gray-100 rounded-lg">
+                            <table class="w-full text-left">
+                                <thead class="bg-gray-50 border-y border-gray-100">
+                                    <tr>
+                                        <th class="py-4 px-4 font-bold text-gray-700 text-sm text-center w-20">STT</th>
+                                        <th class="py-4 px-4 font-bold text-gray-700 text-sm uppercase">SÁCH</th>
+                                        <th class="py-4 px-4 font-bold text-gray-700 text-sm text-center uppercase">ĐƠN GIÁ NHẬP</th>
+                                        <th id="create_th_po_qty" class="py-4 px-4 font-bold text-gray-700 text-sm text-center uppercase">SL ĐẶT</th>
+                                        <th id="create_th_real_qty" class="py-4 px-4 font-bold text-gray-700 text-sm text-center uppercase">SL THỰC NHẬN</th>
+                                        <th class="py-4 px-4 font-bold text-gray-700 text-sm text-center uppercase">THÀNH TIỀN</th>
+                                        <th class="py-4 px-4 font-bold text-gray-700 text-sm text-center w-24 uppercase">THAO TÁC</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="create_goods_body" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-sm text-gray-600 mb-2 font-bold">Ghi chú</label>
+                            <textarea id="create_ghichu" rows="2" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary outline-none resize-none" placeholder="Nhập ghi chú cho phiếu..."></textarea>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row items-center justify-between pt-4 border-t border-gray-100 gap-4">
+                            <div class="text-gray-500">Tổng số lượng: <strong id="create_total_qty" class="text-gray-800 text-xl font-bold">0</strong></div>
+                            <div class="flex flex-col items-end gap-3">
+                                <div class="text-gray-600 text-lg">Tổng tiền hàng: <strong id="create_total_amount" class="text-primary text-2xl font-bold">0 ₫</strong></div>
+                                <div class="flex gap-3">
+                                    <button onclick="switchView('importListView')" class="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold rounded-lg transition-colors">Hủy bỏ</button>
+                                    <button onclick="saveImport()" class="px-6 py-2.5 bg-primary hover:bg-red-700 text-white font-semibold rounded-lg shadow-sm transition-colors">Lưu phiếu nhập</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View 3: Phiếu trả hàng List -->
+            <div id="returnListView" class="view-section">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800 uppercase">Danh sách phiếu trả hàng nhà cung cấp</h2>
+                        <p class="text-sm text-gray-500 mt-1">Quản lý và tra cứu các phiếu trả hàng đã lập</p>
+                    </div>
+                    <button onclick="switchView('importListView')" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-semibold transition-colors flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left"></i> Quay lại
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    <div class="flex flex-col md:flex-row gap-4 items-center justify-between mb-6">
+                        <div class="flex flex-1 gap-3 w-full">
+                            <div class="frm-search-box flex-1"><i class="fas fa-search"></i><input type="text" id="returnSearchInput" placeholder="Tìm theo mã phiếu, NCC..."></div>
+                            <div class="frm-date-box"><input type="date" id="returnDateFilter"></div>
+                            <button class="bg-white hover:bg-red-50 text-primary px-4 py-2 rounded-lg text-sm font-semibold border border-primary transition-colors">Lọc</button>
+                            <button class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold border border-gray-200 transition-colors">Làm mới</button>
+                        </div>
+                        <button onclick="openCreateReturn()" class="bg-primary hover:bg-red-700 text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-all whitespace-nowrap">
+                            <i class="fa-solid fa-plus mr-2"></i>TẠO PHIẾU TRẢ
+                        </button>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="w-full text-left border-collapse min-w-[900px]">
+                            <thead>
+                                <tr class="bg-gray-50 border-y border-gray-200">
+                                    <th width="60" class="py-4 px-4 font-bold text-sm text-primary uppercase text-center">STT</th>
+                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase">Mã Phiếu Trả</th>
+                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase">Phiếu Nhập</th>
+                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase">Nhà Cung Cấp</th>
+                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase">Ngày Trả</th>
+                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase">Tổng Tiền</th>
+                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase text-right">THAO TÁC</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ret in return_records %}
+                                <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+                                    <td class="py-4 px-4 text-gray-500 text-center font-bold">{{ forloop.counter }}</td>
+                                    <td class="py-4 px-4 font-semibold text-gray-800">{{ ret.maPhieuTra }}</td>
+                                    <td class="py-4 px-4 text-blue-600 font-medium">{{ ret.phieuNhap.maPhieuNhap }}</td>
+                                    <td class="py-4 px-4 text-gray-600">{{ ret.nhaCungCap.tenNCC }}</td>
+                                    <td class="py-4 px-4 text-gray-600">{{ ret.ngayTra|date:"d/m/Y H:i" }}</td>
+                                    <td class="py-4 px-4 font-bold text-gray-900">{{ ret.tongtienTra|floatformat:0|intcomma }} ₫</td>
+                                     <td class="py-4 px-4 text-right">
+                                         <div class="action-icons">
+                                             <i class="fa-solid fa-eye" onclick="openReturnDetail('{{ ret.maPhieuTra }}')" title="Xem chi tiết"></i>
+                                             <i class="fa-solid fa-edit" onclick="openEditReturn('{{ ret.maPhieuTra }}')" title="Chỉnh sửa"></i>
+                                             <i class="fa-solid fa-trash-can" onclick="deleteReturn('{{ ret.maPhieuTra }}')" title="Xóa"></i>
+                                         </div>
+                                     </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="7" class="text-center py-10">Không có phiếu trả hàng nào</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View 4: Trả hàng Create -->
+            <div id="importReturnCreateView" class="view-section">
+                 <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Tạo phiếu trả hàng mới</h2>
+                        <p class="text-sm text-gray-500 mt-1">Hoàn trả hàng hóa đã nhập về cho nhà cung cấp</p>
+                    </div>
+                    <button onclick="switchView('returnListView')" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-semibold transition-colors flex items-center gap-2">
+                        <i class="fa-solid fa-xmark"></i> Quay lại
+                    </button>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <h3 class="font-bold text-gray-800 mb-4">Bước 1: Chọn phiếu nhập kho gốc</h3>
+                        <div class="flex gap-4">
+                            <div class="flex-1 autocomplete-wrapper">
+                                <input type="text" id="return_import_search" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary outline-none" placeholder="Gõ mã phiếu nhập để tìm kiếm (VD: PNK-...)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="return_form_area" class="hidden space-y-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                            <h3 class="font-bold text-gray-800 mb-4">Thông tin phiếu trả</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm text-gray-600 mb-2">Nhà cung cấp</label>
+                                    <input type="text" id="return_supplier_name" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg font-bold" readonly>
+                                </div>
+                                <div>
+                                    <label class="block text-sm text-gray-600 mb-2">Phiếu nhập gốc</label>
+                                    <input type="text" id="return_origin_code" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg font-bold" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                            <h3 class="font-bold text-gray-800 mb-4">Chi tiết hàng trả</h3>
+                            <div class="table-wrapper mb-6 border border-gray-100 rounded-lg">
+                                <table class="w-full text-left">
+                                    <thead class="bg-gray-50 border-y border-gray-100">
+                                        <tr>
+                                            <th class="py-4 px-4 font-bold text-gray-700 text-sm text-center w-20">STT</th>
+                                            <th class="py-4 px-4 font-bold text-gray-700 text-sm uppercase">SÁCH</th>
+                                            <th class="py-4 px-4 font-bold text-gray-700 text-sm text-center uppercase">ĐƠN GIÁ NHẬP</th>
+                                            <th class="py-4 px-4 font-bold text-gray-700 text-sm text-center uppercase">ĐÃ NHẬP</th>
+                                            <th class="py-4 px-4 font-bold text-gray-700 text-sm text-center uppercase">SL TRẢ</th>
+                                            <th class="py-4 px-4 font-bold text-gray-700 text-sm text-center uppercase w-40">LÝ DO</th>
+                                            <th class="py-4 px-4 font-bold text-gray-700 text-sm text-center uppercase">THÀNH TIỀN</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="return_goods_body" class="divide-y divide-gray-100"></tbody>
+                                </table>
+                            </div>
+
+                            <div class="flex justify-between items-center pt-4 border-t border-gray-100">
+                                <div class="text-gray-600 text-lg font-bold">Tổng tiền hoàn: <span id="return_total_amount" class="text-primary text-2xl">0 ₫</span></div>
+                                <div class="flex gap-3">
+                                    <button onclick="switchView('returnListView')" class="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold rounded-lg transition-colors">Hủy bỏ</button>
+                                    <button onclick="saveReturn()" class="px-6 py-2 bg-primary hover:bg-red-700 text-white font-bold rounded-lg shadow-sm transition-all">Xác nhận trả hàng</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+  </main>
+
+    <!-- Import Detail Modal -->
+    <div id="importDetailModal" class="modal-overlay">
+        <div class="detail-modal">
+            <div class="detail-modal-header">
+                <h2 class="font-bold text-lg"><i class="fa-solid fa-file-lines mr-2"></i> CHI TIẾT PHIẾU NHẬP: <span id="detail_code_title"></span></h2>
+                <button type="button" class="detail-modal-close" onclick="closeImportDetail()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="detail-modal-body">
+                <div class="grid grid-cols-3 gap-6 mb-6">
+                    <div><p class="text-xs font-bold text-gray-400 uppercase mb-1">Mã phiếu</p><p id="detail_code" class="font-semibold text-gray-800 bg-gray-50 p-2 rounded"></p></div>
+                    <div><p class="text-xs font-bold text-gray-400 uppercase mb-1">Ngày nhập</p><p id="detail_date" class="font-semibold text-gray-800 bg-gray-50 p-2 rounded"></p></div>
+                    <div><p class="text-xs font-bold text-gray-400 uppercase mb-1">Người tạo</p><p id="detail_user" class="font-semibold text-gray-800 bg-gray-50 p-2 rounded"></p></div>
+                </div>
+                <div class="mb-6"><p class="text-xs font-bold text-gray-400 uppercase mb-1">Nhà cung cấp</p><p id="detail_supplier" class="font-semibold text-gray-800 bg-gray-50 p-3 rounded border border-gray-100"></p></div>
+                <div class="mb-8"><p class="text-xs font-bold text-gray-400 uppercase mb-1">Ghi chú</p><p id="detail_note" class="text-gray-600 bg-yellow-50 p-3 rounded italic"></p></div>
+
+                <div class="border border-gray-200 rounded-lg overflow-hidden mb-6">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-100 border-b border-gray-200">
+                            <tr><th width="60" class="p-3 text-sm font-bold text-primary text-center">STT</th><th class="p-3 text-sm font-bold text-primary">Mã SP</th><th class="p-3 text-sm font-bold text-primary">Tên sản phẩm</th><th class="p-3 text-sm font-bold text-primary text-right">Số lượng</th><th class="p-3 text-sm font-bold text-primary text-right">Đơn giá</th><th class="p-3 text-sm font-bold text-primary text-right">Thành tiền</th></tr>
+                        </thead>
+                        <tbody id="detail_items_body" class="divide-y divide-gray-100"></tbody>
+                    </table>
+                </div>
+                <div class="flex justify-end gap-2 bg-gray-50 p-4 rounded-lg">
+                    <div class="mr-auto"><p class="text-xs font-bold text-gray-400 uppercase">Tổng tiền</p><p id="detail_total_amount" class="text-xl font-black text-primary"></p></div>
+                    <button class="px-4 py-2 border border-gray-300 rounded-lg font-bold text-gray-600 hover:bg-gray-100">In phiếu</button>
+                    <button class="px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-red-700" id="btnEditFromDetail">Sửa phiếu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Return Detail Modal -->
+    <div id="returnDetailModal" class="modal-overlay">
+        <div class="detail-modal">
+            <div class="detail-modal-header">
+                <h2 class="font-bold text-lg"><i class="fa-solid fa-rotate-left mr-2"></i> CHI TIẾT PHIẾU TRẢ: <span id="rd_code_title"></span></h2>
+                <button type="button" class="detail-modal-close" onclick="closeReturnDetail()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="detail-modal-body">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
+                    <div><p class="text-xs font-bold text-gray-400 uppercase mb-1">Mã phiếu trả</p><p id="rd_code" class="font-bold text-gray-800 bg-gray-50 p-2 rounded"></p></div>
+                    <div><p class="text-xs font-bold text-gray-400 uppercase mb-1">Phiếu nhập gốc</p><p id="rd_origin" class="font-bold text-blue-600 bg-gray-50 p-2 rounded"></p></div>
+                    <div><p class="text-xs font-bold text-gray-400 uppercase mb-1">Ngày trả</p><p id="rd_date" class="font-bold text-gray-800 bg-gray-50 p-2 rounded"></p></div>
+                    <div><p class="text-xs font-bold text-gray-400 uppercase mb-1">Trạng thái</p><span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">Đã hoàn thành</span></div>
+                </div>
+                <div class="mb-6"><p class="text-xs font-bold text-gray-400 uppercase mb-1">Nhà cung cấp</p><p id="rd_supplier" class="font-bold text-gray-800 bg-gray-50 p-3 rounded"></p></div>
+
+                <div class="border border-gray-200 rounded-lg overflow-hidden mb-6">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-100 border-b border-gray-200">
+                            <tr><th width="60" class="p-3 text-sm font-bold text-primary text-center">STT</th><th class="p-3 text-sm font-bold text-primary">Sản phẩm</th><th class="p-3 text-sm font-bold text-primary text-right">SL trả</th><th class="p-3 text-sm font-bold text-primary text-right">Đơn giá</th><th class="p-3 text-sm font-bold text-primary text-right">Thành tiền</th><th class="p-3 text-sm font-bold text-primary">Lý do</th></tr>
+                        </thead>
+                        <tbody id="rd_items_body" class="divide-y divide-gray-100"></tbody>
+                    </table>
+                </div>
+                <div class="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
+                    <div><p class="text-xs font-bold text-gray-400 uppercase">Tổng tiền hoàn trả</p><p id="rd_total_amount" class="text-2xl font-black text-primary"></p></div>
+                    <button class="px-6 py-2.5 bg-gray-600 text-white rounded-lg font-bold hover:bg-gray-700 transition-all"><i class="fa-solid fa-print mr-2"></i>In phiếu trả hàng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'js/0.0.app.js' %}"></script>
+
+    <script>
+        // Data from server
+        const poCatalog = JSON.parse('{{ purchase_orders_json|safe }}');
+        const supplierCatalog = [
+            {% for s in suppliers %} { "code": "{{ s.maNCC }}", "name": "{{ s.tenNCC }}" }, {% endfor %}
+        ];
+        const goodsCatalog = [
+            {% for p in products %} { "code": "{{ p.maSP }}", "name": "{{ p.tenSP }}", "price": {{ p.giaBan|floatformat:0 }} }, {% endfor %}
+        ];
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        function toggleCreateImportDropdown() {
+            document.getElementById('createImportDropdown').classList.toggle('hidden');
+        }
+
+        document.addEventListener('click', function(e) {
+            const wrapper = document.getElementById('createImportDropdownWrapper');
+            if (wrapper && !wrapper.contains(e.target)) {
+                document.getElementById('createImportDropdown').classList.add('hidden');
+            }
+        });
+
+        function openCreateImport(type = 'DIRECT') {
+            document.getElementById('createImportDropdown').classList.add('hidden');
+            document.getElementById('create_maphieu').value = '';
+            document.getElementById('create_maphieu').readOnly = false;
+            document.getElementById('create_ngaynhap').value = new Date().toISOString().slice(0, 16);
+            document.getElementById('create_nhacungcap').value = '';
+            document.getElementById('create_ghichu').value = '';
+            document.getElementById('create_goods_body').innerHTML = '';
+            
+            const poContainer = document.getElementById('create_po_container');
+            const thPoQty = document.getElementById('create_th_po_qty');
+            const searchContainer = document.getElementById('product_search_container');
+            const supplierInput = document.getElementById('create_nhacungcap');
+            const createRow2 = document.getElementById('create_row_2');
+
+            if (type === 'PO') {
+                document.getElementById('createImportTitle').textContent = 'Tạo phiếu nhập từ đơn hàng';
+                createRow2.className = 'grid grid-cols-1 md:grid-cols-3 gap-6';
+                poContainer.classList.remove('hidden');
+                thPoQty.classList.remove('hidden');
+                searchContainer.classList.add('hidden');
+                supplierInput.readOnly = true;
+                supplierInput.classList.add('bg-gray-50');
+                document.getElementById('create_mpo_search').value = '';
+            } else {
+                document.getElementById('createImportTitle').textContent = 'Tạo phiếu nhập trực tiếp';
+                createRow2.className = 'grid grid-cols-1 md:grid-cols-2 gap-6';
+                poContainer.classList.add('hidden');
+                thPoQty.classList.add('hidden');
+                searchContainer.classList.remove('hidden');
+                supplierInput.readOnly = false;
+                supplierInput.classList.remove('bg-gray-50');
+            }
+            updateCreateTotals();
+            switchView('importCreateView');
+        }
+
+        function openEditImport(code) {
+            fetch(`?maPhieuNhap=${code}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(res => res.json())
+            .then(data => {
+                const type = data.donDatHang ? 'PO' : 'DIRECT';
+                document.getElementById('create_maphieu').value = data.maPhieuNhap;
+                document.getElementById('create_maphieu').readOnly = true;
+                document.getElementById('create_ngaynhap').value = data.ngayNhap;
+                document.getElementById('create_nhacungcap').value = data.nhaCungCap;
+                document.getElementById('create_ghichu').value = data.ghichu;
+
+                const poContainer = document.getElementById('create_po_container');
+                const thPoQty = document.getElementById('create_th_po_qty');
+                const searchContainer = document.getElementById('product_search_container');
+                const createRow2 = document.getElementById('create_row_2');
+
+                if (type === 'PO') {
+                    createRow2.className = 'grid grid-cols-1 md:grid-cols-3 gap-6';
+                    poContainer.classList.remove('hidden');
+                    thPoQty.classList.remove('hidden');
+                    searchContainer.classList.add('hidden');
+                    document.getElementById('create_mpo_search').value = data.donDatHang;
+                } else {
+                    createRow2.className = 'grid grid-cols-1 md:grid-cols-2 gap-6';
+                    poContainer.classList.add('hidden');
+                    thPoQty.classList.add('hidden');
+                    searchContainer.classList.remove('hidden');
+                }
+
+                const tbody = document.getElementById('create_goods_body');
+                tbody.innerHTML = '';
+                data.items.forEach((item, idx) => {
+                    addProdToTable(item.maSP, item.tenSP, item.price, item.orderedQty, item.qty, type);
+                });
+
+                updateCreateTotals();
+                switchView('importCreateView');
+            });
+        }
+
+        function addProdToTable(code, name, price, orderedQty = 0, realQty = 1, type = 'DIRECT') {
+            const tbody = document.getElementById('create_goods_body');
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-gray-50 border-b border-gray-100";
+            tr.dataset.maSP = code;
+            tr.innerHTML = `
+                <td class="py-4 px-4 text-center text-gray-600">${tbody.rows.length + 1}</td>
+                <td class="py-4 px-4"><div class="font-semibold text-gray-800 text-sm">${code}</div><div class="text-xs text-gray-500">${name}</div></td>
+                <td class="py-4 px-4 text-center"><input type="number" class="item-price w-full border rounded px-2 py-1 text-center" value="${price}" oninput="updateCreateTotals()"></td>
+                ${type === 'PO' ? `<td class="py-4 px-4 text-center font-semibold item-ordered-qty">${orderedQty}</td>` : ''}
+                <td class="py-4 px-4 text-center"><input type="number" class="item-qty w-full border rounded px-2 py-1 text-center" value="${realQty}" min="0" oninput="updateCreateTotals()"></td>
+                <td class="py-4 px-4 text-center font-bold text-primary item-amount">0</td>
+                <td class="py-4 px-4 text-center"><button class="text-red-500 hover:text-red-700" onclick="this.closest('tr').remove(); updateCreateTotals()"><i class="fa-solid fa-trash"></i></button></td>
+            `;
+            tbody.appendChild(tr);
+            updateCreateTotals();
+        }
+
+        function updateCreateTotals() {
+            let tQty = 0, tAmt = 0;
+            document.querySelectorAll('#create_goods_body tr').forEach(tr => {
+                const qty = parseInt(tr.querySelector('.item-qty').value) || 0;
+                const price = parseFloat(tr.querySelector('.item-price').value) || 0;
+                const amount = qty * price;
+                tr.querySelector('.item-amount').textContent = amount.toLocaleString('vi-VN') + ' ₫';
+                tQty += qty; tAmt += amount;
+            });
+            document.getElementById('create_total_qty').textContent = tQty;
+            document.getElementById('create_total_amount').textContent = tAmt.toLocaleString('vi-VN') + ' ₫';
+        }
+
+        function saveImport() {
+            const items = [];
+            document.querySelectorAll('#create_goods_body tr').forEach(tr => {
+                items.push({
+                    maSP: tr.dataset.maSP,
+                    price: tr.querySelector('.item-price').value,
+                    qty: tr.querySelector('.item-qty').value,
+                    orderedQty: tr.querySelector('.item-ordered-qty')?.textContent || tr.querySelector('.item-qty').value
+                });
+            });
+            if (items.length === 0) return alert('Vui lòng chọn sản phẩm');
+            const isPO = !document.getElementById('create_po_container').classList.contains('hidden');
+            fetch('', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+                body: JSON.stringify({
+                    maPhieuNhap: document.getElementById('create_maphieu').value,
+                    nhaCungCap: document.getElementById('create_nhacungcap').value,
+                    ngayNhap: document.getElementById('create_ngaynhap').value,
+                    ghichu: document.getElementById('create_ghichu').value,
+                    donDatHang: isPO ? document.getElementById('create_mpo_search').value : '',
+                    items: items
+                })
+            }).then(res => res.json()).then(res => { alert(res.message); if (res.status === 'success') location.reload(); });
+        }
+
+        function openImportDetail(code) {
+            fetch(`?maPhieuNhap=${code}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('detail_code_title').textContent = data.maPhieuNhap;
+                document.getElementById('detail_code').textContent = data.maPhieuNhap;
+                document.getElementById('detail_date').textContent = data.ngayNhapDisplay;
+                document.getElementById('detail_user').textContent = data.user;
+                document.getElementById('detail_supplier').textContent = data.nhaCungCap;
+                document.getElementById('detail_note').textContent = data.ghichu;
+                document.getElementById('detail_items_body').innerHTML = data.items.map((item, idx) => `
+                    <tr><td class="p-3 text-center">${idx + 1}</td><td class="p-3">${item.maSP}</td><td class="p-3 font-semibold">${item.tenSP}</td><td class="p-3 text-right font-bold">${item.qty}</td><td class="p-3 text-right">${parseFloat(item.price).toLocaleString('vi-VN')}</td><td class="p-3 text-right font-bold text-primary">${parseFloat(item.amount).toLocaleString('vi-VN')} ₫</td></tr>
+                `).join('');
+                document.querySelectorAll('#detail_total_amount').forEach(el => el.textContent = parseFloat(data.items.reduce((s,i)=>s+parseFloat(i.amount),0)).toLocaleString('vi-VN') + ' ₫');
+                document.getElementById('btnEditFromDetail').onclick = () => { closeImportDetail(); openEditImport(data.maPhieuNhap); };
+                document.getElementById('importDetailModal').classList.add('active');
+            });
+        }
+        function closeImportDetail() { document.getElementById('importDetailModal').classList.remove('active'); }
+
+        // --- RETURN FUNCTIONS ---
+        function openCreateReturn() {
+            document.getElementById('return_import_search').value = '';
+            document.getElementById('return_form_area').classList.add('hidden');
+            document.querySelector('#importReturnCreateView .bg-white:nth-of-type(1)').classList.remove('hidden');
+            document.getElementById('return_goods_body').dataset.editing = '';
+            document.querySelector('#importReturnCreateView h2').textContent = 'Tạo phiếu trả hàng mới';
+            document.querySelector('#importReturnCreateView p').textContent = 'Hoàn trả hàng hóa đã nhập về cho nhà cung cấp';
+            switchView('importReturnCreateView');
+        }
+
+        function loadImportForReturn(code) {
+            fetch(`?maPhieuNhap=${code}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('return_origin_code').value = data.maPhieuNhap;
+                document.getElementById('return_supplier_name').value = data.nhaCungCap;
+                const tbody = document.getElementById('return_goods_body');
+                tbody.innerHTML = '';
+                data.items.forEach((item, idx) => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-gray-50 border-b border-gray-100";
+                    tr.dataset.maSP = item.maSP;
+                    tr.innerHTML = `
+                        <td class="py-4 px-4 text-center text-gray-600">${idx+1}</td>
+                        <td class="py-4 px-4"><div class="font-semibold text-gray-800 text-sm">${item.maSP}</div><div class="text-xs text-gray-500">${item.tenSP}</div></td>
+                        <td class="py-4 px-4 text-center font-bold item-price">${parseFloat(item.price).toLocaleString('vi-VN')}</td>
+                        <td class="py-4 px-4 text-center font-semibold">${item.qty}</td>
+                        <td class="py-4 px-4 text-center"><input type="number" class="item-return-qty w-full border rounded px-2 py-1 text-center font-bold" value="0" min="0" max="${item.qty}" oninput="updateReturnTotals()"></td>
+                        <td class="py-4 px-4"><select class="item-reason w-full border rounded px-2 py-1"><option value="Hàng lỗi">Hàng lỗi</option><option value="Sai mẫu mã">Sai mẫu mã</option><option value="Hết hạn">Hết hạn</option></select></td>
+                        <td class="py-4 px-4 text-center font-bold text-primary item-return-amount">0 ₫</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                document.getElementById('return_form_area').classList.remove('hidden');
+                updateReturnTotals();
+            });
+        }
+
+        function updateReturnTotals() {
+            let total = 0;
+            document.querySelectorAll('#return_goods_body tr').forEach(tr => {
+                const qty = parseInt(tr.querySelector('.item-return-qty').value) || 0;
+                const price = parseFloat(tr.querySelector('.item-price').textContent.replace(/\./g, '')) || 0;
+                const amount = qty * price;
+                tr.querySelector('.item-return-amount').textContent = amount.toLocaleString('vi-VN') + ' ₫';
+                total += amount;
+            });
+            document.getElementById('return_total_amount').textContent = total.toLocaleString('vi-VN') + ' ₫';
+        }
+
+        function saveReturn() {
+            const items = [];
+            document.querySelectorAll('#return_goods_body tr').forEach(tr => {
+                const qty = parseInt(tr.querySelector('.item-return-qty').value) || 0;
+                if (qty > 0) items.push({ maSP: tr.dataset.maSP, qty: qty, price: tr.querySelector('.item-price').textContent.replace(/\./g, ''), reason: tr.querySelector('.item-reason').value });
+            });
+            if (items.length === 0) return alert('Vui lòng nhập số lượng trả');
+
+            // Kiểm tra xem đang ở chế độ tạo mới hay chỉnh sửa
+            const editingReturn = document.getElementById('return_goods_body').dataset.editing;
+
+            if (editingReturn) {
+                // PATCH request để cập nhật
+                fetch('/trahang/', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+                    body: JSON.stringify({ maPhieuTra: editingReturn, items: items })
+                }).then(res => res.json()).then(res => { alert(res.message); if (res.status === 'success') location.reload(); });
+            } else {
+                // POST request để tạo mới
+                fetch('/trahang/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+                    body: JSON.stringify({ maPhieuNhap: document.getElementById('return_origin_code').value, items: items })
+                }).then(res => res.json()).then(res => { alert(res.message); if (res.status === 'success') location.reload(); });
+            }
+        }
+
+        function openEditReturn(code) {
+            fetch(`/trahang/?maPhieuTra=${code}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(res => res.json())
+            .then(data => {
+                // Đặt tiêu đề cho chế độ chỉnh sửa
+                document.querySelector('#importReturnCreateView h2').textContent = 'Chỉnh sửa phiếu trả hàng';
+                document.querySelector('#importReturnCreateView p').textContent = 'Cập nhật thông tin phiếu trả hàng đã lập';
+
+                document.getElementById('return_origin_code').value = data.phieuNhapGoc;
+                document.getElementById('return_supplier_name').value = data.nhaCungCap;
+
+                const tbody = document.getElementById('return_goods_body');
+                // Lưu maPhieuTra vào dataset để biết đang chỉnh sửa
+                tbody.dataset.editing = code;
+                tbody.innerHTML = '';
+
+                data.items.forEach((item, idx) => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-gray-50 border-b border-gray-100";
+                    tr.dataset.maSP = item.maSP;
+                    tr.innerHTML = `
+                        <td class="py-4 px-4 text-center text-gray-600">${idx+1}</td>
+                        <td class="py-4 px-4"><div class="font-semibold text-gray-800 text-sm">${item.maSP}</div><div class="text-xs text-gray-500">${item.tenSP}</div></td>
+                        <td class="py-4 px-4 text-center font-bold item-price">${parseFloat(item.price).toLocaleString('vi-VN')}</td>
+                        <td class="py-4 px-4 text-center font-semibold">${item.originalQty}</td>
+                        <td class="py-4 px-4 text-center"><input type="number" class="item-return-qty w-full border rounded px-2 py-1 text-center font-bold" value="${item.qty}" min="0" max="${item.originalQty}" oninput="updateReturnTotals()"></td>
+                        <td class="py-4 px-4"><select class="item-reason w-full border rounded px-2 py-1"><option value="Hàng lỗi" ${item.reason === 'Hàng lỗi' ? 'selected' : ''}>Hàng lỗi</option><option value="Sai mẫu mã" ${item.reason === 'Sai mẫu mã' ? 'selected' : ''}>Sai mẫu mã</option><option value="Hết hạn" ${item.reason === 'Hết hạn' ? 'selected' : ''}>Hết hạn</option></select></td>
+                        <td class="py-4 px-4 text-center font-bold text-primary item-return-amount">0 ₫</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                document.getElementById('return_form_area').classList.remove('hidden');
+                // Ẩn phần tìm kiếm phiếu nhập khi chỉnh sửa
+                document.querySelector('#importReturnCreateView .bg-white:nth-of-type(1)').classList.add('hidden');
+                updateReturnTotals();
+                switchView('importReturnCreateView');
+            });
+        }
+
+        function deleteReturn(code) {
+            if (!confirm('Bạn có chắc muốn xóa phiếu trả hàng này?')) return;
+            fetch('/trahang/', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+                body: JSON.stringify({ maPhieuTra: code })
+            }).then(res => res.json()).then(res => { alert(res.message); if (res.status === 'success') location.reload(); });
+        }
+
+        function openReturnDetail(code) {
+            fetch(`/trahang/?maPhieuTra=${code}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('rd_code_title').textContent = data.maPhieuTra;
+                document.getElementById('rd_code').textContent = data.maPhieuTra;
+                document.getElementById('rd_origin').textContent = data.phieuNhapGoc;
+                document.getElementById('rd_date').textContent = data.ngayTraDisplay;
+                document.getElementById('rd_supplier').textContent = data.nhaCungCap;
+                document.getElementById('rd_items_body').innerHTML = data.items.map((item, idx) => `
+                    <tr><td class="p-3 text-center">${idx + 1}</td><td class="p-3"><div class="font-bold">${item.maSP}</div><div class="text-xs text-gray-500">${item.tenSP}</div></td><td class="p-3 text-right font-bold">${item.qty}</td><td class="p-3 text-right">${parseFloat(item.price).toLocaleString('vi-VN')}</td><td class="p-3 text-right font-bold text-primary">${parseFloat(item.amount).toLocaleString('vi-VN')} ₫</td><td class="p-3 italic text-gray-600">${item.reason}</td></tr>
+                `).join('');
+                document.getElementById('rd_total_amount').textContent = parseFloat(data.tongTien).toLocaleString('vi-VN') + ' ₫';
+                document.getElementById('returnDetailModal').classList.add('active');
+            });
+        }
+        function closeReturnDetail() { document.getElementById('returnDetailModal').classList.remove('active'); }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setupSearchAutocomplete('create_mpo_search', (kw) => poCatalog.filter(po => po.code.toLowerCase().includes(kw.toLowerCase())), (item) => `<div class="suggestion-title">${item.code}</div><div class="suggestion-meta">${item.supplier}</div>`, (item, input) => { input.value = item.code; document.getElementById('create_nhacungcap').value = item.supplier; const tbody = document.getElementById('create_goods_body'); tbody.innerHTML = ''; item.items.forEach(prod => addProdToTable(prod.code, prod.name, prod.price, prod.orderedQty, prod.orderedQty, 'PO')); });
+            setupSearchAutocomplete('create_nhacungcap', (kw) => supplierCatalog.filter(s => s.name.toLowerCase().includes(kw.toLowerCase())), (item) => `<div class="suggestion-title">${item.name}</div>`, (item, input) => { input.value = item.name; });
+            setupSearchAutocomplete('create_goods_search', (kw) => goodsCatalog.filter(p => p.name.toLowerCase().includes(kw.toLowerCase()) || p.code.toLowerCase().includes(kw.toLowerCase())), (item) => `<div class="suggestion-title">${item.code} - ${item.name}</div><div class="suggestion-meta">${item.price.toLocaleString('vi-VN')} ₫</div>`, (item, input) => { addProdToTable(item.code, item.name, item.price); input.value = ''; });
+            const allImports = [ {% for r in inbound_records %} { "code": "{{ r.maPhieuNhap }}", "supplier": "{{ r.nhaCungCap.tenNCC }}" }, {% endfor %} ];
+            setupSearchAutocomplete('return_import_search', (kw) => allImports.filter(r => r.code.toLowerCase().includes(kw.toLowerCase())), (item) => `<div class="suggestion-title">${item.code}</div><div class="suggestion-meta">${item.supplier}</div>`, (item, input) => { input.value = item.code; loadImportForReturn(item.code); });
+        });
+    </script>
+</body>
+</html>

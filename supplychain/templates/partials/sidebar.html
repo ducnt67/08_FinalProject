@@ -1,0 +1,84 @@
+<div class="brand">
+    <i class="fa-solid fa-book-open-reader"></i>
+    <div class="brand-text">CẨM LỆ BOOKS</div>
+</div>
+
+<div class="menu-scroll">
+    <div class="menu-group">
+        <div class="menu-title">Dashboard</div>
+        <a href="{% url 'inventory:tongquan' %}"
+           class="menu-link {% if request.resolver_match.url_name == 'tongquan' %}active{% endif %}">
+            <i class="fa-solid fa-chart-line"></i> Tổng quan
+        </a>
+    </div>
+
+    <div class="menu-group">
+        <div class="menu-title">Quản lý Hàng Hóa</div>
+        <a href="{% url 'inventory:sanpham' %}"
+           class="menu-link {% if request.resolver_match.url_name == 'sanpham' %}active{% endif %}">
+            <i class="fa-solid fa-book"></i> Sản phẩm
+        </a>
+
+        <a href="{% url 'inventory:danhmuc' %}"
+           class="menu-link {% if request.resolver_match.url_name == 'danhmuc' %}active{% endif %}">
+            <i class="fa-solid fa-list"></i> Danh mục
+        </a>
+
+        <a href="{% url 'inventory:tonkho' %}"
+           class="menu-link {% if request.resolver_match.url_name == 'tonkho' %}active{% endif %}">
+            <i class="fa-solid fa-warehouse"></i> Tồn kho
+        </a>
+    </div>
+
+    <div class="menu-group">
+        <div class="menu-title">Vận Hành Kho</div>
+        <a href="{% url 'inventory:nhapkho' %}"
+           class="menu-link {% if request.resolver_match.url_name == 'nhapkho' %}active{% endif %}">
+            <i class="fa-solid fa-dolly"></i> Nhập kho
+        </a>
+
+        <a href="{% url 'inventory:xuatkho' %}"
+           class="menu-link {% if request.resolver_match.url_name == 'xuatkho' %}active{% endif %}">
+            <i class="fa-solid fa-truck-ramp-box"></i> Xuất kho
+        </a>
+
+        <a href="{% url 'inventory:kiemke' %}"
+           class="menu-link {% if request.resolver_match.url_name == 'kiemke' %}active{% endif %}">
+            <i class="fa-solid fa-clipboard-check"></i> Kiểm kê kho
+        </a>
+    </div>
+
+    <div class="menu-group">
+        <div class="menu-title">Kinh doanh</div>
+        <a href="{% url 'inventory:dathang' %}"
+           class="menu-link {% if request.resolver_match.url_name == 'dathang' %}active{% endif %}">
+            <i class="fa-solid fa-file-invoice"></i> Đơn đặt hàng
+        </a>
+
+        <a href="{% url 'inventory:ncc' %}"
+           class="menu-link {% if request.resolver_match.url_name == 'ncc' %}active{% endif %}">
+            <i class="fa-solid fa-handshake"></i> Nhà cung cấp
+        </a>
+    </div>
+
+    <div class="menu-group">
+        <div class="menu-title">Hệ Thống</div>
+        <a href="{% url 'inventory:baocao' %}"
+           class="menu-link {% if request.resolver_match.url_name == 'baocao' %}active{% endif %}">
+            <i class="fa-solid fa-chart-pie"></i> Báo cáo thống kê
+        </a>
+    </div>
+</div>
+
+<div class="user-footer">
+    <div class="user-info-wrap">
+        <div class="avatar">{{ user.username|slice:":2"|upper }}</div>
+        <div>
+            <div style="font-weight: 700; font-size: 14px;">{{ user.get_full_name|default:user.username }}</div>
+            <div style="font-size: 12px; opacity: 0.7;">Admin Hệ thống</div>
+        </div>
+    </div>
+    <a href="{% url 'inventory:login' %}" class="logout-btn" title="Đăng xuất khỏi hệ thống">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+    </a>
+</div>

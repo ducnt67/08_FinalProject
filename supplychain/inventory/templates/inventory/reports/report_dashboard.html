@@ -1,0 +1,259 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo cáo & Thống kê - Cẩm Lệ Books</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'css/0.0.style.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#DC2626', bglight: '#F4F6F8' },
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .main-content { background-color: #F4F6F8; min-height: 100vh; display: flex; flex-direction: column;}
+        
+        /* Stats Card Styles */
+        .stat-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .stat-info h3 { font-size: 13px; color: #6b7280; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .stat-info .value { font-size: 28px; font-weight: 800; color: #111827; line-height: 1; }
+        .stat-icon { width: 56px; height: 56px; border-radius: 16px; display: flex; justify-content: center; align-items: center; font-size: 24px; }
+        
+        .icon-green { background: #dcfce7; color: #166534; }
+        .icon-red { background: #fee2e2; color: #b91c1c; }
+        .icon-blue { background: #dbeafe; color: #1e40af; }
+        .icon-orange { background: #ffedd5; color: #c2410c; }
+
+        /* Chart Containers */
+        .chart-container { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .chart-title { font-size: 16px; font-weight: 700; color: #111827; }
+    </style>
+</head>
+<body>
+
+  <nav class="sidebar" id="sidebar-container">
+    {% include 'partials/sidebar.html' %}
+  </nav>
+
+  <main class="main-content">
+        <div class="content-header flex-col items-start gap-1 pb-4">
+            <h1 class="text-xl font-bold text-gray-800">Báo cáo & Thống kê</h1>
+            <p class="text-[13px] text-gray-500 font-normal">Số liệu cập nhật đến {% if current_time %}{{ current_time }}{% else %}...{% endif %}</p>
+        </div>
+
+        <div class="content-body p-8 flex-1 overflow-y-auto">
+            
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <!-- Card 1 -->
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center justify-between relative overflow-hidden">
+                    <div class="absolute left-0 top-0 bottom-0 w-[5px] bg-[#10b981] rounded-l-xl"></div>
+                    <div class="flex items-center gap-4 pl-3">
+                        <div class="w-14 h-14 rounded-xl bg-[#d1fae5] text-[#10b981] flex items-center justify-center text-2xl font-black">
+                            $
+                        </div>
+                        <div>
+                            <h3 class="text-[13px] font-bold text-[#64748b] mb-1">GIÁ TRỊ TỒN KHO</h3>
+                            <div class="text-[30px] font-extrabold text-[#111827] leading-none">
+                                {% if inventory_value %}{{ inventory_value|floatformat:1 }}{% else %}0{% endif %} <span class="text-[16px] font-medium text-gray-400">triệu</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center justify-between relative overflow-hidden">
+                    <div class="absolute left-0 top-0 bottom-0 w-[5px] bg-[#ef4444] rounded-l-xl"></div>
+                    <div class="flex items-center gap-4 pl-3">
+                        <div class="w-14 h-14 rounded-xl bg-[#fee2e2] text-[#ef4444] flex items-center justify-center text-2xl font-black">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-[13px] font-bold text-[#64748b] mb-1">SẮP HẾT HÀNG</h3>
+                            <div class="text-[30px] font-extrabold text-[#ef4444] leading-none">
+                                {% if low_stock_count %}{{ low_stock_count }}{% else %}0{% endif %} <span class="text-[16px] font-medium text-gray-400">SP</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center justify-between relative overflow-hidden">
+                    <div class="absolute left-0 top-0 bottom-0 w-[5px] bg-[#f59e0b] rounded-l-xl"></div>
+                    <div class="flex items-center gap-4 pl-3">
+                        <div class="w-14 h-14 rounded-xl bg-[#fef3c7] text-[#f59e0b] flex items-center justify-center text-2xl font-bold">
+                            <i class="fa-solid fa-right-left"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-[13px] font-bold text-[#64748b] mb-1">GIAO DỊCH HÔM NAY</h3>
+                            <div class="text-[30px] font-extrabold text-[#111827] leading-none">
+                                {% if today_transactions %}{{ today_transactions }}{% else %}0{% endif %} <span class="text-[16px] font-medium text-gray-400">GD</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- Chart 1 -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Xuất nhập kho theo tháng</h3>
+                        <select class="text-sm border border-gray-200 rounded-lg px-3 py-1">
+                            <option>2026</option>
+                            <option>2025</option>
+                        </select>
+                    </div>
+                    <canvas id="monthlyChart" width="400" height="200"></canvas>
+                </div>
+
+                <!-- Chart 2 -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Top sản phẩm bán chạy</h3>
+                        <select class="text-sm border border-gray-200 rounded-lg px-3 py-1">
+                            <option>Tháng này</option>
+                            <option>Tháng trước</option>
+                        </select>
+                    </div>
+                    <canvas id="topProductsChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- Bottom Charts -->
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <!-- Chart 3 -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Tình trạng tồn kho</h3>
+                    </div>
+                    <canvas id="inventoryStatusChart" width="300" height="200"></canvas>
+                </div>
+
+                <!-- Chart 4 -->
+                <div class="chart-container xl:col-span-2">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Doanh thu theo danh mục</h3>
+                        <select class="text-sm border border-gray-200 rounded-lg px-3 py-1">
+                            <option>Tháng này</option>
+                            <option>Quý này</option>
+                        </select>
+                    </div>
+                    <canvas id="revenueChart" width="600" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+  </main>
+
+  <script src="{% static 'js/0.0.app.js' %}"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if monthly_imports %}
+        // Monthly Chart
+        const monthlyCtx = document.getElementById('monthlyChart');
+        if (monthlyCtx) {
+            new Chart(monthlyCtx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7', 'Th8', 'Th9', 'Th10', 'Th11', 'Th12'],
+                    datasets: [{
+                        label: 'Nhập kho',
+                        data: {{ monthly_imports|safe }},
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Xuất kho',
+                        data: {{ monthly_exports|safe }},
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
+            });
+        }
+        {% endif %}
+
+        {% if top_products_labels %}
+        // Top Products Chart
+        const topProductsCtx = document.getElementById('topProductsChart');
+        if (topProductsCtx) {
+            new Chart(topProductsCtx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: {{ top_products_labels|safe }},
+                    datasets: [{
+                        label: 'Số lượng bán',
+                        data: {{ top_products_data|safe }},
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 4
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+        }
+        {% endif %}
+
+        {% if inventory_status_data %}
+        // Inventory Status Chart
+        const inventoryStatusCtx = document.getElementById('inventoryStatusChart');
+        if(inventoryStatusCtx) {
+            new Chart(inventoryStatusCtx.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Bình thường', 'Sắp hết', 'Hết hàng'],
+                    datasets: [{
+                        data: {{ inventory_status_data|safe }},
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+        {% endif %}
+
+        {% if revenue_labels %}
+        // Revenue Chart
+        const revenueCtx = document.getElementById('revenueChart');
+        if (revenueCtx) {
+            new Chart(revenueCtx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: {{ revenue_labels|safe }},
+                    datasets: [{
+                        label: 'Doanh thu (triệu VNĐ)',
+                        data: {{ revenue_data|safe }},
+                        backgroundColor: '#8b5cf6',
+                        borderRadius: 4
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+        }
+        {% endif %}
+    });
+    </script>
+</body>
+</html>

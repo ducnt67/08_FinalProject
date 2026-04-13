@@ -1,0 +1,488 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Danh mục - Cẩm Lệ Books</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'css/0.0.style.css' %}">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#DC2626', bglight: '#F4F6F8' },
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Ghi đè một số style để khớp với hệ thống */
+        .main-content { background-color: #F3F4F6; min-height: 100vh; }
+        .pagination-link { cursor: pointer; transition: 0.2s; }
+        .pagination-link:hover { background-color: #fef2f2; color: #dc2626; }
+        .active-page { background-color: #dc2626 !important; color: white !important; }
+        
+        /* Modal Style */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 9999; display: none;
+            justify-content: center; align-items: center;
+        }
+
+        /* Animation Categories */
+        @keyframes fadeSlideDown {
+            0% { opacity: 0; transform: translateY(-8px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeSlideUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-8px); }
+        }
+        .child-row.show-row {
+            display: table-row !important;
+            animation: fadeSlideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .child-row.hide-row {
+            animation: fadeSlideUp 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+    </style>
+</head>
+<body>
+
+  <nav class="sidebar" id="sidebar-container">
+    {% include 'partials/sidebar.html' %}
+  </nav>
+
+  <main class="main-content">
+        <div class="content-header shrink-0">
+            <h1>QUẢN LÝ DANH MỤC</h1>
+        </div>
+
+        <div class="content-body p-8 flex-1 flex flex-col min-h-0 overflow-hidden">
+            
+            <div class="bg-white rounded-xl shadow-sm p-4 mb-6 flex flex-nowrap items-center justify-between gap-3 shrink-0">
+                <div class="flex flex-nowrap items-center gap-3 flex-1">
+                    <div class="frm-search-box"><i class="fas fa-search"></i><input type="text" id="searchCat" placeholder="Tên danh mục..." oninput="filterCategories()" onkeyup="filterCategories()"></div>
+                    
+                    <div>
+                        <select id="statusCat" class="frm-select" onchange="filterCategories()">
+                            <option value="all">Tất cả trạng thái</option>
+                            <option value="1">Đang hoạt động</option>
+                            <option value="0">Ngừng hoạt động</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="openCatModal('create')" class="bg-primary hover:bg-red-700 text-white px-4 py-2 whitespace-nowrap rounded-lg text-sm font-bold transition-all flex items-center gap-2 shadow-md active:scale-95">
+                    <i class="fa-solid fa-plus"></i> THÊM DANH MỤC
+                </button>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm p-6 flex-1 flex flex-col min-h-0 overflow-hidden">
+                <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2 shrink-0">
+                    <i class="fa-solid fa-list-ul text-primary"></i>
+                    Danh sách danh mục sản phẩm
+                </h2>
+                
+                <div class="flex-1 overflow-auto bg-white">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="sticky top-0 z-10 bg-gray-50 shadow-sm">
+                            <tr>
+                                <th width="60" class="py-4 px-4 font-semibold text-sm text-primary border-b border-gray-200 text-center col-index bg-gray-50">STT</th>
+                                <th class="py-4 px-4 font-semibold text-sm text-primary border-b border-gray-200 bg-gray-50" style="min-width: 280px; width: 35%;">Tên danh mục</th>
+                                <th class="py-4 px-4 font-semibold text-sm text-primary border-b border-gray-200 bg-gray-50" style="min-width: 140px; width: 15%;">Mã danh mục</th>
+                                <th class="py-4 px-4 font-semibold text-sm text-primary border-b border-gray-200 bg-gray-50" style="min-width: 150px; width: 20%;">Danh mục cha</th>
+                                <th class="py-4 px-4 font-semibold text-sm text-primary border-b border-gray-200 bg-gray-50" style="min-width: 140px; width: 15%;">Trạng thái</th>
+                                <th class="py-4 px-4 font-semibold text-sm text-primary border-b border-gray-200 text-right bg-gray-50" style="min-width: 170px; width: 170px; white-space: nowrap;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="catTableBody" class="text-sm">
+                            <tr id="noCatResult" class="hidden"><td colspan="6" class="text-center py-8 text-gray-500 italic">Không tìm thấy danh mục nào.</td></tr>
+                            {% for category in categories %}
+                            <tr class="cat-row {% if not category.maDanhMucCha %}parent-row{% else %}child-row show-row{% endif %} border-b border-gray-50 hover:bg-gray-50/50 transition-colors" data-status="{{ category.trangThai }}" data-id="{{ category.maDanhMuc }}" {% if category.maDanhMucCha %}data-parent="{{ category.maDanhMucCha.maDanhMuc }}"{% endif %} style="cursor: pointer;" {% if not category.maDanhMucCha %}onclick="toggleChildren('{{ category.maDanhMuc }}')"{% endif %}>
+                                <td class="py-4 px-4 font-semibold text-gray-800 text-center col-index font-bold">{{ forloop.counter }}</td>
+                                <td class="py-4 px-4 font-medium text-gray-800 flex items-center gap-2 {% if category.maDanhMucCha %}pl-9{% endif %}">
+                                    {% if not category.maDanhMucCha %}
+                                    <i id="icon-{{ category.maDanhMuc }}" class="fa-solid fa-angle-right text-gray-400 text-xs w-3 transition-transform duration-200 rotate-90"></i>
+                                    {% endif %}
+                                    <span class="cat-name">{{ category.tenDanhMuc }}</span>
+                                </td>
+                                <td class="py-4 px-4 text-gray-600 cat-code">{{ category.maDanhMuc }}</td>
+                                <td class="py-4 px-4 text-gray-600 cat-parent">{% if category.maDanhMucCha %}{{ category.maDanhMucCha.tenDanhMuc }}{% else %}-{% endif %}</td>
+                                <td class="py-4 px-4">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium {% if category.trangThai %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">{% if category.trangThai %}Đang hoạt động{% else %}Ngừng hoạt động{% endif %}</span>
+                                </td>
+                                <td class="py-4 px-4 text-right action-cell" onclick="event.stopPropagation()">
+                                    <div class="flex items-center justify-end gap-3">
+                                        <button onclick="openCatModal('view', '{{ category.maDanhMuc }}')" class="text-blue-500 hover:text-blue-600 border border-blue-100 bg-blue-50 w-7 h-7 rounded flex items-center justify-center" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></button>
+                                        <button onclick="openCatModal('edit', '{{ category.maDanhMuc }}')" class="text-cyan-500 hover:text-cyan-600 border border-cyan-100 bg-cyan-50 w-7 h-7 rounded flex items-center justify-center"><i class="fa-solid fa-pen-to-square"></i></button>
+                                        <button onclick="deleteCat('{{ category.maDanhMuc }}')" class="text-red-500 hover:text-red-600 border border-red-100 bg-red-50 w-7 h-7 rounded flex items-center justify-center"><i class="fa-solid fa-trash-can"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Missing pagination controls div from the original block. Add it here. -->
+            <div id="catPagination" class="w-full mt-6"></div>
+        </div>
+  </main>
+
+    <!-- UNIFIED CATEGORY MODAL -->
+    <div id="catModal" class="modal-overlay">
+        <div class="w-full max-w-[680px] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col border border-gray-300">
+            
+            <div class="bg-primary text-white px-5 py-4 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-list-ul text-lg"></i>
+                    <h2 id="modalTitle" class="text-[17px] font-semibold tracking-wide">Thêm danh mục</h2>
+                </div>
+                <button onclick="closeCatModal()" class="text-white hover:text-white/80 transition-colors outline-none">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-6">
+                
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-[14px] font-bold text-gray-800 mb-2">
+                            Mã danh mục <span class="text-primary font-bold">*</span>
+                        </label>
+                        <input type="text" id="modalCatCode" placeholder="Hệ thống tự tạo" disabled
+                               class="w-full px-3 py-2.5 border border-gray-200 bg-gray-50/50 text-gray-500 rounded-lg text-[14px] focus:outline-none cursor-not-allowed">
+                    </div>
+                    <div>
+                        <label class="block text-[14px] font-bold text-gray-800 mb-2">
+                            Danh mục cha
+                        </label>
+                        <div class="relative">
+                            <select id="modalCatParent" class="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-700 rounded-lg text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+                                <option value="">-- Không có (Là danh mục gốc) --</option>
+                                {% for category in categories %}
+                                    {% if not category.maDanhMucCha %}
+                                        <option value="{{ category.maDanhMuc }}">{{ category.tenDanhMuc }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[14px] font-bold text-gray-800 mb-2">
+                        Tên danh mục <span class="text-primary font-bold">*</span>
+                    </label>
+                    <input type="text" id="modalCatName" placeholder="Nhập tên danh mục (VD: Tiểu thuyết, Bút bi...)"
+                           class="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-800 placeholder-gray-400 rounded-lg text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-4 flex items-center justify-between bg-white mt-2 shadow-sm">
+                    <div>
+                        <h3 class="font-bold text-gray-900 text-[14px]">Trạng thái hoạt động</h3>
+                        <p class="text-[13px] text-gray-500 mt-1">Danh mục sẽ được hiển thị trên hệ thống bán hàng.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="modalCatStatus" checked class="sr-only peer">
+                            <div class="w-12 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                        </label>
+                        <span class="text-[14px] font-bold text-green-600" id="modalCatStatusText">Đang hoạt động</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="px-6 py-4 border-t border-gray-200 bg-white flex items-center justify-end gap-3 shrink-0">
+                <button onclick="closeCatModal()" class="px-4 py-2 whitespace-nowrap bg-gray-200 hover:bg-gray-300 text-gray-800 text-[14px] font-semibold rounded-lg transition-colors">
+                    Hủy bỏ
+                </button>
+                <button id="btnSaveModal" onclick="saveCat()" class="px-6 py-2.5 bg-primary hover:bg-red-700 text-white text-[14px] font-semibold rounded-lg transition-colors flex items-center gap-2">
+                    <i class="fa-regular fa-floppy-disk text-base"></i> Lưu danh mục
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+
+  <script src="{% static 'js/0.0.app.js' %}"></script>
+
+    <script>
+        // Lấy CSRF token từ cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        const allParentRows = Array.from(document.querySelectorAll('.parent-row'));
+        const allChildRows = Array.from(document.querySelectorAll('.child-row'));
+        const itemsPerPage = 8;
+        let currentPage = 1;
+        let filteredParents = [...allParentRows];
+
+        function filterCategories() {
+            const search = document.getElementById('searchCat').value.toLowerCase();
+            const status = document.getElementById('statusCat').value;
+
+            filteredParents = allParentRows.filter(row => {
+                const text = row.innerText.toLowerCase();
+                const rowStatus = row.getAttribute('data-status');
+                
+                const matchSearch = text.includes(search);
+                const matchStatus = (status === 'all' || rowStatus === status);
+                return matchSearch && matchStatus;
+            });
+
+            currentPage = 1;
+            renderTable();
+        }
+
+        function renderTable() {
+            allParentRows.forEach(r => r.classList.add('hidden'));
+            allChildRows.forEach(r => r.classList.add('hidden')); 
+            
+            const noResult = document.getElementById('noCatResult');
+            
+            if (filteredParents.length === 0) {
+                if (noResult) noResult.classList.remove('hidden');
+                renderPagination(0);
+                return;
+            }
+            if (noResult) noResult.classList.add('hidden');
+
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageData = filteredParents.slice(start, end);
+
+            pageData.forEach(pRow => {
+                pRow.classList.remove('hidden');
+                const pid = pRow.getAttribute('data-id');
+                const icon = document.getElementById('icon-' + pid);
+                if (icon && icon.classList.contains('rotate-90')) {
+                    const children = allChildRows.filter(c => c.getAttribute('data-parent') === pid);
+                    children.forEach(c => {
+                        c.classList.remove('hidden');
+                        c.classList.remove('hide-row');
+                        c.classList.add('show-row');
+                    });
+                }
+            });
+
+            renderPagination(Math.ceil(filteredParents.length / itemsPerPage));
+        }
+
+        function renderPagination(total) {
+            if (typeof renderGlobalPagination === 'function') {
+                renderGlobalPagination(filteredParents.length, itemsPerPage, currentPage, 'catPagination', 'danh mục', 'goToPage');
+            }
+        }
+
+        function goToPage(p) { currentPage = p; renderTable(); }
+
+        function toggleChildren(parentId) {
+            const children = allChildRows.filter(c => c.getAttribute('data-parent') === parentId);
+            const icon = document.getElementById('icon-' + parentId);
+
+            if (!icon) return; // Prevent error if icon not found
+
+            if (icon.classList.contains('rotate-90')) {
+                icon.classList.remove('rotate-90');
+                children.forEach(c => {
+                    c.classList.remove('show-row');
+                    c.classList.add('hide-row');
+                    setTimeout(() => {
+                        c.classList.remove('hide-row');
+                        c.classList.add('hidden');
+                    }, 180);
+                });
+            } else {
+                icon.classList.add('rotate-90');
+                children.forEach(c => {
+                    c.classList.remove('hidden');
+                    c.classList.remove('hide-row');
+                    c.classList.add('show-row');
+                });
+            }
+        }
+
+        // --- UNIFIED MODAL LOGIC ---
+        let currentModalMode = '';
+
+        function openCatModal(mode, code = '') {
+            currentModalMode = mode;
+            const modal = document.getElementById('catModal');
+            const title = document.getElementById('modalTitle');
+            const btnSave = document.getElementById('btnSaveModal');
+            
+            const codeInput = document.getElementById('modalCatCode');
+            const nameInput = document.getElementById('modalCatName');
+            const parentInput = document.getElementById('modalCatParent');
+            const statusInput = document.getElementById('modalCatStatus');
+            const statusText = document.getElementById('modalCatStatusText');
+
+            // Handle Checkbox Change
+            statusInput.onchange = function() {
+                statusText.textContent = this.checked ? 'Đang hoạt động' : 'Ngừng hoạt động';
+                statusText.className = this.checked ? 'text-[14px] font-bold text-green-600' : 'text-[14px] font-bold text-red-600';
+            };
+
+            if (mode === 'create') {
+                title.textContent = 'Thêm mới danh mục';
+                codeInput.value = '';
+                nameInput.value = '';
+                parentInput.value = '';
+                statusInput.checked = true;
+                statusInput.onchange(); // trigger visual update
+
+                toggleInputs(false);
+                btnSave.style.display = 'flex';
+                modal.style.display = 'flex';
+            }
+            else if (mode === 'edit' || mode === 'view') {
+                // Fetch data via AJAX
+                fetch(`?maDanhMuc=${code}`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    title.textContent = mode === 'edit' ? 'Chỉnh sửa danh mục' : 'Chi tiết danh mục';
+
+                    codeInput.value = data.maDanhMuc;
+                    nameInput.value = data.tenDanhMuc;
+                    parentInput.value = data.maDanhMucCha;
+
+                    statusInput.checked = (data.trangThai === 1);
+                    statusInput.onchange(); // trigger visual update
+
+                    toggleInputs(mode === 'view');
+                    btnSave.style.display = mode === 'view' ? 'none' : 'flex';
+
+                    modal.style.display = 'flex';
+                })
+                .catch(error => {
+                    alert('Lỗi khi lấy thông tin danh mục: ' + error);
+                });
+            }
+        }
+
+        function closeCatModal() {
+            document.getElementById('catModal').style.display = 'none';
+        }
+
+        function toggleInputs(readOnly) {
+            document.getElementById('modalCatName').readOnly = readOnly;
+            document.getElementById('modalCatParent').disabled = readOnly;
+            document.getElementById('modalCatStatus').disabled = readOnly;
+
+            // Visual feedback for read-only
+            if (readOnly) {
+                document.getElementById('modalCatName').classList.add('bg-gray-50', 'text-gray-500');
+                document.getElementById('modalCatParent').classList.add('bg-gray-50', 'text-gray-500');
+            } else {
+                document.getElementById('modalCatName').classList.remove('bg-gray-50', 'text-gray-500');
+                document.getElementById('modalCatParent').classList.remove('bg-gray-50', 'text-gray-500');
+            }
+        }
+
+        function saveCat() {
+            const maDanhMuc = document.getElementById('modalCatCode').value.trim();
+            const tenDanhMuc = document.getElementById('modalCatName').value.trim();
+            const maDanhMucCha = document.getElementById('modalCatParent').value;
+            const trangThai = document.getElementById('modalCatStatus').checked ? 1 : 0;
+
+            if(!tenDanhMuc) {
+                alert("Vui lòng nhập tên danh mục!");
+                return;
+            }
+            
+            const data = {
+                maDanhMuc: maDanhMuc,
+                tenDanhMuc: tenDanhMuc,
+                maDanhMucCha: maDanhMucCha,
+                trangThai: trangThai
+            };
+
+            fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert(data.message);
+                    closeCatModal();
+                    window.location.reload();
+                } else {
+                    alert('Lỗi: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Lỗi khi lưu dữ liệu: ' + error);
+            });
+        }
+
+        function deleteCat(code) {
+            if(confirm(`Bạn có chắc chắn muốn xóa danh mục ${code}?`)) {
+                fetch(window.location.href, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({ maDanhMuc: code })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert(data.message);
+                        window.location.reload();
+                    } else {
+                        alert('Lỗi: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('Lỗi khi xóa dữ liệu: ' + error);
+                });
+            }
+        }
+
+        function resetFilters() {
+            document.getElementById('searchCat').value = '';
+            document.getElementById('statusCat').value = 'all';
+            filterCategories();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            filterCategories();
+            // Xóa autocomplete cũ vì logic DOM đã thay đổi khi dùng reload
+        });
+    </script>
+</body>
+</html>

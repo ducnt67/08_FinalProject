@@ -1,0 +1,270 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tồn kho & Cảnh báo - Cẩm Lệ Books</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'css/0.0.style.css' %}">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#DC2626', bglight: '#F4F6F8' },
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .main-content { background-color: #F4F6F8; min-height: 100vh; }
+        .table-wrapper { max-height: 600px; overflow-y: auto; }
+        table thead th { position: sticky; top: 0; z-index: 10; background-color: #f9fafb; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
+        .modal-content { background-color: #fefefe; margin: 10% auto; padding: 0; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+
+  <nav class="sidebar" id="sidebar-container">
+    {% include 'partials/sidebar.html' %}
+  </nav>
+
+  <main class="main-content">
+        <div class="content-header">
+            <h1>QUẢN LÝ TỒN KHO</h1>
+        </div>
+
+        <div class="content-body p-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <!-- An toàn -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative flex items-center p-5 cursor-pointer hover:shadow-md transition-shadow" onclick="filterByStatusBtn('safe')">
+                    <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#10B981]"></div>
+                    <div class="w-12 h-12 rounded-lg bg-green-100/70 text-[#10B981] flex items-center justify-center text-xl mr-4">
+                        <i class="fa-solid fa-box-open"></i>
+                    </div>
+                    <div>
+                        <p class="text-[11px] font-bold text-gray-500 tracking-wide uppercase mb-1">BÌNH THƯỜNG / AN TOÀN</p>
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-2xl font-bold text-gray-800" id="countSafe">0</span>
+                            <span class="text-sm text-gray-500 font-medium">SP</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sắp hết -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative flex items-center p-5 cursor-pointer hover:shadow-md transition-shadow" onclick="filterByStatusBtn('warning')">
+                    <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#F59E0B]"></div>
+                    <div class="w-12 h-12 rounded-lg bg-orange-100/70 text-[#F59E0B] flex items-center justify-center text-xl mr-4">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div>
+                        <p class="text-[11px] font-bold text-gray-500 tracking-wide uppercase mb-1">SẮP HẾT HÀNG</p>
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-2xl font-bold text-[#F59E0B]" id="countWarning">0</span>
+                            <span class="text-sm text-gray-500 font-medium">SP</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hết hàng -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative flex items-center p-5 cursor-pointer hover:shadow-md transition-shadow" onclick="filterByStatusBtn('empty')">
+                    <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#EF4444]"></div>
+                    <div class="w-12 h-12 rounded-lg bg-red-100/70 text-[#EF4444] flex items-center justify-center text-xl mr-4">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                    </div>
+                    <div>
+                        <p class="text-[11px] font-bold text-gray-500 tracking-wide uppercase mb-1">HẾT HÀNG</p>
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-2xl font-bold text-[#EF4444]" id="countEmpty">0</span>
+                            <span class="text-sm text-gray-500 font-medium">SP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col">
+                <div class="p-5 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="frm-search-box w-full md:w-80">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Tìm kiếm theo mã, tên..." oninput="filterTable()">
+                    </div>
+                    <div class="flex items-center gap-3 w-full md:w-auto">
+                        <select id="statusFilter" class="frm-select" onchange="filterTable()">
+                            <option value="all">Tất cả trạng thái</option>
+                            <option value="safe">An toàn</option>
+                            <option value="warning">Sắp hết</option>
+                            <option value="empty">Hết hàng</option>
+                        </select>
+                        <button type="button" onclick="resetFilters()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-[13px] font-semibold transition-colors flex items-center gap-2 border border-gray-200">
+                            <i class="fa-solid fa-rotate-right"></i> Làm mới
+                        </button>
+                    </div>
+                </div>
+
+                <div class="w-full table-wrapper border-y border-gray-100">
+                    <table class="w-full text-left border-collapse min-w-[800px]">
+                        <thead>
+                            <tr class="bg-gray-50/80">
+                                <th width="60" class="py-3.5 px-5 font-bold text-[13px] text-primary border-b border-gray-100 text-center">STT</th>
+                                <th class="py-3.5 px-5 font-bold text-[13px] text-primary border-b border-gray-100">Mã SP</th>
+                                <th class="py-3.5 px-5 font-bold text-[13px] text-primary border-b border-gray-100">Tên sản phẩm</th>
+                                <th class="py-3.5 px-5 font-bold text-[13px] text-primary border-b border-gray-100 text-center">Tồn tối thiểu</th>
+                                <th class="py-3.5 px-5 font-bold text-[13px] text-primary border-b border-gray-100 text-center">Hiện có</th>
+                                <th class="py-3.5 px-5 font-bold text-[13px] text-primary border-b border-gray-100">Trạng thái</th>
+                                <th class="py-3.5 px-5 font-bold text-[13px] text-primary border-b border-gray-100 text-right">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryBody" class="text-[13px]">
+                            {% for item in inventory_items %}
+                            {% with current_qty=item.soluongTon min_qty=item.sanPham.tonKhoToiThieu %}
+                            <tr class="inv-row border-b border-gray-100 hover:bg-gray-50/50 transition-colors"
+                                data-status="{% if current_qty == 0 %}empty{% elif current_qty <= min_qty %}warning{% else %}safe{% endif %}"
+                                data-search="{{ item.sanPham.maSP }} {{ item.sanPham.tenSP }}">
+                                <td class="py-5 px-5 text-gray-500 text-center font-bold row-index">{{ forloop.counter }}</td>
+                                <td class="py-5 px-5 text-gray-500">{{ item.sanPham.maSP }}</td>
+                                <td class="py-5 px-5 font-semibold text-gray-800">{{ item.sanPham.tenSP }}</td>
+                                <td class="py-5 px-5 text-center text-gray-600 font-bold">{{ min_qty }}</td>
+                                <td class="py-5 px-5 text-center font-black {% if current_qty == 0 %}text-red-600{% elif current_qty <= min_qty %}text-orange-600{% else %}text-gray-900{% endif %}">
+                                    {{ current_qty }}
+                                </td>
+                                <td class="py-5 px-5">
+                                    {% if current_qty == 0 %}
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#FEE2E2] text-[#991B1B] border border-[#FECACA] w-max">
+                                        <i class="fa-solid fa-circle-xmark"></i> Hết hàng
+                                    </span>
+                                    {% elif current_qty <= min_qty %}
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] w-max">
+                                        <i class="fa-solid fa-triangle-exclamation"></i> Sắp hết
+                                    </span>
+                                    {% else %}
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-[#D1FAE5] text-[#065F46] border border-[#A7F3D0] w-max">
+                                        <i class="fa-solid fa-circle-check"></i> An toàn
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-5 px-5 text-right">
+                                    <button type="button" onclick="showDetail('{{ item.sanPham.maSP }}')" class="text-gray-400 hover:text-primary transition-colors p-1" title="Chi tiết"><i class="fa-solid fa-eye text-[16px]"></i></button>
+                                </td>
+                            </tr>
+                            {% endwith %}
+                            {% empty %}
+                            <tr><td colspan="7" class="text-center py-10 text-gray-500 italic">Không có dữ liệu tồn kho</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+  </main>
+
+  <!-- Modal Chi tiết tồn kho -->
+  <div id="detailModal" class="modal">
+    <div class="modal-content overflow-hidden">
+        <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
+            <h2 class="text-lg font-bold text-gray-800">CHI TIẾT TỒN KHO SẢN PHẨM</h2>
+            <button type="button" onclick="closeModal()" class="text-gray-500 hover:text-gray-700"><i class="fa-solid fa-times text-xl"></i></button>
+        </div>
+        <div class="p-6" id="detailBody">
+            <div class="text-center py-10"><i class="fas fa-spinner fa-spin text-3xl text-primary"></i></div>
+        </div>
+        <div class="p-4 border-t bg-gray-50 flex justify-end">
+            <button type="button" onclick="closeModal()" class="px-6 py-2 bg-gray-800 text-white rounded-lg font-bold hover:bg-black">Đóng</button>
+        </div>
+    </div>
+  </div>
+
+  <script>
+    function updateCounts() {
+        const rows = document.querySelectorAll('.inv-row');
+        let safe = 0, warning = 0, empty = 0;
+        rows.forEach(row => {
+            const status = row.dataset.status;
+            if(status === 'safe') safe++;
+            else if(status === 'warning') warning++;
+            else if(status === 'empty') empty++;
+        });
+        document.getElementById('countSafe').textContent = safe;
+        document.getElementById('countWarning').textContent = warning;
+        document.getElementById('countEmpty').textContent = empty;
+    }
+
+    function filterTable() {
+        const kw = document.getElementById('searchInput').value.toLowerCase().trim();
+        const status = document.getElementById('statusFilter').value;
+        const rows = document.querySelectorAll('.inv-row');
+        let count = 0;
+        rows.forEach(row => {
+            const matchKw = row.dataset.search.toLowerCase().includes(kw);
+            const matchStatus = status === 'all' || row.dataset.status === status;
+            if(matchKw && matchStatus) {
+                row.style.display = '';
+                count++;
+                row.querySelector('.row-index').textContent = count;
+            } else { row.style.display = 'none'; }
+        });
+    }
+
+    function filterByStatusBtn(status) { document.getElementById('statusFilter').value = status; filterTable(); }
+    function resetFilters() { document.getElementById('searchInput').value = ''; document.getElementById('statusFilter').value = 'all'; filterTable(); }
+    function closeModal() { document.getElementById('detailModal').style.display = 'none'; }
+
+    function showDetail(maSP) {
+        document.getElementById('detailModal').style.display = 'block';
+        document.getElementById('detailBody').innerHTML = '<div class="text-center py-10"><i class="fas fa-spinner fa-spin text-3xl text-primary"></i></div>';
+
+        // Sử dụng URL tag để tránh sai lệch đường dẫn
+        const url = "{% url 'inventory:sanpham' %}?maSP=" + maSP;
+
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(res => {
+            if (!res.ok) throw new Error('Network response was not ok');
+            return res.json();
+        })
+        .then(data => {
+            let statusBadge = '';
+            const qty = parseInt(data.soluongTon);
+            const min = parseInt(data.tonKhoToiThieu);
+
+            if (qty === 0) statusBadge = '<span class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-bold">Hết hàng</span>';
+            else if (qty <= min) statusBadge = '<span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-bold">Sắp hết</span>';
+            else statusBadge = '<span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold">An toàn</span>';
+
+            document.getElementById('detailBody').innerHTML = `
+                <div class="grid grid-cols-2 gap-y-4 text-sm">
+                    <div class="col-span-2 flex items-center gap-3 mb-2">
+                        <h3 class="text-xl font-bold text-gray-800">${data.tenSP}</h3>
+                        ${statusBadge}
+                    </div>
+                    <div><p class="text-gray-500 font-bold uppercase text-[10px]">Mã sản phẩm</p><p class="font-semibold text-gray-800">${data.maSP}</p></div>
+                    <div><p class="text-gray-500 font-bold uppercase text-[10px]">Đơn vị tính</p><p class="font-semibold text-gray-800">${data.donViTinh}</p></div>
+                    <div><p class="text-gray-500 font-bold uppercase text-[10px]">Tồn hiện tại</p><p class="text-lg font-black text-primary">${data.soluongTon}</p></div>
+                    <div><p class="text-gray-500 font-bold uppercase text-[10px]">Tồn tối thiểu</p><p class="font-semibold text-gray-800">${data.tonKhoToiThieu}</p></div>
+                    <div class="col-span-2 border-t pt-4 mt-2">
+                        <p class="text-gray-500 font-bold uppercase text-[10px] mb-2">Thông tin bổ sung</p>
+                        <div class="grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded-lg">
+                            <div><p class="text-xs text-gray-500">Giá bán</p><p class="font-bold text-gray-800">${parseFloat(data.giaBan).toLocaleString('vi-VN')} đ</p></div>
+                            <div><p class="text-xs text-gray-500">Nhà cung cấp</p><p class="font-bold text-gray-800">${data.nhaCungCap || 'Chưa rõ'}</p></div>
+                        </div>
+                    </div>
+                </div>`;
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById('detailBody').innerHTML = '<p class="text-red-500 text-center font-bold py-10">Lỗi tải dữ liệu! Vui lòng kiểm tra lại kết nối.</p>';
+        });
+    }
+
+    window.onclick = function(e) { if (e.target == document.getElementById('detailModal')) closeModal(); }
+    document.addEventListener('DOMContentLoaded', updateCounts);
+  </script>
+</body>
+</html>

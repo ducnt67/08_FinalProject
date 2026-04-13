@@ -1,0 +1,541 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiểm kê kho - Cẩm Lệ Books</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'css/0.0.style.css' %}">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#DC2626', bglight: '#F4F6F8' },
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .main-content { background-color: #F4F6F8; min-height: 100vh; }
+        .table-wrapper { overflow-x: auto; }
+        
+        .action-icons i { width: 32px; height: 32px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; background: #f8fafc; color: #64748b; margin: 0 2px;}
+        .action-icons i:hover { transform: translateY(-2px); background: #e2e8f0; color: var(--primary-main); }
+        
+        /* View Router */
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        /* Tiện ích */
+        .create-status-badge { display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 13px; }
+        .status-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .status-warning { background: #fef9c3; color: #b45309; border: 1px solid #fde68a; }
+        .status-danger { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+        .status-info { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+
+        /* Modal Overlay */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.45); display: none; align-items: center; justify-content: center; padding: 24px; z-index: 999; }
+        .modal-overlay.active { display: flex; }
+
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+        .form-control { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; transition: 0.2s; }
+        .form-control:focus { outline: none; border-color: #DC2626; ring: 2px ring-red-100; }
+
+    </style>
+</head>
+<body>
+
+  <nav class="sidebar" id="sidebar-container">
+    {% include 'partials/sidebar.html' %}
+  </nav>
+
+  <main class="main-content">
+
+        <div class="content-header">
+            <h1>QUẢN LÝ KIỂM KÊ</h1>
+        </div>
+            <!-- Danh sách phiếu kiểm kê -->
+            <div id="checkListView" class="view-section active">
+                <div class="bg-white rounded-b-xl shadow-sm border border-gray-100 p-6">
+                    
+                    <div class="flex flex-nowrap gap-3 items-center justify-between mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                        <div class="flex flex-nowrap gap-3 flex-1 items-center">
+                            <div class="frm-search-box"><i class="fas fa-search"></i><input type="text" id="checkSearchInput" placeholder="Tìm kiếm phiếu kiểm..." oninput="" onkeyup=""></div>
+                            
+                            <select id="checkStatusFilter" class="frm-select">
+                                <option value="all">Tất cả trạng thái</option>
+                                <option value="1">Đã cân bằng</option>
+                                <option value="0">Đang kiểm</option>
+                                <option value="-1">Đã hủy</option>
+                            </select>
+
+                            <div class="frm-date-box"><input type="date" id="dateFilter" value=""><i class="fa-regular fa-calendar-days"></i></div>
+                            <button onclick="filterTable()" class="bg-white hover:bg-red-50 text-primary px-4 py-2 whitespace-nowrap rounded-lg text-[13px] font-semibold transition-colors flex items-center gap-2 shadow-sm border border-primary">
+                                Lọc dữ liệu
+                            </button>
+                            <button onclick="resetFilters()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 whitespace-nowrap rounded-lg text-[13px] font-semibold transition-colors flex items-center gap-2 shadow-sm border border-gray-200">
+                                Làm mới
+                            </button>
+                        </div>
+                        
+                        <button onclick="openCreateCheck()" class="bg-primary hover:bg-red-700 text-white px-4 py-2 whitespace-nowrap rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shadow-md">
+                            <i class="fa-solid fa-plus"></i> TẠO PHIẾU KIỂM
+                        </button>
+                    </div>
+
+                    <div class="table-wrapper border border-gray-200 rounded-lg">
+                        <table class="w-full text-left border-collapse min-w-[900px]">
+                            <thead>
+                                <tr class="bg-red-50 border-b border-red-100">
+                                    <th class="py-4 px-4 font-bold text-sm text-gray-800 uppercase tracking-wide">STT</th>
+                                    <th class="py-4 px-4 font-bold text-sm text-gray-800 uppercase tracking-wide">Mã Phiếu</th>
+                                    <th class="py-4 px-4 font-bold text-sm text-gray-800 uppercase tracking-wide">Ngày Kiểm</th>
+                                    <th class="py-4 px-4 font-bold text-sm text-gray-800 uppercase tracking-wide">Sản phẩm</th>
+                                    <th class="py-4 px-4 font-bold text-sm text-gray-800 uppercase tracking-wide text-center">Trạng Thái</th>
+                                    <th class="py-4 px-4 font-bold text-sm text-gray-800 uppercase tracking-wide text-center">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="checkTableBody" class="text-sm">
+                                {% for check in inventory_checks %}
+                                <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors" data-id="{{ check.maKiemKe }}">
+                                    <td class="py-4 px-4 text-gray-500 text-center col-index font-bold">{{ forloop.counter }}</td>
+                                    <td class="py-4 px-4 font-semibold text-gray-800">{{ check.maKiemKe }}</td>
+                                    <td class="py-4 px-4 text-gray-600">{{ check.ngayKiem|date:"d/m/Y H:i" }}</td>
+                                    <td class="py-4 px-4 text-gray-600">{{ check.kiemke_ct_set.count }} mặt hàng</td>
+                                    <td class="py-4 px-4 text-center">
+                                        {% if check.trangThai == 1 %}
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-green-100 text-green-700 border border-green-200">
+                                            <i class="fa-solid fa-circle-check"></i> Đã cân bằng
+                                        </span>
+                                        {% elif check.trangThai == 0 %}
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-yellow-100 text-yellow-700 border border-yellow-200">
+                                            <i class="fa-solid fa-clock"></i> Đang kiểm
+                                        </span>
+                                        {% else %}
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-red-100 text-red-700 border border-red-200">
+                                            <i class="fa-solid fa-times"></i> Đã hủy
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-4 px-4 text-center">
+                                        <div class="action-icons">
+                                            <i class="fa-solid fa-eye" onclick="viewDetail('{{ check.maKiemKe }}')" title="Xem chi tiết"></i>
+                                            <i class="fa-solid fa-edit" onclick="editCheck('{{ check.maKiemKe }}')" title="Chỉnh sửa"></i>
+                                            <i class="fa-solid fa-trash-can" onclick="deleteCheck('{{ check.maKiemKe }}')" title="Xóa"></i>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-10 text-gray-500">Không có phiếu kiểm kê nào</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View Tạo/Sửa phiếu kiểm kê -->
+            <div id="checkFormView" class="view-section">
+                <div class="bg-white rounded-b-xl shadow-sm border border-gray-100 p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-4">
+                            <button onclick="backToList()" class="w-10 h-10 rounded-full flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors">
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <h2 class="text-xl font-bold text-gray-800" id="formTitle">TẠO PHIẾU KIỂM KÊ</h2>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="saveCheck(0)" class="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-bold text-sm transition-colors shadow-sm">
+                                LƯU TẠM (NHÁP)
+                            </button>
+                            <button onclick="saveCheck(1)" class="px-6 py-2.5 bg-primary hover:bg-red-700 text-white rounded-lg font-bold text-sm transition-colors shadow-md">
+                                HOÀN THÀNH & CÂN BẰNG KHO
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="form-group">
+                            <label>Mã phiếu kiểm (Tự động)</label>
+                            <input type="text" id="maKiemKe" class="form-control bg-gray-50" placeholder="Hệ thống tự sinh" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Ngày kiểm kê</label>
+                            <input type="datetime-local" id="ngayKiem" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Người thực hiện</label>
+                            <input type="text" id="nguoiKiem" class="form-control" value="Admin">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-list-ul text-primary"></i> DANH SÁCH SẢN PHẨM KIỂM KÊ
+                        </h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div class="form-group">
+                                <label>Thêm nhanh theo danh mục</label>
+                                <select id="categorySelect" class="form-control" onchange="addProductsByCategory(this.value)">
+                                    <option value="">Chọn danh mục để thêm tất cả sản phẩm...</option>
+                                    {% for cat in categories %}
+                                    <option value="{{ cat.maDanhMuc }}">{{ cat.tenDanhMuc }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Thêm lẻ sản phẩm</label>
+                                <div class="relative">
+                                    <i class="fas fa-barcode absolute left-3 top-3 text-gray-400"></i>
+                                    <select id="productSearch" class="form-control pl-10" onchange="addProductLine(this.value)">
+                                        <option value="">Chọn sản phẩm để thêm vào phiếu kiểm...</option>
+                                        {% for sp in products %}
+                                        <option value="{{ sp.maSP }}">{{ sp.maSP }} - {{ sp.tenSP }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-wrapper border border-gray-200 rounded-lg">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-50 border-b border-gray-200">
+                                        <th class="py-3 px-4 font-bold text-xs text-gray-600 uppercase">Sản phẩm</th>
+                                        <th class="py-3 px-4 font-bold text-xs text-gray-600 uppercase text-center w-32">Tồn kho (Hệ thống)</th>
+                                        <th class="py-3 px-4 font-bold text-xs text-gray-600 uppercase text-center w-32">Thực tế (Kiểm)</th>
+                                        <th class="py-3 px-4 font-bold text-xs text-gray-600 uppercase text-center w-32">Chênh lệch</th>
+                                        <th class="py-3 px-4 font-bold text-xs text-gray-600 uppercase text-center w-16">#</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="checkItemsBody">
+                                    <!-- Items will be added here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+  </main>
+
+  <!-- Modal Chi Tiết -->
+  <div id="detailModal" class="modal-overlay">
+    <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+        <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+            <div>
+                <h3 class="text-xl font-bold text-gray-800" id="detailMaPhieu">PHIẾU KIỂM KÊ: PKK-001</h3>
+                <p class="text-sm text-gray-500 mt-1" id="detailNgay">Ngày kiểm: 20/05/2024 14:30</p>
+            </div>
+            <button onclick="closeModal('detailModal')" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
+                <i class="fas fa-times text-gray-500"></i>
+            </button>
+        </div>
+        <div class="p-8 overflow-y-auto">
+            <div class="grid grid-cols-2 gap-8 mb-8">
+                <div class="bg-red-50 p-4 rounded-xl border border-red-100">
+                    <p class="text-xs font-bold text-red-400 uppercase mb-1">Người thực hiện</p>
+                    <p class="font-bold text-gray-800 text-lg" id="detailNguoiKiem">Admin</p>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                    <p class="text-xs font-bold text-blue-400 uppercase mb-1">Trạng thái</p>
+                    <div id="detailTrangThai"></div>
+                </div>
+            </div>
+
+            <table class="w-full text-sm border-collapse rounded-xl overflow-hidden shadow-sm border border-gray-200">
+                <thead class="bg-gray-100 text-gray-700">
+                    <tr>
+                        <th class="py-4 px-4 text-left font-bold border-b">Mã SP</th>
+                        <th class="py-4 px-4 text-left font-bold border-b">Tên sản phẩm</th>
+                        <th class="py-4 px-4 text-center font-bold border-b">Tồn hệ thống</th>
+                        <th class="py-4 px-4 text-center font-bold border-b">Thực tế</th>
+                        <th class="py-4 px-4 text-center font-bold border-b">Lệch</th>
+                    </tr>
+                </thead>
+                <tbody id="detailTableBody">
+                    <!-- Data rows -->
+                </tbody>
+            </table>
+        </div>
+        <div class="p-6 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+            <button onclick="closeModal('detailModal')" class="px-6 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-50">ĐÓNG</button>
+            <button class="px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-sm hover:bg-red-700"><i class="fas fa-print mr-2"></i>IN PHIẾU</button>
+        </div>
+    </div>
+  </div>
+
+  <script id="stock-data" type="application/json">{{ stock_data_json|safe }}</script>
+  <script id="products-data" type="application/json">
+    {% autoescape off %}
+    {
+        {% for sp in products %}
+        "{{ sp.maSP }}": { "name": "{{ sp.tenSP|escapejs }}", "unit": "{{ sp.donViTinh|escapejs }}", "category": "{{ sp.danhMuc.maDanhMuc|escapejs }}" }
+        {% if not forloop.last %},{% endif %}
+        {% endfor %}
+    }
+    {% endautoescape %}
+  </script>
+
+  <script src="{% static 'js/0.0.app.js' %}"></script>
+  <script>
+    const stockData = JSON.parse(document.getElementById('stock-data').textContent);
+    const productsData = JSON.parse(document.getElementById('products-data').textContent);
+
+    function backToList() {
+        document.getElementById('checkFormView').classList.remove('active');
+        document.getElementById('checkListView').classList.add('active');
+    }
+
+    function openCreateCheck() {
+        document.getElementById('formTitle').innerText = 'TẠO PHIẾU KIỂM KÊ';
+        document.getElementById('maKiemKe').value = '';
+        document.getElementById('ngayKiem').value = new Date().toISOString().slice(0, 16);
+        document.getElementById('checkItemsBody').innerHTML = '';
+        document.getElementById('categorySelect').value = '';
+        document.getElementById('productSearch').value = '';
+
+        document.getElementById('checkListView').classList.remove('active');
+        document.getElementById('checkFormView').classList.add('active');
+    }
+
+    function addProductsByCategory(maDM) {
+        if (!maDM) return;
+
+        let addedCount = 0;
+        for (const maSP in productsData) {
+            if (productsData[maSP].category === maDM) {
+                // Chỉ thêm nếu chưa có trong bảng
+                const existing = document.querySelector(`#checkItemsBody tr[data-ma="${maSP}"]`);
+                if (!existing) {
+                    addProductLine(maSP);
+                    addedCount++;
+                }
+            }
+        }
+
+        if (addedCount > 0) {
+            alert(`Đã thêm ${addedCount} sản phẩm từ danh mục này.`);
+        } else {
+            alert(`Không có sản phẩm mới nào được thêm.`);
+        }
+        document.getElementById('categorySelect').value = '';
+    }
+
+    function addProductLine(maSP) {
+        if (!maSP) return;
+
+        // Kiểm tra xem đã có trong bảng chưa
+        const existing = document.querySelector(`#checkItemsBody tr[data-ma="${maSP}"]`);
+        if (existing) {
+            // Không thông báo lỗi nếu thêm theo danh mục (để tránh spam alert)
+            // alert('Sản phẩm này đã có trong phiếu kiểm!');
+            document.getElementById('productSearch').value = '';
+            return;
+        }
+
+        const product = productsData[maSP];
+        const stock = stockData[maSP] || 0;
+
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-gray-100 hover:bg-gray-50';
+        tr.setAttribute('data-ma', maSP);
+        tr.innerHTML = `
+            <td class="py-4 px-4">
+                <div class="font-semibold text-gray-800">${maSP}</div>
+                <div class="text-xs text-gray-500">${product.name}</div>
+            </td>
+            <td class="py-4 px-4 text-center font-medium text-gray-600">${stock}</td>
+            <td class="py-4 px-4 text-center">
+                <input type="number" class="form-control w-24 text-center sl-thuc-te" value="${stock}"
+                    oninput="calculateDiff(this)" data-stock="${stock}">
+            </td>
+            <td class="py-4 px-4 text-center font-bold diff-val">0</td>
+            <td class="py-4 px-4 text-center">
+                <button onclick="this.closest('tr').remove()" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>
+            </td>
+        `;
+        document.getElementById('checkItemsBody').appendChild(tr);
+        document.getElementById('productSearch').value = '';
+    }
+
+    function calculateDiff(input) {
+        const tr = input.closest('tr');
+        const stock = parseInt(input.dataset.stock);
+        const actual = parseInt(input.value) || 0;
+        const diff = actual - stock;
+
+        const diffCell = tr.querySelector('.diff-val');
+        diffCell.innerText = (diff > 0 ? '+' : '') + diff;
+
+        if (diff > 0) {
+            diffCell.className = 'py-4 px-4 text-center font-bold diff-val text-green-600';
+        } else if (diff < 0) {
+            diffCell.className = 'py-4 px-4 text-center font-bold diff-val text-red-600';
+        } else {
+            diffCell.className = 'py-4 px-4 text-center font-bold diff-val text-gray-600';
+        }
+    }
+
+    function saveCheck(trangThai) {
+        const maKiemKe = document.getElementById('maKiemKe').value;
+        const ngayKiem = document.getElementById('ngayKiem').value;
+        const nguoiKiem = document.getElementById('nguoiKiem').value;
+
+        const items = [];
+        document.querySelectorAll('#checkItemsBody tr').forEach(tr => {
+            const maSP = tr.dataset.ma;
+            const stock = parseInt(tr.querySelector('.sl-thuc-te').dataset.stock);
+            const actual = parseInt(tr.querySelector('.sl-thuc-te').value) || 0;
+            items.push({
+                maSP: maSP,
+                slTonKho: stock,
+                slThucTe: actual
+            });
+        });
+
+        if (items.length === 0) {
+            alert('Vui lòng chọn ít nhất 1 sản phẩm để kiểm kê!');
+            return;
+        }
+
+        fetch(window.location.href, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                maKiemKe: maKiemKe,
+                ngayKiem: ngayKiem,
+                nguoiKiem: nguoiKiem,
+                trangThai: trangThai,
+                items: items
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert(data.message);
+            }
+        });
+    }
+
+    function viewDetail(maKiemKe) {
+        fetch(`${window.location.pathname}?maKiemKe=${maKiemKe}`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('detailMaPhieu').innerText = 'PHIẾU KIỂM KÊ: ' + data.maKiemKe;
+            document.getElementById('detailNgay').innerText = 'Ngày kiểm: ' + data.ngayKiemDisplay;
+            document.getElementById('detailNguoiKiem').innerText = data.nguoiKiem;
+            document.getElementById('detailTrangThai').innerHTML = `<span class="px-3 py-1 rounded-full text-xs font-bold ${data.trangThaiClass}">${data.trangThaiDisplay}</span>`;
+
+            const tbody = document.getElementById('detailTableBody');
+            tbody.innerHTML = '';
+            data.items.forEach(item => {
+                const diff = item.chenhLech;
+                const diffClass = diff > 0 ? 'text-green-600' : (diff < 0 ? 'text-red-600' : 'text-gray-500');
+                const row = `
+                    <tr class="border-b">
+                        <td class="py-4 px-4 font-bold text-gray-700">${item.maSP}</td>
+                        <td class="py-4 px-4 text-gray-600">${item.tenSP}</td>
+                        <td class="py-4 px-4 text-center font-bold text-gray-500">${item.slTonKho}</td>
+                        <td class="py-4 px-4 text-center font-bold text-gray-800">${item.slThucTe}</td>
+                        <td class="py-4 px-4 text-center font-bold ${diffClass}">${diff > 0 ? '+' : ''}${diff}</td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+
+            document.getElementById('detailModal').classList.add('active');
+        });
+    }
+
+    function editCheck(maKiemKe) {
+        fetch(`${window.location.pathname}?maKiemKe=${maKiemKe}`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.trangThai === 1) {
+                alert('Không thể chỉnh sửa phiếu đã cân bằng!');
+                return;
+            }
+
+            document.getElementById('formTitle').innerText = 'CHỈNH SỬA PHIẾU KIỂM KÊ';
+            document.getElementById('maKiemKe').value = data.maKiemKe;
+            document.getElementById('ngayKiem').value = data.ngayKiem;
+            document.getElementById('nguoiKiem').value = data.nguoiKiem;
+
+            const body = document.getElementById('checkItemsBody');
+            body.innerHTML = '';
+            data.items.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-gray-100 hover:bg-gray-50';
+                tr.setAttribute('data-ma', item.maSP);
+                tr.innerHTML = `
+                    <td class="py-4 px-4">
+                        <div class="font-semibold text-gray-800">${item.maSP}</div>
+                        <div class="text-xs text-gray-500">${item.tenSP}</div>
+                    </td>
+                    <td class="py-4 px-4 text-center font-medium text-gray-600">${item.slTonKho}</td>
+                    <td class="py-4 px-4 text-center">
+                        <input type="number" class="form-control w-24 text-center sl-thuc-te" value="${item.slThucTe}"
+                            oninput="calculateDiff(this)" data-stock="${item.slTonKho}">
+                    </td>
+                    <td class="py-4 px-4 text-center font-bold diff-val ${item.chenhLech > 0 ? 'text-green-600' : (item.chenhLech < 0 ? 'text-red-600' : 'text-gray-600')}">
+                        ${item.chenhLech > 0 ? '+' : ''}${item.chenhLech}
+                    </td>
+                    <td class="py-4 px-4 text-center">
+                        <button onclick="this.closest('tr').remove()" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                body.appendChild(tr);
+            });
+
+            document.getElementById('checkListView').classList.remove('active');
+            document.getElementById('checkFormView').classList.add('active');
+        });
+    }
+
+    function deleteCheck(maKiemKe) {
+        if (!confirm('Bạn có chắc chắn muốn xóa phiếu kiểm này?')) return;
+
+        fetch(window.location.href, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ maKiemKe: maKiemKe })
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message);
+            location.reload();
+        });
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('active');
+    }
+  </script>
+
+</body>
+</html>
