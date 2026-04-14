@@ -53,6 +53,14 @@
             z-index: 1000;
             margin-top: 4px;
         }
+
+        /* Redesign classes */
+        .detail-field-box { background: #f8fafc; padding: 10px 14px; border-radius: 8px; border: 1px solid #f1f5f9; }
+        .detail-field-label { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; display: block; }
+        .detail-field-value { font-size: 14px; font-weight: 700; color: #1e293b; min-height: 1.25rem; }
+        .note-box { background: #fffbeb; border: 1px solid #fef3c7; padding: 12px 16px; border-radius: 8px; color: #92400e; font-style: italic; font-size: 13px; }
+        .modal-footer { padding: 20px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: #fff; }
+        
     </style>
 </head>
 <body>
@@ -124,19 +132,21 @@
                                         </span>
                                         {% elif record.trangthaiNhap == 0 %}
                                         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-yellow-100 text-yellow-700 border border-yellow-200">
-                                            <i class="fa-solid fa-clock"></i> Đang xử lý
+                                            <i class="fa-solid fa-clock"></i> Phiếu tạm
                                         </span>
                                         {% else %}
                                         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-red-100 text-red-700 border border-red-200">
-                                            <i class="fa-solid fa-times"></i> Hủy
+                                            <i class="fa-solid fa-times"></i> Đã hủy
                                         </span>
                                         {% endif %}
                                     </td>
                                     <td class="py-4 px-4 text-right">
                                         <div class="action-icons">
                                             <i class="fa-solid fa-eye" onclick="openImportDetail('{{ record.maPhieuNhap }}')" title="Xem chi tiết"></i>
+                                            {% if record.trangthaiNhap == 0 %}
                                             <i class="fa-solid fa-edit" onclick="openEditImport('{{ record.maPhieuNhap }}')" title="Chỉnh sửa"></i>
-                                            <i class="fa-solid fa-trash-can" onclick="deleteImport('{{ record.maPhieuNhap }}')" title="Xóa"></i>
+                                            <i class="fa-solid fa-trash-can" onclick="deleteImport('{{ record.maPhieuNhap }}')" title="Hủy phiếu"></i>
+                                            {% endif %}
                                         </div>
                                     </td>
                                 </tr>
@@ -209,13 +219,13 @@
                             <table class="w-full text-left">
                                 <thead class="bg-gray-50 border-y border-gray-100">
                                     <tr>
-                                        <th class="py-4 px-4 font-bold text-gray-700 text-sm text-center w-20">STT</th>
-                                        <th class="py-4 px-4 font-bold text-gray-700 text-sm uppercase">SÁCH</th>
-                                        <th class="py-4 px-4 font-bold text-gray-700 text-sm text-center uppercase">ĐƠN GIÁ NHẬP</th>
-                                        <th id="create_th_po_qty" class="py-4 px-4 font-bold text-gray-700 text-sm text-center uppercase">SL ĐẶT</th>
-                                        <th id="create_th_real_qty" class="py-4 px-4 font-bold text-gray-700 text-sm text-center uppercase">SL THỰC NHẬN</th>
-                                        <th class="py-4 px-4 font-bold text-gray-700 text-sm text-center uppercase">THÀNH TIỀN</th>
-                                        <th class="py-4 px-4 font-bold text-gray-700 text-sm text-center w-24 uppercase">THAO TÁC</th>
+                                        <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-20">STT</th>
+                                        <th class="py-4 px-4 font-bold text-red-600 text-sm uppercase">SÁCH</th>
+                                        <th class="py-4 px-4 font-bold text-red-600 text-sm text-center uppercase">ĐƠN GIÁ NHẬP</th>
+                                        <th id="create_th_po_qty" class="py-4 px-4 font-bold text-red-600 text-sm text-center uppercase">SL ĐẶT</th>
+                                        <th id="create_th_real_qty" class="py-4 px-4 font-bold text-red-600 text-sm text-center uppercase">SL THỰC NHẬN</th>
+                                        <th class="py-4 px-4 font-bold text-red-600 text-sm text-center uppercase">THÀNH TIỀN</th>
+                                        <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-24 uppercase">THAO TÁC</th>
                                     </tr>
                                 </thead>
                                 <tbody id="create_goods_body" class="divide-y divide-gray-100"></tbody>
@@ -233,7 +243,8 @@
                                 <div class="text-gray-600 text-lg">Tổng tiền hàng: <strong id="create_total_amount" class="text-primary text-2xl font-bold">0 ₫</strong></div>
                                 <div class="flex gap-3">
                                     <button onclick="switchView('importListView')" class="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold rounded-lg transition-colors">Hủy bỏ</button>
-                                    <button onclick="saveImport()" class="px-6 py-2.5 bg-primary hover:bg-red-700 text-white font-semibold rounded-lg shadow-sm transition-colors">Lưu phiếu nhập</button>
+                                    <button id="btnLuuTam" onclick="saveImport(0)" class="px-6 py-2.5 bg-orange-100 hover:bg-orange-200 text-orange-700 font-semibold rounded-lg transition-colors">Lưu tạm</button>
+                                    <button id="btnHoanThanh" onclick="saveImport(1)" class="px-6 py-2.5 bg-primary hover:bg-red-700 text-white font-semibold rounded-lg shadow-sm transition-colors">Hoàn thành</button>
                                 </div>
                             </div>
                         </div>
@@ -274,8 +285,9 @@
                                     <th class="py-4 px-4 font-bold text-sm text-primary uppercase">Mã Phiếu Trả</th>
                                     <th class="py-4 px-4 font-bold text-sm text-primary uppercase">Phiếu Nhập</th>
                                     <th class="py-4 px-4 font-bold text-sm text-primary uppercase">Nhà Cung Cấp</th>
-                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase">Ngày Trả</th>
-                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase">Tổng Tiền</th>
+                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase text-center">Ngày Trả</th>
+                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase text-center">Tổng Tiền</th>
+                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase text-center">Trạng Thái</th>
                                     <th class="py-4 px-4 font-bold text-sm text-primary uppercase text-right">THAO TÁC</th>
                                 </tr>
                             </thead>
@@ -286,13 +298,24 @@
                                     <td class="py-4 px-4 font-semibold text-gray-800">{{ ret.maPhieuTra }}</td>
                                     <td class="py-4 px-4 text-blue-600 font-medium">{{ ret.phieuNhap.maPhieuNhap }}</td>
                                     <td class="py-4 px-4 text-gray-600">{{ ret.nhaCungCap.tenNCC }}</td>
-                                    <td class="py-4 px-4 text-gray-600">{{ ret.ngayTra|date:"d/m/Y H:i" }}</td>
-                                    <td class="py-4 px-4 font-bold text-gray-900">{{ ret.tongtienTra|floatformat:0|intcomma }} ₫</td>
+                                    <td class="py-4 px-4 text-gray-600 text-center font-medium">{{ ret.ngayTra|date:"d/m/Y H:i" }}</td>
+                                    <td class="py-4 px-4 font-bold text-gray-900 text-center">{{ ret.tongtienTra|floatformat:0|intcomma }} ₫</td>
+                                    <td class="py-4 px-4 text-center">
+                                        {% if ret.trangThai == 1 %}
+                                            <span class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-green-100 text-green-700 border border-green-200 uppercase">Đã trả hàng</span>
+                                        {% elif ret.trangThai == 0 %}
+                                            <span class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-yellow-100 text-yellow-700 border border-yellow-200 uppercase">Phiếu tạm</span>
+                                        {% else %}
+                                            <span class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-red-100 text-red-700 border border-red-200 uppercase">Đã hủy</span>
+                                        {% endif %}
+                                    </td>
                                      <td class="py-4 px-4 text-right">
                                          <div class="action-icons">
                                              <i class="fa-solid fa-eye" onclick="openReturnDetail('{{ ret.maPhieuTra }}')" title="Xem chi tiết"></i>
+                                             {% if ret.trangThai == 0 %}
                                              <i class="fa-solid fa-edit" onclick="openEditReturn('{{ ret.maPhieuTra }}')" title="Chỉnh sửa"></i>
-                                             <i class="fa-solid fa-trash-can" onclick="deleteReturn('{{ ret.maPhieuTra }}')" title="Xóa"></i>
+                                             <i class="fa-solid fa-trash-can" onclick="deleteReturn('{{ ret.maPhieuTra }}')" title="Hủy phiếu"></i>
+                                             {% endif %}
                                          </div>
                                      </td>
                                 </tr>
@@ -348,13 +371,13 @@
                                 <table class="w-full text-left">
                                     <thead class="bg-gray-50 border-y border-gray-100">
                                         <tr>
-                                            <th class="py-4 px-4 font-bold text-gray-700 text-sm text-center w-20">STT</th>
-                                            <th class="py-4 px-4 font-bold text-gray-700 text-sm uppercase">SÁCH</th>
-                                            <th class="py-4 px-4 font-bold text-gray-700 text-sm text-center uppercase">ĐƠN GIÁ NHẬP</th>
-                                            <th class="py-4 px-4 font-bold text-gray-700 text-sm text-center uppercase">ĐÃ NHẬP</th>
-                                            <th class="py-4 px-4 font-bold text-gray-700 text-sm text-center uppercase">SL TRẢ</th>
-                                            <th class="py-4 px-4 font-bold text-gray-700 text-sm text-center uppercase w-40">LÝ DO</th>
-                                            <th class="py-4 px-4 font-bold text-gray-700 text-sm text-center uppercase">THÀNH TIỀN</th>
+                                            <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-20">STT</th>
+                                            <th class="py-4 px-4 font-bold text-red-600 text-sm uppercase">SÁCH</th>
+                                            <th class="py-4 px-4 font-bold text-red-600 text-sm text-center uppercase">ĐƠN GIÁ NHẬP</th>
+                                            <th class="py-4 px-4 font-bold text-red-600 text-sm text-center uppercase">ĐÃ NHẬP</th>
+                                            <th class="py-4 px-4 font-bold text-red-600 text-sm text-center uppercase">SL TRẢ</th>
+                                            <th class="py-4 px-4 font-bold text-red-600 text-sm text-center uppercase w-40">LÝ DO</th>
+                                            <th class="py-4 px-4 font-bold text-red-600 text-sm text-center uppercase">THÀNH TIỀN</th>
                                         </tr>
                                     </thead>
                                     <tbody id="return_goods_body" class="divide-y divide-gray-100"></tbody>
@@ -364,8 +387,11 @@
                             <div class="flex justify-between items-center pt-4 border-t border-gray-100">
                                 <div class="text-gray-600 text-lg font-bold">Tổng tiền hoàn: <span id="return_total_amount" class="text-primary text-2xl">0 ₫</span></div>
                                 <div class="flex gap-3">
-                                    <button onclick="switchView('returnListView')" class="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold rounded-lg transition-colors">Hủy bỏ</button>
-                                    <button onclick="saveReturn()" class="px-6 py-2 bg-primary hover:bg-red-700 text-white font-bold rounded-lg shadow-sm transition-all">Xác nhận trả hàng</button>
+                                    <button onclick="switchView('returnListView')" class="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold rounded-lg transition-colors">Hủy bỏ</button>
+                                    <button onclick="saveReturn(0)" class="px-6 py-2.5 bg-orange-100 hover:bg-orange-200 text-orange-700 font-semibold rounded-lg transition-colors">Lưu tạm</button>
+                                    <button onclick="saveReturn(1)" class="px-6 py-2.5 bg-primary hover:bg-red-700 text-white font-bold rounded-lg shadow-md transition-all flex items-center gap-2">
+                                        <i class="fa-solid fa-check-circle"></i> Xác nhận trả hàng
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -375,17 +401,21 @@
 
         </div>
 
-        <!-- View 5: Chi Tiết Phiếu Nhập Kho -->
-        <div id="importDetailView" class="view-section">
-            <div id="importDetailContent" class="space-y-6">
-                <!-- Data injected via JS -->
+        <!-- Modal Chi Tiết Phiếu Nhập Kho -->
+        <div id="importDetailModal" class="modal-overlay">
+            <div class="detail-modal">
+                <div id="importDetailContent">
+                    <!-- Data injected via JS -->
+                </div>
             </div>
         </div>
 
-        <!-- View 6: Chi Tiết Phiếu Trả Hàng -->
-        <div id="returnDetailView" class="view-section">
-            <div id="returnDetailContent" class="space-y-6">
-                <!-- Data injected via JS -->
+        <!-- Modal Chi Tiết Phiếu Trả Hàng -->
+        <div id="returnDetailModal" class="modal-overlay">
+            <div class="detail-modal">
+                <div id="returnDetailContent">
+                    <!-- Data injected via JS -->
+                </div>
             </div>
         </div>
   </main>
@@ -407,6 +437,10 @@
         function switchView(viewId) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
+        }
+
+        function closeDetailModal(id) {
+            document.getElementById(id).classList.remove('active');
         }
 
         function toggleCreateImportDropdown() {
@@ -528,7 +562,7 @@
             document.getElementById('create_total_amount').textContent = tAmt.toLocaleString('vi-VN') + ' ₫';
         }
 
-        function saveImport() {
+        function saveImport(status = 1) {
             const items = [];
             document.querySelectorAll('#create_goods_body tr').forEach(tr => {
                 items.push({
@@ -549,8 +583,18 @@
                     ngayNhap: document.getElementById('create_ngaynhap').value,
                     ghichu: document.getElementById('create_ghichu').value,
                     donDatHang: isPO ? document.getElementById('create_mpo_search').value : '',
+                    trangThai: status,
                     items: items
                 })
+            }).then(res => res.json()).then(res => { alert(res.message); if (res.status === 'success') location.reload(); });
+        }
+
+        function deleteImport(code) {
+            if (!confirm('Bạn có chắc muốn hủy phiếu nhập tạm này?')) return;
+            fetch('', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+                body: JSON.stringify({ maPhieuNhap: code })
             }).then(res => res.json()).then(res => { alert(res.message); if (res.status === 'success') location.reload(); });
         }
 
@@ -561,93 +605,107 @@
                 const itemsHtml = data.items.map((item, idx) => `
                     <tr class="border-b border-gray-50 hover:bg-gray-50/50">
                         <td class="p-4 text-center text-gray-400 font-bold">${idx + 1}</td>
-                        <td class="p-4"><div class="font-bold text-gray-800">${item.maSP}</div><div class="text-xs text-gray-500">${item.tenSP}</div></td>
-                        <td class="p-4 text-right font-bold text-gray-700">${item.qty}</td>
+                        <td class="p-4">
+                            <div class="font-bold text-gray-800">${item.maSP}</div>
+                            <div class="text-xs text-gray-500">${item.tenSP}</div>
+                        </td>
+                        <td class="p-4 text-center font-bold text-gray-700">${item.donViTinh || 'Cuốn'}</td>
+                        <td class="p-4 text-center font-bold text-gray-700">${item.qty}</td>
                         <td class="p-4 text-right text-gray-500">${parseFloat(item.price).toLocaleString('vi-VN')}</td>
-                        <td class="p-4 text-right font-black text-primary text-base">${parseFloat(item.amount).toLocaleString('vi-VN')} ₫</td>
+                        <td class="p-4 text-right font-black text-primary text-base">${parseFloat(item.amount).toLocaleString('vi-VN')} đ</td>
                     </tr>
                 `).join('');
 
                 const totalAmount = data.items.reduce((s,i)=>s+parseFloat(i.amount),0);
+                const totalQty = data.items.reduce((s,i)=>s+parseInt(i.qty),0);
 
                 document.getElementById('importDetailContent').innerHTML = `
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center justify-between mb-6">
-                        <div class="flex items-center gap-4">
-                            <button onclick="switchView('importListView')" class="w-10 h-10 rounded-full flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors">
-                                <i class="fas fa-arrow-left"></i>
-                            </button>
-                            <h2 class="text-xl font-bold text-gray-800 uppercase">CHI TIẾT PHIẾU NHẬP: ${data.maPhieuNhap}</h2>
-                        </div>
-                        <div class="flex gap-3">
-                            <button onclick="window.print()" class="px-5 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg font-bold transition-all flex items-center gap-2">
-                                <i class="fa-solid fa-print"></i> IN PHIẾU
-                            </button>
-                            <button onclick="openEditImport('${data.maPhieuNhap}')" class="px-5 py-2.5 bg-primary text-white rounded-lg font-bold hover:bg-red-700 shadow-sm transition-all">
-                                CHỈNH SỬA
-                            </button>
-                        </div>
+                    <div class="detail-modal-header">
+                        <h5 class="flex items-center gap-3 font-bold uppercase tracking-wide">
+                            <i class="fa-solid fa-file-invoice"></i> CHI TIẾT PHIẾU: ${data.maPhieuNhap}
+                        </h5>
+                        <button onclick="closeDetailModal('importDetailModal')" class="detail-modal-close">&times;</button>
                     </div>
+                    <div class="detail-modal-body space-y-8">
+                        <div>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-bold text-gray-800 text-lg">Thông tin chung</h3>
+                                <span class="px-3 py-1 rounded-full text-[11px] font-bold ${data.trangThaiClass} border uppercase">${data.trangThai}</span>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                <div class="detail-field-box">
+                                    <span class="detail-field-label">Mã phiếu</span>
+                                    <div class="detail-field-value">${data.maPhieuNhap}</div>
+                                </div>
+                                <div class="detail-field-box">
+                                    <span class="detail-field-label">Ngày nhập</span>
+                                    <div class="detail-field-value">${data.ngayNhapDisplay}</div>
+                                </div>
+                                <div class="detail-field-box">
+                                    <span class="detail-field-label">Người tạo</span>
+                                    <div class="detail-field-value">${data.user}</div>
+                                </div>
+                            </div>
+                            <div class="detail-field-box mb-4">
+                                <span class="detail-field-label">Nhà cung cấp</span>
+                                <div class="detail-field-value">${data.nhaCungCap}</div>
+                            </div>
+                            ${data.ghichu ? `
+                            <div class="space-y-1">
+                                <span class="detail-field-label">Ghi chú</span>
+                                <div class="note-box">${data.ghichu}</div>
+                            </div>` : ''}
+                        </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                        <div class="space-y-1">
-                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Mã phiếu</p>
-                            <p class="text-lg font-black text-red-600 underline decoration-red-200 underline-offset-4">${data.maPhieuNhap}</p>
-                        </div>
-                        <div class="space-y-1">
-                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Ngày nhập</p>
-                            <p class="font-bold text-gray-700 text-base">${data.ngayNhapDisplay}</p>
-                        </div>
-                        <div class="space-y-1">
-                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Người thực hiện</p>
-                            <p class="font-bold text-gray-700 text-base">${data.user}</p>
-                        </div>
-                        <div class="space-y-1">
-                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Trạng thái</p>
-                            <div><span class="inline-flex px-3 py-1 rounded-full text-[10px] font-black bg-green-100 text-green-700 border border-green-200 uppercase">Hoàn thành</span></div>
-                        </div>
-                        <div class="md:col-span-4 pt-4 border-t border-gray-50">
-                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Nhà cung cấp</p>
-                            <p class="font-black text-gray-800 text-lg">${data.nhaCungCap}</p>
-                        </div>
-                        ${data.ghichu ? `
-                        <div class="md:col-span-4 bg-yellow-50/50 p-4 rounded-lg border border-yellow-100">
-                            <p class="text-[10px] font-black text-yellow-600 uppercase mb-1">Ghi chú</p>
-                            <p class="text-sm text-gray-700 italic">${data.ghichu}</p>
-                        </div>` : ''}
-                    </div>
-
-                    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
-                        <div class="bg-gray-50 px-6 py-4 border-b border-gray-100">
-                            <h3 class="font-bold text-gray-800 flex items-center gap-2 uppercase tracking-wide">
-                                <i class="fas fa-list-ul text-primary"></i> Danh sách mặt hàng
-                            </h3>
-                        </div>
-                        <table class="w-full text-sm">
-                            <thead class="bg-white text-gray-400 border-b border-gray-50">
-                                <tr>
-                                    <th class="p-4 text-center font-black uppercase tracking-widest text-[10px]">#</th>
-                                    <th class="p-4 text-left font-black uppercase tracking-widest text-[10px]">Sản phẩm</th>
-                                    <th class="p-4 text-right font-black uppercase tracking-widest text-[10px]">Số lượng</th>
-                                    <th class="p-4 text-right font-black uppercase tracking-widest text-[10px]">Đơn giá</th>
-                                    <th class="p-4 text-right font-black uppercase tracking-widest text-[10px]">Thành tiền</th>
-                                </tr>
-                            </thead>
-                            <tbody>${itemsHtml}</tbody>
-                        </table>
-                        <div class="bg-gray-50 p-6 flex justify-end">
-                            <div class="text-right">
-                                <p class="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Tổng tiền thanh toán</p>
-                                <p class="text-3xl font-black text-primary tracking-tighter">${totalAmount.toLocaleString('vi-VN')} ₫</p>
+                        <div>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-bold text-gray-800 text-lg">Danh sách hàng hóa</h3>
+                                <span class="text-primary font-bold text-sm">Tổng ${data.items.length} mặt hàng</span>
+                            </div>
+                            <div class="table-wrapper border border-gray-100 rounded-xl overflow-hidden">
+                                <table class="w-full text-sm">
+                                    <thead>
+                                        <tr>
+                                            <th class="p-4 text-center">STT</th>
+                                            <th class="p-4 text-left">Mã SP</th>
+                                            <th class="p-4 text-left">Tên sản phẩm</th>
+                                            <th class="p-4 text-center">ĐVT</th>
+                                            <th class="p-4 text-center">Số lượng</th>
+                                            <th class="p-4 text-right">Đơn giá</th>
+                                            <th class="p-4 text-right">Thành tiền</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white">
+                                        ${itemsHtml}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
-                    <div class="flex justify-start">
-                        <button onclick="switchView('importListView')" class="px-8 py-3 bg-gray-800 text-white rounded-xl font-bold hover:bg-black shadow-lg transition-all">
-                            XONG & QUAY LẠI
-                        </button>
+                    
+                    <div class="modal-footer">
+                        <div class="flex gap-8">
+                            <div class="flex flex-col">
+                                <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Tổng số lượng</span>
+                                <span class="text-xl font-bold text-gray-800">${totalQty}</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Tổng tiền hàng</span>
+                                <span class="text-xl font-bold text-primary">${totalAmount.toLocaleString('vi-VN')} ₫</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="window.print()" class="px-5 py-2.5 bg-gray-50 hover:bg-gray-200 text-gray-700 rounded-lg font-bold flex items-center gap-2 border border-gray-200 transition-all">
+                                <i class="fa-solid fa-print"></i> In phiếu
+                            </button>
+                            ${data.trangThai === 'Phiếu tạm' ? `
+                            <button onclick="closeDetailModal('importDetailModal'); openEditImport('${data.maPhieuNhap}')" class="px-5 py-2.5 bg-primary text-white rounded-lg font-bold hover:bg-red-700 shadow-sm transition-all flex items-center gap-2">
+                                <i class="fa-solid fa-edit"></i> Sửa phiếu
+                            </button>` : ''}
+                        </div>
                     </div>
                 `;
-                switchView('importDetailView');
+                document.getElementById('importDetailModal').classList.add('active');
             });
         }
 
@@ -702,7 +760,7 @@
             document.getElementById('return_total_amount').textContent = total.toLocaleString('vi-VN') + ' ₫';
         }
 
-        function saveReturn() {
+        function saveReturn(status) {
             const items = [];
             document.querySelectorAll('#return_goods_body tr').forEach(tr => {
                 const qty = parseInt(tr.querySelector('.item-return-qty').value) || 0;
@@ -710,22 +768,19 @@
             });
             if (items.length === 0) return alert('Vui lòng nhập số lượng trả');
 
-            // Kiểm tra xem đang ở chế độ tạo mới hay chỉnh sửa
             const editingReturn = document.getElementById('return_goods_body').dataset.editing;
 
             if (editingReturn) {
-                // PATCH request để cập nhật
                 fetch('/trahang/', {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
-                    body: JSON.stringify({ maPhieuTra: editingReturn, items: items })
+                    body: JSON.stringify({ maPhieuTra: editingReturn, items: items, trangThai: status })
                 }).then(res => res.json()).then(res => { alert(res.message); if (res.status === 'success') location.reload(); });
             } else {
-                // POST request để tạo mới
                 fetch('/trahang/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
-                    body: JSON.stringify({ maPhieuNhap: document.getElementById('return_origin_code').value, items: items })
+                    body: JSON.stringify({ maPhieuNhap: document.getElementById('return_origin_code').value, items: items, trangThai: status })
                 }).then(res => res.json()).then(res => { alert(res.message); if (res.status === 'success') location.reload(); });
             }
         }
@@ -790,87 +845,93 @@
                             <div class="font-bold text-gray-800">${item.maSP}</div>
                             <div class="text-xs text-gray-500">${item.tenSP}</div>
                         </td>
-                        <td class="p-4 text-right font-black text-gray-700">${item.qty}</td>
+                        <td class="p-4 text-center font-bold text-gray-700">${item.donViTinh || 'Cuốn'}</td>
+                        <td class="p-4 text-center font-bold text-gray-700">${item.qty}</td>
                         <td class="p-4 text-right text-gray-500">${parseFloat(item.price).toLocaleString('vi-VN')}</td>
-                        <td class="p-4 text-right font-black text-primary text-base">${parseFloat(item.amount).toLocaleString('vi-VN')} ₫</td>
+                        <td class="p-4 text-right font-black text-primary text-base">${parseFloat(item.amount).toLocaleString('vi-VN')} đ</td>
                         <td class="p-4 text-center italic text-gray-500 text-xs">${item.reason}</td>
                     </tr>
                 `).join('');
 
                 document.getElementById('returnDetailContent').innerHTML = `
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center justify-between mb-6">
-                        <div class="flex items-center gap-4">
-                            <button onclick="switchView('returnListView')" class="w-10 h-10 rounded-full flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors">
-                                <i class="fas fa-arrow-left"></i>
-                            </button>
-                            <h2 class="text-xl font-bold text-gray-800 uppercase">CHI TIẾT PHIẾU TRẢ: ${data.maPhieuTra}</h2>
+                    <div class="detail-modal-header">
+                        <h5 class="flex items-center gap-3 font-bold uppercase tracking-wide">
+                            <i class="fa-solid fa-rotate-left"></i> CHI TIẾT PHIẾU TRẢ: ${data.maPhieuTra}
+                        </h5>
+                        <button onclick="closeDetailModal('returnDetailModal')" class="detail-modal-close">&times;</button>
+                    </div>
+                    <div class="detail-modal-body space-y-8">
+                        <div>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-bold text-gray-800 text-lg">Thông tin phiếu trả</h3>
+                                <span class="px-3 py-1 rounded-full text-[11px] font-bold ${data.trangThaiClass} border border-current uppercase">${data.trangThaiDisplay}</span>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                                <div class="detail-field-box">
+                                    <span class="detail-field-label">Mã phiếu trả</span>
+                                    <div class="detail-field-value text-red-600">${data.maPhieuTra}</div>
+                                </div>
+                                <div class="detail-field-box">
+                                    <span class="detail-field-label">Phiếu nhập gốc</span>
+                                    <div class="detail-field-value text-blue-600">${data.phieuNhapGoc}</div>
+                                </div>
+                                <div class="detail-field-box">
+                                    <span class="detail-field-label">Ngày trả hàng</span>
+                                    <div class="detail-field-value">${data.ngayTraDisplay}</div>
+                                </div>
+                                <div class="detail-field-box">
+                                    <span class="detail-field-label">Nhà cung cấp</span>
+                                    <div class="detail-field-value">${data.nhaCungCap}</div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex gap-3">
-                            <button onclick="window.print()" class="px-5 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg font-bold transition-all flex items-center gap-2">
-                                <i class="fa-solid fa-print"></i> IN PHIẾU
-                            </button>
-                            <button onclick="openEditReturn('${data.maPhieuTra}')" class="px-5 py-2.5 bg-orange-500 text-white rounded-lg font-bold hover:bg-orange-600 shadow-sm transition-all">
-                                CHỈNH SỬA
-                            </button>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-bold text-gray-800 text-lg uppercase tracking-wide">
+                                    Danh sách hàng trả
+                                </h3>
+                                <span class="text-primary font-bold text-sm">Tổng ${data.items.length} mặt hàng</span>
+                            </div>
+                            <div class="table-wrapper border border-gray-100 rounded-xl overflow-hidden shadow-sm">
+                                <table class="w-full text-sm">
+                                    <thead>
+                                        <tr>
+                                            <th class="p-4 text-center">#</th>
+                                            <th class="p-4 text-left">Sản phẩm</th>
+                                            <th class="p-4 text-center">ĐVT</th>
+                                            <th class="p-4 text-center">Số lượng</th>
+                                            <th class="p-4 text-right">Đơn giá</th>
+                                            <th class="p-4 text-right">Thành tiền</th>
+                                            <th class="p-4 text-center">Lý do</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white">${itemsHtml}</tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                        <div class="space-y-1">
-                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Mã phiếu trả</p>
-                            <p class="text-lg font-black text-orange-600">${data.maPhieuTra}</p>
-                        </div>
-                        <div class="space-y-1">
-                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Phiếu nhập gốc</p>
-                            <p class="font-bold text-blue-600 text-base">${data.phieuNhapGoc}</p>
-                        </div>
-                        <div class="space-y-1">
-                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Ngày trả hàng</p>
-                            <p class="font-bold text-gray-700 text-base">${data.ngayTraDisplay}</p>
-                        </div>
-                        <div class="space-y-1">
-                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Trạng thái</p>
-                            <div><span class="inline-flex px-3 py-1 rounded-full text-[10px] font-black bg-green-100 text-green-700 border border-green-200 uppercase">Đã hoàn thành</span></div>
-                        </div>
-                        <div class="md:col-span-4 pt-4 border-t border-gray-50">
-                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Nhà cung cấp</p>
-                            <p class="font-black text-gray-800 text-lg">${data.nhaCungCap}</p>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
-                        <div class="bg-gray-50 px-6 py-4 border-b border-gray-100">
-                            <h3 class="font-bold text-gray-800 flex items-center gap-2 uppercase tracking-wide">
-                                <i class="fa-solid fa-rotate-left text-primary"></i> DANH SÁCH HÀNG TRẢ
-                            </h3>
-                        </div>
-                        <table class="w-full text-sm">
-                            <thead class="bg-white text-gray-400 border-b border-gray-50">
-                                <tr>
-                                    <th class="p-4 text-center font-black uppercase tracking-widest text-[10px]">#</th>
-                                    <th class="p-4 text-left font-black uppercase tracking-widest text-[10px]">Sản phẩm</th>
-                                    <th class="p-4 text-right font-black uppercase tracking-widest text-[10px]">Số lượng</th>
-                                    <th class="p-4 text-right font-black uppercase tracking-widest text-[10px]">Đơn giá</th>
-                                    <th class="p-4 text-right font-black uppercase tracking-widest text-[10px]">Thành tiền</th>
-                                    <th class="p-4 text-center font-black uppercase tracking-widest text-[10px]">Lý do</th>
-                                </tr>
-                            </thead>
-                            <tbody>${itemsHtml}</tbody>
-                        </table>
-                        <div class="bg-gray-50 p-6 flex justify-end">
+                    
+                    <div class="modal-footer">
+                        <div></div> <!-- Khoảng trống -->
+                        <div class="flex items-center gap-8">
                             <div class="text-right">
                                 <p class="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Tổng tiền hoàn lại</p>
                                 <p class="text-3xl font-black text-primary tracking-tighter">${parseFloat(data.tongTien).toLocaleString('vi-VN')} ₫</p>
                             </div>
+                            <div class="flex gap-3">
+                                <button onclick="window.print()" class="px-5 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg font-bold transition-all flex items-center gap-2">
+                                    <i class="fa-solid fa-print"></i> IN PHIẾU
+                                </button>
+                                ${data.trangThai === 0 ? `
+                                <button onclick="closeDetailModal('returnDetailModal'); openEditReturn('${data.maPhieuTra}')" class="px-5 py-2.5 bg-primary text-white rounded-lg font-bold hover:bg-red-700 shadow-sm transition-all flex items-center gap-2">
+                                    <i class="fa-solid fa-edit"></i> CHỈNH SỬA
+                                </button>` : ''}
+                            </div>
                         </div>
                     </div>
-                    <div class="flex justify-start">
-                        <button onclick="switchView('returnListView')" class="px-8 py-3 bg-gray-800 text-white rounded-xl font-bold hover:bg-black shadow-lg transition-all">
-                            XONG & QUAY LẠI
-                        </button>
-                    </div>
                 `;
-                switchView('returnDetailView');
+                document.getElementById('returnDetailModal').classList.add('active');
             });
         }
 
@@ -878,7 +939,7 @@
             setupSearchAutocomplete('create_mpo_search', (kw) => poCatalog.filter(po => po.code.toLowerCase().includes(kw.toLowerCase())), (item) => `<div class="suggestion-title">${item.code}</div><div class="suggestion-meta">${item.supplier}</div>`, (item, input) => { input.value = item.code; document.getElementById('create_nhacungcap').value = item.supplier; const tbody = document.getElementById('create_goods_body'); tbody.innerHTML = ''; item.items.forEach(prod => addProdToTable(prod.code, prod.name, prod.price, prod.orderedQty, prod.orderedQty, 'PO')); });
             setupSearchAutocomplete('create_nhacungcap', (kw) => supplierCatalog.filter(s => s.name.toLowerCase().includes(kw.toLowerCase())), (item) => `<div class="suggestion-title">${item.name}</div>`, (item, input) => { input.value = item.name; });
             setupSearchAutocomplete('create_goods_search', (kw) => goodsCatalog.filter(p => p.name.toLowerCase().includes(kw.toLowerCase()) || p.code.toLowerCase().includes(kw.toLowerCase())), (item) => `<div class="suggestion-title">${item.code} - ${item.name}</div><div class="suggestion-meta">${item.price.toLocaleString('vi-VN')} ₫</div>`, (item, input) => { addProdToTable(item.code, item.name, item.price); input.value = ''; });
-            const allImports = [ {% for r in inbound_records %} { "code": "{{ r.maPhieuNhap }}", "supplier": "{{ r.nhaCungCap.tenNCC }}" }, {% endfor %} ];
+            const allImports = [ {% for r in inbound_records %}{% if r.trangthaiNhap == 1 %}{ "code": "{{ r.maPhieuNhap }}", "supplier": "{{ r.nhaCungCap.tenNCC }}" },{% endif %}{% endfor %} ];
             setupSearchAutocomplete('return_import_search', (kw) => allImports.filter(r => r.code.toLowerCase().includes(kw.toLowerCase())), (item) => `<div class="suggestion-title">${item.code}</div><div class="suggestion-meta">${item.supplier}</div>`, (item, input) => { input.value = item.code; loadImportForReturn(item.code); });
         });
     </script>
