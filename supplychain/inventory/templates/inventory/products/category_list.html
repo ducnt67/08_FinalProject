@@ -54,6 +54,9 @@
         .child-row.hide-row {
             animation: fadeSlideUp 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+
+        .cat-name-wrap { display: flex; align-items: center; gap: 8px; }
+        .cat-child-indent { padding-left: 20px; }
     </style>
 </head>
 <body>
@@ -93,35 +96,37 @@
                     Danh sách danh mục sản phẩm
                 </h2>
                 
-                <div class="flex-1 overflow-auto bg-white">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="sticky top-0 z-10 bg-gray-50 shadow-sm">
+                <div class="table-wrapper flex-1 bg-white">
+                    <table class="table-custom w-full category-table">
+                        <thead>
                             <tr>
-                                <th width="60" class="py-4 px-4 font-semibold text-sm text-primary border-b border-gray-200 text-center col-index bg-gray-50">STT</th>
-                                <th class="py-4 px-4 font-semibold text-sm text-primary border-b border-gray-200 bg-gray-50" style="min-width: 280px; width: 35%;">Tên danh mục</th>
-                                <th class="py-4 px-4 font-semibold text-sm text-primary border-b border-gray-200 bg-gray-50" style="min-width: 140px; width: 15%;">Mã danh mục</th>
-                                <th class="py-4 px-4 font-semibold text-sm text-primary border-b border-gray-200 bg-gray-50" style="min-width: 150px; width: 20%;">Danh mục cha</th>
-                                <th class="py-4 px-4 font-semibold text-sm text-primary border-b border-gray-200 bg-gray-50" style="min-width: 140px; width: 15%;">Trạng thái</th>
-                                <th class="py-4 px-4 font-semibold text-sm text-primary border-b border-gray-200 text-right bg-gray-50" style="min-width: 170px; width: 170px; white-space: nowrap;">Thao tác</th>
+                                <th width="60" class="text-center col-index">STT</th>
+                                <th style="min-width: 280px; width: 35%;">Tên danh mục</th>
+                                <th style="min-width: 140px; width: 15%;">Mã danh mục</th>
+                                <th style="min-width: 150px; width: 20%;">Danh mục cha</th>
+                                <th style="min-width: 140px; width: 15%;">Trạng thái</th>
+                                <th class="text-right action-cell" style="min-width: 170px; width: 170px; white-space: nowrap;">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody id="catTableBody" class="text-sm">
                             <tr id="noCatResult" class="hidden"><td colspan="6" class="text-center py-8 text-gray-500 italic">Không tìm thấy danh mục nào.</td></tr>
                             {% for category in categories %}
-                            <tr class="cat-row {% if not category.maDanhMucCha %}parent-row{% else %}child-row show-row{% endif %} border-b border-gray-50 hover:bg-gray-50/50 transition-colors" data-status="{{ category.trangThai }}" data-id="{{ category.maDanhMuc }}" {% if category.maDanhMucCha %}data-parent="{{ category.maDanhMucCha.maDanhMuc }}"{% endif %} style="cursor: pointer;" {% if not category.maDanhMucCha %}onclick="toggleChildren('{{ category.maDanhMuc }}')"{% endif %}>
-                                <td class="py-4 px-4 font-semibold text-gray-800 text-center col-index font-bold">{{ forloop.counter }}</td>
-                                <td class="py-4 px-4 font-medium text-gray-800 flex items-center gap-2 {% if category.maDanhMucCha %}pl-9{% endif %}">
-                                    {% if not category.maDanhMucCha %}
-                                    <i id="icon-{{ category.maDanhMuc }}" class="fa-solid fa-angle-right text-gray-400 text-xs w-3 transition-transform duration-200 rotate-90"></i>
-                                    {% endif %}
-                                    <span class="cat-name">{{ category.tenDanhMuc }}</span>
+                            <tr class="cat-row {% if not category.maDanhMucCha %}parent-row{% else %}child-row show-row{% endif %}" data-status="{{ category.trangThai }}" data-id="{{ category.maDanhMuc }}" {% if category.maDanhMucCha %}data-parent="{{ category.maDanhMucCha.maDanhMuc }}"{% endif %} style="cursor: pointer;" {% if not category.maDanhMucCha %}onclick="toggleChildren('{{ category.maDanhMuc }}')"{% endif %}>
+                                <td class="font-semibold text-gray-800 text-center col-index font-bold">{{ forloop.counter }}</td>
+                                <td class="font-medium text-gray-800">
+                                    <div class="cat-name-wrap {% if category.maDanhMucCha %}cat-child-indent{% endif %}">
+                                        {% if not category.maDanhMucCha %}
+                                        <i id="icon-{{ category.maDanhMuc }}" class="fa-solid fa-angle-right text-gray-400 text-xs w-3 transition-transform duration-200 rotate-90"></i>
+                                        {% endif %}
+                                        <span class="cat-name">{{ category.tenDanhMuc }}</span>
+                                    </div>
                                 </td>
-                                <td class="py-4 px-4 text-gray-600 cat-code">{{ category.maDanhMuc }}</td>
-                                <td class="py-4 px-4 text-gray-600 cat-parent">{% if category.maDanhMucCha %}{{ category.maDanhMucCha.tenDanhMuc }}{% else %}-{% endif %}</td>
-                                <td class="py-4 px-4">
+                                <td class="text-gray-600 cat-code">{{ category.maDanhMuc }}</td>
+                                <td class="text-gray-600 cat-parent">{% if category.maDanhMucCha %}{{ category.maDanhMucCha.tenDanhMuc }}{% else %}-{% endif %}</td>
+                                <td>
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium {% if category.trangThai %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">{% if category.trangThai %}Đang hoạt động{% else %}Ngừng hoạt động{% endif %}</span>
                                 </td>
-                                <td class="py-4 px-4 text-right action-cell" onclick="event.stopPropagation()">
+                                <td class="text-right action-cell" onclick="event.stopPropagation()">
                                     <div class="flex items-center justify-end gap-3">
                                         <button onclick="openCatModal('view', '{{ category.maDanhMuc }}')" class="text-blue-500 hover:text-blue-600 border border-blue-100 bg-blue-50 w-7 h-7 rounded flex items-center justify-center" title="Xem chi tiết"><i class="fa-solid fa-eye"></i></button>
                                         <button onclick="openCatModal('edit', '{{ category.maDanhMuc }}')" class="text-cyan-500 hover:text-cyan-600 border border-cyan-100 bg-cyan-50 w-7 h-7 rounded flex items-center justify-center"><i class="fa-solid fa-pen-to-square"></i></button>

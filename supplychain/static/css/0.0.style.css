@@ -9,6 +9,15 @@
     --radius: 10px;
     --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     --sidebar-width: 280px;
+    --table-border: #e5e7eb;
+    --table-border-soft: #eef2f7;
+    --table-head-bg: #dc2626;
+    --table-head-border: #b91c1c;
+    --table-head-text: #ffffff;
+    --table-row-hover: #fff7f7;
+    --table-cell-py: 14px;
+    --table-cell-px: 16px;
+    --table-radius: 14px;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -184,14 +193,69 @@ body { background-color: var(--bg-body); display: flex; min-height: 100vh; color
 .stat-num { font-size: 28px; font-weight: 700; color: #111827; }
 .stat-label { font-size: 14px; color: #6b7280; }
 
-.table-wrapper { background: white; border-radius: 16px; padding: 0; box-shadow: var(--shadow-card); }
-table { width: 100%; border-collapse: collapse; }
-th {
-    text-align: left; padding: 16px; background: #f9fafb;
-    color: #4b5563; font-weight: 600; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid #e5e7eb;
+.table-wrapper {
+    background: #fff;
+    border-radius: var(--table-radius);
+    padding: 0;
+    border: 1px solid var(--table-border);
+    box-shadow: 0 3px 14px rgba(15, 23, 42, 0.04);
+    overflow: auto;
 }
-td { padding: 16px; border-bottom: 1px solid #f3f4f6; color: #374151; font-size: 14px; }
-tr:last-child td { border-bottom: none; }
+
+.main-content table,
+.modal-overlay table,
+.modal table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.main-content table thead th,
+.modal-overlay table thead th,
+.modal table thead th {
+    text-align: left;
+    padding: var(--table-cell-py) var(--table-cell-px) !important;
+    background: var(--table-head-bg) !important;
+    color: var(--table-head-text) !important;
+    font-weight: 700 !important;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--table-head-border) !important;
+    white-space: nowrap;
+}
+
+.main-content table tbody td,
+.modal-overlay table tbody td,
+.modal table tbody td {
+    padding: var(--table-cell-py) var(--table-cell-px) !important;
+    border-bottom: 1px solid var(--table-border-soft) !important;
+    color: #374151;
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.main-content table tbody tr:last-child td,
+.modal-overlay table tbody tr:last-child td,
+.modal table tbody tr:last-child td {
+    border-bottom: none !important;
+}
+
+.main-content table tbody tr:hover td,
+.modal-overlay table tbody tr:hover td,
+.modal table tbody tr:hover td {
+    background-color: var(--table-row-hover) !important;
+    transition: background-color 0.18s ease;
+}
+
+.table-wrapper table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 6;
+}
+
+.table-wrapper table thead th:first-child { border-top-left-radius: var(--table-radius); }
+.table-wrapper table thead th:last-child { border-top-right-radius: var(--table-radius); }
 .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
 .badge-ok { background: #dcfce7; color: #166534; }
 .badge-warn { background: #fee2e2; color: #b91c1c; }
@@ -259,32 +323,9 @@ tr:last-child td { border-bottom: none; }
     background-color: white; border-radius: 12px; box-shadow: 0 2px 15px rgba(0,0,0,0.03); overflow: hidden; 
 }
 .table-wrapper { overflow-x: auto; }
-.table-custom { margin-bottom: 0; width: 100%; border-collapse: collapse;}
+.table-custom { margin-bottom: 0; width: 100%; border-collapse: separate; border-spacing: 0; }
 .table-custom th, .table-custom td { white-space: nowrap; vertical-align: middle; text-align: left; }
-.table-custom th { font-weight: 700; color: var(--primary-main); text-transform: uppercase; border-bottom: 2px solid #eee; padding: 18px 15px; font-size: 0.9rem; background: #fff; }
-.table-custom td { padding: 15px 15px; border-bottom: 1px solid #f8f9fa; }
-.table-custom tr:hover td { background-color: #f8f9fa; }
-
-/* Unified table headers across all modules: only header visuals are normalized. */
-.main-content table thead,
-.content-body table thead {
-    background: var(--primary-main) !important;
-}
-
-.main-content table thead tr,
-.content-body table thead tr {
-    background: var(--primary-main) !important;
-    border-bottom: 1px solid #b91c1c !important;
-}
-
-.main-content table thead th,
-.content-body table thead th {
-    background: transparent !important;
-    color: #ffffff !important;
-    font-weight: 700 !important;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-}
+.table-custom thead th { position: sticky; top: 0; z-index: 8; }
 
 .product-name { font-weight: 700; color: #212529; display: block; margin-bottom: 4px; }
 .product-meta { font-size: 0.85rem; color: #6c757d; display: block; }
