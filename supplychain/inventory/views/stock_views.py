@@ -35,8 +35,11 @@ def nhapkho(request):
             ghichu = data.get('ghichu', '')
             items = data.get('items', [])
             donDatHang_id = data.get('donDatHang')
+            trangthaiNhap = int(data.get('trangThai', 0)) 
             
-            trangthaiNhap = 1 
+            # Lay ban ghi cu neu co de kiem tra trang thai
+            old_record = NhapKho.objects.filter(maPhieuNhap=maPhieuNhap).first()
+            old_trangthai = old_record.trangthaiNhap if old_record else None
             
             if not items:
                 return JsonResponse({'status': 'error', 'message': 'Phiếu nhập phải có ít nhất 1 sản phẩm.'}, status=400)
@@ -84,8 +87,8 @@ def nhapkho(request):
             )
             
             if not created:
-                # Neu sua, hoan tac ton kho cu truoc khi xoa chi tiet cu
-                if import_record.trangthaiNhap == 1:
+                # Neu sửa phiếu đã Hoàn thành, phải hoàn tác tồn kho cũ trước
+                if old_trangthai == 1:
                     for old_ct in import_record.phieunhap_ct_set.all():
                         tk, _ = TonKho.objects.get_or_create(sanPham=old_ct.sanPham)
                         tk.soluongTon -= old_ct.soluongThucNhan
@@ -107,17 +110,21 @@ def nhapkho(request):
                     soluongThucNhan=qty
                 )
                 
-                # Cập nhật tồn kho
-                tonkho_obj, _ = TonKho.objects.get_or_create(sanPham=sanPham)
-                tonkho_obj.soluongTon += qty
-                tonkho_obj.save()
+                
+                # Cập nhật tồn kho nếu là trạng thái Hoàn thành (1)
+                if trangthaiNhap == 1:
+                    tonkho_obj, _ = TonKho.objects.get_or_create(sanPham=sanPham)
+                    tonkho_obj.soluongTon += qty
+                    tonkho_obj.save()
             
-            # Neu nhap theo PO, cap nhat trang thai PO thanh "Hoan thanh" (1)
-            if donDatHang:
+            # Neu nhap theo PO và là Hoàn thành, cap nhat trang thai PO thanh "Hoan thanh" (1)
+            if donDatHang and trangthaiNhap == 1:
                 donDatHang.trangThai = 1
                 donDatHang.save()
                 
-            return JsonResponse({'status': 'success', 'message': 'Lưu phiếu nhập thành công!', 'maPhieuNhap': import_record.maPhieuNhap})
+            msg = "Đã hoàn thành phiếu nhập!" if trangthaiNhap == 1 else "Đã lưu phiếu tạm!"
+                
+            return JsonResponse({'status': 'success', 'message': msg, 'maPhieuNhap': import_record.maPhieuNhap})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
@@ -128,17 +135,15 @@ def nhapkho(request):
             import_record = get_object_or_404(NhapKho, maPhieuNhap=maPhieuNhap)
             
             if import_record.trangthaiNhap == 1:
-                for ct in import_record.phieunhap_ct_set.all():
-                    try:
-                        tonkho_obj = TonKho.objects.get(sanPham=ct.sanPham)
-                        tonkho_obj.soluongTon -= ct.soluongThucNhan
-                        if tonkho_obj.soluongTon < 0: tonkho_obj.soluongTon = 0
-                        tonkho_obj.save()
-                    except TonKho.DoesNotExist:
-                        pass
+                return JsonResponse({'status': 'error', 'message': 'Không thể xóa/hủy phiếu đã hoàn thành.'}, status=400)
+            
+            if import_record.trangthaiNhap == -1:
+                return JsonResponse({'status': 'error', 'message': 'Phiếu đã được hủy trước đó.'}, status=400)
                         
-            import_record.delete()
-            return JsonResponse({'status': 'success', 'message': 'Đã xóa phiếu nhập!'})
+            # Chuyển trạng thái thành Đã hủy (-1) thay vì xóa thật
+            import_record.trangthaiNhap = -1
+            import_record.save()
+            return JsonResponse({'status': 'success', 'message': 'Đã hủy phiếu nhập thành công!'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
             
@@ -162,7 +167,7 @@ def nhapkho(request):
                 'amount': str(ct.thanhTien)
             })
             
-        status_map = {0: 'Đang xử lý', 1: 'Hoàn thành', -1: 'Đã hủy'}
+        status_map = {0: 'Phiếu tạm', 1: 'Hoàn thành', -1: 'Đã hủy'}
         status_class_map = { 0: 'bg-yellow-100 text-yellow-700', 1: 'bg-green-100 text-green-700', -1: 'bg-red-100 text-red-700' }
             
         return JsonResponse({
@@ -219,6 +224,9 @@ def trahang(request):
             
             import_record = get_object_or_404(NhapKho, maPhieuNhap=maPhieuNhap)
             
+            if import_record.trangthaiNhap != 1:
+                return JsonResponse({'status': 'error', 'message': 'Chỉ có thể tạo phiếu trả hàng cho phiếu nhập đã hoàn thành.'}, status=400)
+            
             # Generate TraHangNCC
             today_str = timezone.now().strftime('%Y%m%d')
             prefix = f"PTH-{today_str}-"
@@ -232,6 +240,8 @@ def trahang(request):
             else:
                 maPhieuTra = f"{prefix}001"
                 
+            trangThai = int(data.get('trangThai', 0))
+            
             tongtienTra = sum(Decimal(str(item['price'])) * int(item['qty']) for item in items)
             
             tra_hang = TraHangNCC.objects.create(
@@ -239,6 +249,7 @@ def trahang(request):
                 nhaCungCap=import_record.nhaCungCap,
                 ngayTra=timezone.now(),
                 phieuNhap=import_record,
+                trangThai=trangThai,
                 tongtienTra=tongtienTra
             )
             
@@ -256,13 +267,15 @@ def trahang(request):
                     lydoTra=item.get('reason', 'Hang loi')
                 )
                 
-                    # Trá»« tá»“n kho
-                tonkho_obj, _ = TonKho.objects.get_or_create(sanPham=sanPham)
-                tonkho_obj.soluongTon -= qty
-                if tonkho_obj.soluongTon < 0: tonkho_obj.soluongTon = 0
-                tonkho_obj.save()
+                # Chỉ trừ tồn kho nếu là Đã trả hàng (1)
+                if trangThai == 1:
+                    tonkho_obj, _ = TonKho.objects.get_or_create(sanPham=sanPham)
+                    tonkho_obj.soluongTon -= qty
+                    if tonkho_obj.soluongTon < 0: tonkho_obj.soluongTon = 0
+                    tonkho_obj.save()
                 
-            return JsonResponse({'status': 'success', 'message': f'Lưu phiếu trả hàng {maPhieuTra} thành công!'})
+            msg = f'Xác nhận trả hàng {maPhieuTra} thành công!' if trangThai == 1 else f'Đã lưu phiếu tạm {maPhieuTra}!'
+            return JsonResponse({'status': 'success', 'message': msg})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
     
@@ -274,18 +287,18 @@ def trahang(request):
             
             tra_hang = get_object_or_404(TraHangNCC, maPhieuTra=maPhieuTra)
             
-            # Hoan tra ton kho cu
-            for old_ct in tra_hang.trahangncc_ct_set.all():
-                tonkho_obj, _ = TonKho.objects.get_or_create(sanPham=old_ct.sanPham)
-                tonkho_obj.soluongTon += old_ct.soluongTra  # Cong lai so tra hang cu
-                tonkho_obj.save()
+            if tra_hang.trangThai == 1:
+                return JsonResponse({'status': 'error', 'message': 'Không thể sửa phiếu đã hoàn thành.'}, status=400)
             
-            # Xoa chi tiet cu
+            trangThai = int(data.get('trangThai', 0))
+            
+            # Xoa chi tiet cu (Vì là phiếu tạm nên chưa trừ kho, không cần hoàn tồn)
             tra_hang.trahangncc_ct_set.all().delete()
             
-            # Cập nhật tổng tiền
+            # Cập nhật tổng tiền và trạng thái
             tongtienTra = sum(Decimal(str(item['price'])) * int(item['qty']) for item in items)
             tra_hang.tongtienTra = tongtienTra
+            tra_hang.trangThai = trangThai
             tra_hang.save()
             
             # Tạo chi tiết mới
@@ -303,30 +316,33 @@ def trahang(request):
                     lydoTra=item.get('reason', 'Hàng lỗi')
                 )
                 
-                # Tru ton kho voi so moi
-                tonkho_obj, _ = TonKho.objects.get_or_create(sanPham=old_ct.sanPham)
-                tonkho_obj.soluongTon -= qty
-                if tonkho_obj.soluongTon < 0: tonkho_obj.soluongTon = 0
-                tonkho_obj.save()
+                # Chỉ trừ tồn kho nếu chuyển sang Đã trả hàng (1)
+                if trangThai == 1:
+                    tonkho_obj, _ = TonKho.objects.get_or_create(sanPham=sanPham)
+                    tonkho_obj.soluongTon -= qty
+                    if tonkho_obj.soluongTon < 0: tonkho_obj.soluongTon = 0
+                    tonkho_obj.save()
             
-            return JsonResponse({'status': 'success', 'message': f'Cập nhật phiếu trả hàng {maPhieuTra} thành công!'})
+            msg = f'Xác nhận trả hàng {maPhieuTra} thành công!' if trangThai == 1 else f'Đã cập nhật phiếu tạm {maPhieuTra}!'
+            return JsonResponse({'status': 'success', 'message': msg})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
     
     elif request.method == 'DELETE':
         try:
             data = json.loads(request.body)
-            maPhieuTra = data.get('maPhieuTra')
             tra_hang = get_object_or_404(TraHangNCC, maPhieuTra=maPhieuTra)
             
-            # Hoàn trả tồn kho
-            for ct in tra_hang.trahangncc_ct_set.all():
-                tonkho_obj, _ = TonKho.objects.get_or_create(sanPham=ct.sanPham)
-                tonkho_obj.soluongTon += ct.soluongTra
-                tonkho_obj.save()
+            if tra_hang.trangThai == 1:
+                return JsonResponse({'status': 'error', 'message': 'Không thể hủy phiếu đã hoàn thành.'}, status=400)
             
-            tra_hang.delete()
-            return JsonResponse({'status': 'success', 'message': 'Đã xóa phiếu trả hàng!'})
+            if tra_hang.trangThai == -1:
+                return JsonResponse({'status': 'error', 'message': 'Phiếu đã được hủy trước đó.'}, status=400)
+            
+            # Chuyển trạng thái sang Đã hủy (-1) thay vì xóa thật
+            tra_hang.trangThai = -1
+            tra_hang.save()
+            return JsonResponse({'status': 'success', 'message': 'Đã hủy phiếu trả hàng thành công!'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
@@ -357,12 +373,18 @@ def trahang(request):
                 'reason': ct.lydoTra
             })
             
+        status_map = {0: 'Phiếu tạm', 1: 'Đã trả hàng', -1: 'Đã hủy'}
+        status_class_map = { 0: 'bg-yellow-100 text-yellow-700', 1: 'bg-green-100 text-green-700', -1: 'bg-red-100 text-red-700' }
+
         return JsonResponse({
             'maPhieuTra': record.maPhieuTra,
             'ngayTraDisplay': record.ngayTra.strftime('%d/%m/%Y %H:%M') if record.ngayTra else '',
             'nhaCungCap': record.nhaCungCap.tenNCC,
             'phieuNhapGoc': record.phieuNhap.maPhieuNhap if record.phieuNhap else 'N/A',
             'tongTien': str(record.tongtienTra),
+            'trangThai': record.trangThai,
+            'trangThaiDisplay': status_map.get(record.trangThai, 'Không xác định'),
+            'trangThaiClass': status_class_map.get(record.trangThai, ''),
             'items': items
         })
 
