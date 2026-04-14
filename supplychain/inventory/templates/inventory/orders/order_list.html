@@ -135,35 +135,36 @@
 
         <!-- LIST VIEW -->
         <div id="orderListView" class="view-section active">
-            <div class="content-header p-8 flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-black text-gray-800 tracking-tight uppercase">Quản lý Đơn đặt hàng</h1>
-                    <p class="text-gray-500 text-sm mt-1 font-medium">Theo dõi và quản lý các đơn hàng nhập từ nhà cung cấp</p>
-                </div>
-                <button onclick="openOrderForm('create')"
-                    class="bg-primary hover:bg-black text-white px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-xl shadow-red-500/20 active:scale-95">
-                    <i class="fa-solid fa-plus text-xs"></i> TẠO ĐƠN ĐẶT HÀNG
-                </button>
+            <div class="content-header">
+                <h1>Quản lý Đơn đặt hàng</h1>
             </div>
 
             <div class="content-body px-8 pb-8">
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-6 bg-gray-50/50 border-b border-gray-100 flex gap-4 items-center">
-                        <div class="relative flex-1 max-w-md">
-                            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                            <input type="text" id="searchInput" placeholder="Tìm kiếm đơn hàng, nhà cung cấp..." oninput="filterOrders()"
-                                class="w-full pl-11 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm font-medium">
+                    <div class="flex flex-nowrap gap-3 items-center justify-between mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                        <div class="flex flex-nowrap gap-3 flex-1 items-center">
+                            <div class="frm-search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="searchInput" placeholder="Tìm kiếm đơn hàng, nhà cung cấp..." oninput="filterOrders()">
+                            </div>
+
+                            <select id="statusFilter" onchange="filterOrders()" class="frm-select">
+                                <option value="all">Tất cả trạng thái</option>
+                                <option value="Hoàn thành">Hoàn thành</option>
+                                <option value="Chờ xác nhận">Chờ xác nhận</option>
+                                <option value="Đang giao">Đang giao</option>
+                                <option value="Đã hủy">Đã hủy</option>
+                            </select>
+
+                            <button onclick="resetFilters()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 whitespace-nowrap rounded-lg text-[13px] font-semibold transition-colors flex items-center gap-2 shadow-sm border border-gray-200">
+                                <i class="fa-solid fa-rotate"></i> Làm mới
+                            </button>
                         </div>
-                        <select id="statusFilter" onchange="filterOrders()"
-                            class="px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm font-bold text-gray-600 bg-white">
-                            <option value="all">Tất cả trạng thái</option>
-                            <option value="Hoàn thành">Hoàn thành</option>
-                            <option value="Chờ xác nhận">Chờ xác nhận</option>
-                            <option value="Đang giao">Đang giao</option>
-                            <option value="Đã hủy">Đã hủy</option>
-                        </select>
-                        <div class="h-8 w-[1px] bg-gray-200"></div>
-                        <button onclick="resetFilters()" class="text-xs font-black text-gray-400 uppercase tracking-widest hover:text-primary transition-colors">Làm mới bộ lọc</button>
+                        
+                        <button onclick="openOrderForm('create')"
+                            class="bg-primary hover:bg-red-700 text-white px-4 py-2 whitespace-nowrap rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shadow-md">
+                            <i class="fa-solid fa-plus text-xs"></i> TẠO ĐƠN ĐẶT HÀNG
+                        </button>
                     </div>
 
                     <div class="table-wrapper data-table-wrapper">

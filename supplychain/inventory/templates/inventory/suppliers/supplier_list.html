@@ -99,27 +99,28 @@
 
         <!-- LIST VIEW -->
         <div id="supplierListView" class="view-section active">
-            <div class="content-header p-8 flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-black text-gray-800 tracking-tight uppercase">Nhà cung cấp</h1>
-                    <p class="text-gray-500 text-sm mt-1 font-medium">Quản lý đối tác và nhà cung cấp hàng hóa</p>
-                </div>
-                <button onclick="openSupplierForm('create')"
-                    class="bg-primary hover:bg-black text-white px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-xl shadow-red-500/20 active:scale-95">
-                    <i class="fa-solid fa-plus text-xs"></i> THÊM NHÀ CUNG CẤP
-                </button>
+            <div class="content-header">
+                <h1>Nhà cung cấp</h1>
             </div>
 
             <div class="content-body px-8 pb-8">
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-6 bg-gray-50/50 border-b border-gray-100 flex gap-4 items-center">
-                        <div class="relative flex-1 max-w-md">
-                            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                            <input type="text" id="searchInput" placeholder="Tìm kiếm tên, SĐT, Email..." oninput="filterSuppliers()"
-                                class="w-full pl-11 pr-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm font-medium">
+                    <div class="flex flex-nowrap gap-3 items-center justify-between mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                        <div class="flex flex-nowrap gap-3 flex-1 items-center">
+                            <div class="frm-search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="searchInput" placeholder="Tìm kiếm tên, SĐT, Email..." oninput="filterSuppliers()">
+                            </div>
+                            
+                            <button onclick="location.reload()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 whitespace-nowrap rounded-lg text-[13px] font-semibold transition-colors flex items-center gap-2 shadow-sm border border-gray-200">
+                                <i class="fa-solid fa-rotate"></i> Làm mới
+                            </button>
                         </div>
-                        <div class="grow"></div>
-                        <button onclick="location.reload()" class="text-xs font-black text-gray-400 uppercase tracking-widest hover:text-primary transition-colors">Làm mới danh sách</button>
+                        
+                        <button onclick="openSupplierForm('create')"
+                            class="bg-primary hover:bg-black text-white px-4 py-2 whitespace-nowrap rounded-lg text-sm font-bold transition-all flex items-center gap-2 shadow-md active:scale-95">
+                            <i class="fa-solid fa-plus text-xs"></i> THÊM NHÀ CUNG CẤP
+                        </button>
                     </div>
 
                     <div class="table-wrapper data-table-wrapper">
