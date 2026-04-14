@@ -33,10 +33,6 @@
             min-height: 100vh;
         }
 
-        .table-wrapper {
-            overflow-x: auto;
-        }
-
         /* View Sections */
         .view-section {
             display: none;
@@ -170,7 +166,7 @@
                         <button onclick="resetFilters()" class="text-xs font-black text-gray-400 uppercase tracking-widest hover:text-primary transition-colors">Làm mới bộ lọc</button>
                     </div>
 
-                    <div class="table-wrapper">
+                    <div class="table-wrapper data-table-wrapper">
                         <table class="w-full text-left border-collapse" id="orderTable">
                             <thead>
                                 <tr class="bg-gray-50/50 text-gray-500 border-b border-gray-100">
@@ -675,12 +671,10 @@
             }
         }
 
-        // --- List Filtering & Pagination ---
+        // --- List Filtering ---
         const searchInp = document.getElementById('searchInput');
         const statusFilt = document.getElementById('statusFilter');
         const allRows = Array.from(document.querySelectorAll('.order-row'));
-        const itemsPerPage = 8;
-        let currentPage = 1;
         let currentFilteredRows = [...allRows];
 
         function filterOrders() {
@@ -692,7 +686,6 @@
                 const status = row.dataset.status;
                 return text.includes(kw) && (st === 'all' || status === st);
             });
-            currentPage = 1;
             renderTable();
         }
 
@@ -721,16 +714,8 @@
 
         function renderTable() {
             allRows.forEach(r => r.classList.add('hidden'));
-            const start = (currentPage - 1) * itemsPerPage;
-            const end = start + itemsPerPage;
-            currentFilteredRows.slice(start, end).forEach(r => r.classList.remove('hidden'));
-
-            if (typeof renderGlobalPagination === 'function') {
-                renderGlobalPagination(currentFilteredRows.length, itemsPerPage, currentPage, 'orderPagination', 'đơn hàng', 'changeOrderPage');
-            }
+            currentFilteredRows.forEach(r => r.classList.remove('hidden'));
         }
-
-        function changeOrderPage(p) { currentPage = p; renderTable(); }
         function resetFilters() { searchInp.value = ''; statusFilt.value = 'all'; filterOrders(); }
 
         // --- Initialize App ---
@@ -767,20 +752,6 @@
             }
         });
 
-        // Placeholder for missing helper
-        if (typeof renderGlobalPagination !== 'function') {
-            window.renderGlobalPagination = (total, per, current, containerId, label, callback) => {
-                const pages = Math.ceil(total / per);
-                const container = document.getElementById(containerId);
-                if (pages <= 1) { container.innerHTML = ''; return; }
-                let html = `<div class="flex items-center justify-between"><div class="text-xs font-bold text-gray-500">Hiển thị ${(current-1)*per+1}-${Math.min(current*per, total)} trên tổng số ${total} ${label}</div><div class="flex gap-1">`;
-                for(let i=1; i<=pages; i++) {
-                    html += `<button onclick="${callback}(${i})" class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${i===current ? 'bg-primary text-white shadow-lg shadow-red-500/20' : 'bg-white text-gray-500 hover:bg-gray-100 border border-gray-200'}">${i}</button>`;
-                }
-                html += `</div></div>`;
-                container.innerHTML = html;
-            };
-        }
     </script>
 </body>
 </html>
