@@ -5,37 +5,51 @@ from django.shortcuts import get_object_or_404, render
 
 from inventory.models import ChiTiet_Sach, DanhMuc, NhaCungCap, SanPham
 
+
+def _generate_product_code():
+    last_sp = SanPham.objects.order_by('-maSP').first()
+    if last_sp and last_sp.maSP.startswith('SP'):
+        try:
+            last_num = int(last_sp.maSP.replace('SP', ''))
+            return f"SP{str(last_num + 1).zfill(3)}"
+        except ValueError:
+            return "SP001"
+    return "SP001"
+
 def sanpham(request):
     if request.method == 'POST':
         try:
-            data = json.loads(request.body)
-            maSP = data.get('maSP')
-            tenSP = data.get('tenSP')
+            # Support both legacy JSON payload and multipart/form-data (image upload).
+            content_type = request.content_type or ''
+            if 'application/json' in content_type:
+                data = json.loads(request.body or '{}')
+                uploaded_image = None
+            else:
+                data = request.POST
+                uploaded_image = request.FILES.get('anhSP')
+
+            maSP = (data.get('maSP') or '').strip()
+            tenSP = (data.get('tenSP') or '').strip()
             danhMuc_id = data.get('danhMuc')
-            donViTinh = data.get('donViTinh')
-            giaBan = data.get('giaBan')
-            tonKhoToiThieu = data.get('tonKhoToiThieu', 0)
+            donViTinh = (data.get('donViTinh') or '').strip()
+            giaBan = data.get('giaBan') or 0
+            tonKhoToiThieu = data.get('tonKhoToiThieu') or 0
             nhaCungCap_id = data.get('nhaCungCap')
-            moTa = data.get('moTa', '')
-            trangThai = data.get('trangThai', 1)
-            
-            # Additional fields for Book details
-            tacGia = data.get('tacGia', '')
-            nhaXuatBan = data.get('nhaXuatBan', '')
-            namXuatBan = data.get('namXuatBan', 0)
-            
+            moTa = (data.get('moTa') or '').strip()
+            trangThai = int(data.get('trangThai', 1))
+
+            # Additional fields for book details.
+            tacGia = (data.get('tacGia') or '').strip()
+            nhaXuatBan = (data.get('nhaXuatBan') or '').strip()
+            namXuatBan = int(data.get('namXuatBan') or 0)
+            remove_image = str(data.get('removeImage', '0')) == '1'
+
             if not maSP:
-                # Generate new ID if not provided (create mode)
-                last_sp = SanPham.objects.order_by('-maSP').first()
-                if last_sp and last_sp.maSP.startswith('SP'):
-                    last_num = int(last_sp.maSP.replace('SP', ''))
-                    maSP = f"SP{str(last_num + 1).zfill(3)}"
-                else:
-                    maSP = "SP001"
-            
+                maSP = _generate_product_code()
+
             danhMuc = get_object_or_404(DanhMuc, maDanhMuc=danhMuc_id)
             nhaCungCap = get_object_or_404(NhaCungCap, maNCC=nhaCungCap_id)
-                    
+
             product, created = SanPham.objects.update_or_create(
                 maSP=maSP,
                 defaults={
@@ -46,11 +60,21 @@ def sanpham(request):
                     'tonKhoToiThieu': tonKhoToiThieu,
                     'nhaCungCap': nhaCungCap,
                     'moTa': moTa,
-                    'trangThai': int(trangThai)
+                    'trangThai': trangThai
                 }
             )
-            
-            # Update or create book details if any
+
+            if remove_image and product.anhSP:
+                product.anhSP.delete(save=False)
+                product.anhSP = None
+
+            if uploaded_image:
+                product.anhSP = uploaded_image
+
+            if remove_image or uploaded_image:
+                product.save()
+
+            # Update or create book details if any.
             if tacGia or nhaXuatBan or namXuatBan:
                 ChiTiet_Sach.objects.update_or_create(
                     sanPham=product,
@@ -60,11 +84,11 @@ def sanpham(request):
                         'namXuatBan': namXuatBan
                     }
                 )
-                
+
             return JsonResponse({'status': 'success', 'message': 'Lưu sản phẩm thành công!', 'maSP': product.maSP})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-            
+
     elif request.method == 'DELETE':
         try:
             data = json.loads(request.body)
@@ -84,7 +108,7 @@ def sanpham(request):
     if request.headers.get('x-requested-with') == 'XMLHttpRequest' and 'maSP' in request.GET:
         maSP = request.GET.get('maSP')
         product = get_object_or_404(SanPham, maSP=maSP)
-        
+
         # Lấy số lượng tồn từ model TonKho nếu có
         try:
             tonkho = product.tonkho.soluongTon
@@ -115,7 +139,8 @@ def sanpham(request):
             'soluongTon': tonkho,
             'tacGia': tacGia,
             'nhaXuatBan': nhaXuatBan,
-            'namXuatBan': namXuatBan
+            'namXuatBan': namXuatBan,
+            'anhSP': product.anhSP.url if product.anhSP else ''
         })
 
     return render(request, 'inventory/products/product_list.html', {

@@ -120,6 +120,17 @@ class SanPham(models.Model):
         if self.tonKhoToiThieu is not None and self.tonKhoToiThieu < 0:
             errors['tonKhoToiThieu'] = 'Tồn kho tối thiểu không được nhỏ hơn 0.'
 
+        # 9. Kiểm tra ảnh sản phẩm (nếu có)
+        if self.anhSP:
+            allowed_types = {'image/jpeg', 'image/png', 'image/webp'}
+            image_type = getattr(self.anhSP, 'content_type', None)
+            if image_type and image_type not in allowed_types:
+                errors['anhSP'] = 'Ảnh sản phẩm chỉ chấp nhận JPG, PNG hoặc WEBP.'
+
+            max_size = 5 * 1024 * 1024
+            if self.anhSP.size and self.anhSP.size > max_size:
+                errors['anhSP'] = 'Ảnh sản phẩm không được vượt quá 5MB.'
+
         if errors:
             raise ValidationError(errors)
 

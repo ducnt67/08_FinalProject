@@ -129,7 +129,7 @@
                     </tr>
                     {% for product in products %}
                     <tr class="product-row" data-category="{{ product.danhMuc.maDanhMuc }}"
-                        data-status="{{ product.trangThai }}">
+                        data-status="{{ product.trangThai }}" data-masp="{{ product.maSP }}" style="cursor: pointer;">
                         <td class="col-index text-center font-bold">{{ forloop.counter }}</td>
                         <td class="col-index sp-code">{{ product.maSP }}</td>
                         <td><span class="product-name">{{ product.tenSP }}</span><span class="product-meta">{{ product.nhaCungCap.tenNCC }}</span>
@@ -143,7 +143,7 @@
                         <td><span
                                 class="badge-pill-custom {% if product.trangThai == 1 %}badge-active{% else %}badge-inactive{% endif %}">{% if product.trangThai == 1 %}Đang bán{% else %}Ngừng bán{% endif %}</span>
                         </td>
-                        <td class="action-cell">
+                        <td class="action-cell" onclick="event.stopPropagation()">
                             <button class="btn-icon icon-view" onclick="openProductModal('view', '{{ product.maSP }}')">
                                 <i class="fas fa-eye"></i></button>
                             <button class="btn-icon icon-edit" onclick="openProductModal('edit', '{{ product.maSP }}')">
@@ -176,10 +176,19 @@
                     <div class="w-full md:w-[200px] flex-shrink-0 flex flex-col gap-4">
                         <div id="photoUploadContainer">
                             <label class="block text-sm font-bold text-gray-700 mb-2">Ảnh sản phẩm</label>
-                            <div class="w-full aspect-square border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 flex flex-col items-center justify-center text-gray-400 hover:bg-gray-100 transition-colors cursor-pointer relative">
-                                <i class="fa-solid fa-arrow-pointer text-2xl mb-2 text-gray-400"></i>
-                                <span class="text-xs font-medium text-gray-500 text-center px-4">Kéo thả hoặc click để tải ảnh</span>
+                            <input type="file" id="modalProductImage" accept="image/png,image/jpeg,image/webp" class="hidden">
+                            <div id="modalImageDropZone" class="w-full aspect-square border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 flex flex-col items-center justify-center text-gray-400 hover:bg-gray-100 transition-colors cursor-pointer relative overflow-hidden">
+                                <img id="modalImagePreview" src="" alt="Ảnh sản phẩm" class="hidden w-full h-full object-cover">
+                                <div id="modalImagePlaceholder" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 px-4">
+                                    <i class="fa-solid fa-arrow-pointer text-2xl mb-2 text-gray-400"></i>
+                                    <span class="text-xs font-medium text-gray-500 text-center">Kéo thả hoặc click để tải ảnh</span>
+                                </div>
                             </div>
+                            <div class="mt-2 flex items-center justify-between gap-2">
+                                <span id="modalImageName" class="text-[11px] text-gray-500 truncate">Chưa chọn ảnh</span>
+                                <button type="button" id="modalImageClearBtn" class="hidden text-[11px] font-semibold text-red-500 hover:text-red-700">Xóa ảnh</button>
+                            </div>
+                            <p class="text-[11px] text-gray-400 mt-1">Hỗ trợ: JPG, PNG, WEBP (tối đa 5MB)</p>
                         </div>
 
                         <div id="statusToggleContainer" class="mt-4">
@@ -415,6 +424,123 @@
 
     // --- UNIFIED MODAL LOGIC ---
     let currentModalMode = '';
+    let selectedImageFile = null;
+    let removeCurrentImage = false;
+
+    function getImageUploadElements() {
+        return {
+            input: document.getElementById('modalProductImage'),
+            dropZone: document.getElementById('modalImageDropZone'),
+            preview: document.getElementById('modalImagePreview'),
+            placeholder: document.getElementById('modalImagePlaceholder'),
+            name: document.getElementById('modalImageName'),
+            clearBtn: document.getElementById('modalImageClearBtn')
+        };
+    }
+
+    function resetImageUploadUI() {
+        const { input, preview, placeholder, name, clearBtn } = getImageUploadElements();
+        selectedImageFile = null;
+        removeCurrentImage = false;
+        if (input) input.value = '';
+        if (preview) {
+            preview.src = '';
+            preview.classList.add('hidden');
+        }
+        if (placeholder) placeholder.classList.remove('hidden');
+        if (name) name.textContent = 'Chưa chọn ảnh';
+        if (clearBtn) clearBtn.classList.add('hidden');
+    }
+
+    function showImagePreview(imageUrl, fileName) {
+        const { preview, placeholder, name, clearBtn } = getImageUploadElements();
+        if (preview) {
+            preview.src = imageUrl;
+            preview.classList.remove('hidden');
+        }
+        if (placeholder) placeholder.classList.add('hidden');
+        if (name) name.textContent = fileName || 'Ảnh đã chọn';
+        if (clearBtn && currentModalMode !== 'view') clearBtn.classList.remove('hidden');
+    }
+
+    function validateAndSetImage(file) {
+        if (!file) return;
+        const maxSize = 5 * 1024 * 1024;
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+
+        if (!allowedTypes.includes(file.type)) {
+            alert('Chỉ chấp nhận file ảnh JPG, PNG hoặc WEBP.');
+            return;
+        }
+
+        if (file.size > maxSize) {
+            alert('Ảnh vượt quá 5MB. Vui lòng chọn ảnh nhỏ hơn.');
+            return;
+        }
+
+        selectedImageFile = file;
+        removeCurrentImage = false;
+        showImagePreview(URL.createObjectURL(file), file.name);
+    }
+
+    function setImageUploadDisabled(disabled) {
+        const { input, dropZone, clearBtn } = getImageUploadElements();
+        if (input) input.disabled = disabled;
+        if (dropZone) {
+            dropZone.classList.toggle('pointer-events-none', disabled);
+            dropZone.classList.toggle('opacity-70', disabled);
+        }
+        if (clearBtn) {
+            clearBtn.disabled = disabled;
+            if (disabled) clearBtn.classList.add('hidden');
+        }
+    }
+
+    function setupImageUploadHandlers() {
+        const { input, dropZone, clearBtn, name } = getImageUploadElements();
+        if (!input || !dropZone || !clearBtn) return;
+
+        dropZone.addEventListener('click', () => {
+            if (!input.disabled) input.click();
+        });
+
+        input.addEventListener('change', (event) => {
+            const file = event.target.files && event.target.files[0];
+            validateAndSetImage(file);
+        });
+
+        dropZone.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            if (!input.disabled) dropZone.classList.add('border-red-400', 'bg-red-50');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('border-red-400', 'bg-red-50');
+        });
+
+        dropZone.addEventListener('drop', (event) => {
+            event.preventDefault();
+            dropZone.classList.remove('border-red-400', 'bg-red-50');
+            if (input.disabled) return;
+            const file = event.dataTransfer.files && event.dataTransfer.files[0];
+            validateAndSetImage(file);
+        });
+
+        clearBtn.addEventListener('click', (event) => {
+            event.stopPropagation();
+            selectedImageFile = null;
+            removeCurrentImage = true;
+            if (input) input.value = '';
+            const { preview, placeholder } = getImageUploadElements();
+            if (preview) {
+                preview.src = '';
+                preview.classList.add('hidden');
+            }
+            if (placeholder) placeholder.classList.remove('hidden');
+            clearBtn.classList.add('hidden');
+            if (name) name.textContent = 'Đã xóa ảnh hiện tại';
+        });
+    }
 
     function isBookCategory() {
     const categorySelect = document.getElementById('modalProductCategory');
@@ -491,6 +617,7 @@ function toggleBookInfoSection(clearWhenHidden = false) {
     };
 
     form.reset();
+    resetImageUploadUI();
 
     // Mặc định ẩn phần thông tin sách khi reset form
     toggleBookInfoSection(true);
@@ -503,6 +630,7 @@ function toggleBookInfoSection(clearWhenHidden = false) {
         statusToggleContainer.style.display = 'block';
 
         toggleInputs(false);
+        setImageUploadDisabled(false);
         btnSave.style.display = 'flex';
 
         // Sau khi reset, nếu user chưa chọn danh mục thì vẫn ẩn
@@ -543,6 +671,11 @@ function toggleBookInfoSection(clearWhenHidden = false) {
             pubInput.value = data.nhaXuatBan;
             yearInput.value = data.namXuatBan || '';
 
+            if (data.anhSP) {
+                const fileName = data.anhSP.split('/').pop();
+                showImagePreview(data.anhSP, fileName);
+            }
+
             statusInput.checked = (data.trangThai === 1);
             statusInput.onchange();
             statusToggleContainer.style.display = 'block';
@@ -551,6 +684,7 @@ function toggleBookInfoSection(clearWhenHidden = false) {
             toggleBookInfoSection(false);
 
             toggleInputs(mode === 'view');
+            setImageUploadDisabled(mode === 'view');
             btnSave.style.display = mode === 'view' ? 'none' : 'flex';
 
             modal.style.display = 'flex';
@@ -587,6 +721,7 @@ function toggleBookInfoSection(clearWhenHidden = false) {
             }
         });
         document.getElementById('modalStatus').disabled = readOnly;
+        setImageUploadDisabled(readOnly);
     }
 
     function saveProduct() {
@@ -610,13 +745,21 @@ function toggleBookInfoSection(clearWhenHidden = false) {
             return;
         }
 
+        const formData = new FormData();
+        Object.keys(data).forEach((key) => {
+            formData.append(key, data[key]);
+        });
+        if (selectedImageFile) {
+            formData.append('anhSP', selectedImageFile);
+        }
+        formData.append('removeImage', removeCurrentImage ? '1' : '0');
+
         fetch(window.location.href, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'X-CSRFToken': csrftoken
             },
-            body: JSON.stringify(data)
+            body: formData
         })
         .then(response => response.json())
         .then(data => {
@@ -660,6 +803,24 @@ function toggleBookInfoSection(clearWhenHidden = false) {
 
     document.addEventListener('DOMContentLoaded', () => {
     renderTable();
+    setupImageUploadHandlers();
+
+    const tableBody = document.getElementById('tableBody');
+    if (tableBody) {
+        tableBody.addEventListener('click', (event) => {
+            if (event.target.closest('button, a, input, select, textarea, .action-cell')) {
+                return;
+            }
+
+            const row = event.target.closest('.product-row');
+            if (!row) return;
+
+            const maSP = row.dataset.masp || row.querySelector('.sp-code')?.textContent?.trim();
+            if (maSP) {
+                openProductModal('view', maSP);
+            }
+        });
+    }
 
     const categorySelect = document.getElementById('modalProductCategory');
     if (categorySelect) {
