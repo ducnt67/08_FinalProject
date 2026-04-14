@@ -139,19 +139,19 @@
                             <tbody id="supplierTableBody" class="divide-y divide-gray-50">
                                 {% for s in suppliers %}
                                 <tr class="supplier-row hover:bg-gray-50/50 transition-colors group">
-                                    <td class="py-4 px-6 text-center text-gray-400 font-bold text-xs">{{ forloop.counter }}</td>
-                                    <td class="py-4 px-4">
-                                        <div class="font-black text-primary font-mono tracking-tighter">{{ s.maNCC }}</div>
+                                    <td class="w-stt font-bold">{{ forloop.counter }}</td>
+                                    <td class="w-code text-center">
+                                        <div class="font-bold text-primary">{{ s.maNCC }}</div>
                                     </td>
-                                    <td class="py-4 px-4">
-                                        <div class="font-black text-gray-800 text-sm whitespace-nowrap">{{ s.tenNCC }}</div>
+                                    <td class="w-supplier">
+                                        <div class="font-bold text-gray-800 text-sm">{{ s.tenNCC }}</div>
                                     </td>
                                     <td class="py-4 px-4 text-gray-600 font-medium text-sm max-w-xs truncate">{{ s.diaChi|default:"-" }}</td>
-                                    <td class="py-4 px-4 text-center">
+                                    <td class="w-code text-center">
                                         <span class="inline-flex px-3 py-1 rounded-full bg-blue-50 text-blue-600 font-bold text-xs border border-blue-100">{{ s.soDienThoai }}</span>
                                     </td>
                                     <td class="py-4 px-4 text-gray-600 font-medium text-sm">{{ s.email|default:"-" }}</td>
-                                    <td class="py-4 px-6 text-center">
+                                    <td class="w-action" onclick="event.stopPropagation()">
                                         <div class="flex items-center justify-center gap-2 transition-all">
                                             <button onclick="viewSupplierDetail('{{ s.maNCC }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm">
                                                 <i class="fa-solid fa-eye text-xs"></i>

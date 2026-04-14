@@ -94,21 +94,21 @@
                             <thead>
                                 <tr class="bg-gray-50 border-y border-gray-200">
                                     <th class="w-stt">STT</th>
-                                    <th class="w-code text-center">Mã Phiếu</th>
+                                    <th class="w-code">Mã Phiếu</th>
                                     <th class="w-date">Ngày Kiểm</th>
                                     <th>Sản phẩm</th>
                                     <th class="w-status">Trạng Thái</th>
-                                    <th class="w-action px-10">Thao tác</th>
+                                    <th class="w-action">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody id="checkTableBody" class="text-sm">
                                 {% for check in inventory_checks %}
                                 <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors" data-id="{{ check.maKiemKe }}">
-                                    <td class="py-4 px-4 text-gray-500 text-center col-index font-bold">{{ forloop.counter }}</td>
-                                    <td class="py-4 px-4 font-semibold text-gray-800">{{ check.maKiemKe }}</td>
-                                    <td class="py-4 px-4 text-gray-600">{{ check.ngayKiem|date:"d/m/Y H:i" }}</td>
+                                    <td class="w-stt font-bold">{{ forloop.counter }}</td>
+                                    <td class="w-code font-bold text-gray-800">{{ check.maKiemKe }}</td>
+                                    <td class="w-date text-gray-600">{{ check.ngayKiem|date:"d/m/Y H:i" }}</td>
                                     <td class="py-4 px-4 text-gray-600">{{ check.kiemke_ct_set.count }} mặt hàng</td>
-                                    <td class="py-4 px-4 text-center">
+                                    <td class="w-status text-center">
                                         {% if check.trangThai == 1 %}
                                         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-green-100 text-green-700 border border-green-200">
                                             <i class="fa-solid fa-circle-check"></i> Đã cân bằng
@@ -123,7 +123,7 @@
                                         </span>
                                         {% endif %}
                                     </td>
-                                    <td class="py-4 px-4 text-center">
+                                    <td class="w-action" onclick="event.stopPropagation()">
                                         <div class="flex items-center justify-center gap-2">
                                             <button onclick="viewDetail('{{ check.maKiemKe }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Xem chi tiết">
                                                 <i class="fas fa-eye text-xs"></i>
