@@ -26,7 +26,6 @@
 
     <style>
         .main-content { background-color: #F4F6F8; min-height: 100vh; }
-        .action-icons i { width: 32px; height: 32px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; background: #f8fafc; color: #64748b; margin: 0 2px;}
         .action-icons i:hover { transform: translateY(-2px); background: #e2e8f0; color: var(--primary-main); }
         
         /* View Router */
@@ -93,13 +92,13 @@
                     <div class="table-wrapper data-table-wrapper border border-gray-200 rounded-lg">
                         <table class="w-full text-left border-collapse min-w-[900px]">
                             <thead>
-                                <tr class="bg-red-50 border-b border-red-100">
-                                    <th class="py-4 px-4 font-bold text-sm text-gray-800 uppercase tracking-wide">STT</th>
-                                    <th class="py-4 px-4 font-bold text-sm text-gray-800 uppercase tracking-wide">Mã Phiếu</th>
-                                    <th class="py-4 px-4 font-bold text-sm text-gray-800 uppercase tracking-wide">Ngày Kiểm</th>
-                                    <th class="py-4 px-4 font-bold text-sm text-gray-800 uppercase tracking-wide">Sản phẩm</th>
-                                    <th class="py-4 px-4 font-bold text-sm text-gray-800 uppercase tracking-wide text-center">Trạng Thái</th>
-                                    <th class="py-4 px-4 font-bold text-sm text-gray-800 uppercase tracking-wide text-center">Thao tác</th>
+                                <tr class="bg-gray-50 border-y border-gray-200">
+                                    <th class="w-stt">STT</th>
+                                    <th class="w-code text-center">Mã Phiếu</th>
+                                    <th class="w-date">Ngày Kiểm</th>
+                                    <th>Sản phẩm</th>
+                                    <th class="w-status">Trạng Thái</th>
+                                    <th class="w-action px-10">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody id="checkTableBody" class="text-sm">
@@ -125,10 +124,18 @@
                                         {% endif %}
                                     </td>
                                     <td class="py-4 px-4 text-center">
-                                        <div class="action-icons">
-                                            <i class="fa-solid fa-eye" onclick="viewDetail('{{ check.maKiemKe }}')" title="Xem chi tiết"></i>
-                                            <i class="fa-solid fa-edit" onclick="editCheck('{{ check.maKiemKe }}')" title="Chỉnh sửa"></i>
-                                            <i class="fa-solid fa-trash-can" onclick="deleteCheck('{{ check.maKiemKe }}')" title="Xóa"></i>
+                                        <div class="flex items-center justify-center gap-2">
+                                            <button onclick="viewDetail('{{ check.maKiemKe }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Xem chi tiết">
+                                                <i class="fas fa-eye text-xs"></i>
+                                            </button>
+                                            <button onclick="{% if check.trangThai == 0 %}editCheck('{{ check.maKiemKe }}'){% else %}alert('Không thể chỉnh sửa phiếu đã cân bằng hoặc đã hủy.'){% endif %}" 
+                                                class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-green-500 hover:bg-green-500 hover:text-white transition-all shadow-sm {% if check.trangThai != 0 %}opacity-50 grayscale cursor-not-allowed{% endif %}" title="Chỉnh sửa">
+                                                <i class="fas fa-edit text-xs"></i>
+                                            </button>
+                                            <button onclick="{% if check.trangThai == 0 %}deleteCheck('{{ check.maKiemKe }}'){% else %}alert('Không thể xóa phiếu đã cân bằng hoặc đã hủy.'){% endif %}" 
+                                                class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-red-500 hover:bg-primary hover:text-white transition-all shadow-sm {% if check.trangThai != 0 %}opacity-50 grayscale cursor-not-allowed{% endif %}" title="Xóa">
+                                                <i class="fas fa-trash-alt text-xs"></i>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
