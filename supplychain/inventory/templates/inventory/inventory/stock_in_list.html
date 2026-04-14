@@ -27,7 +27,6 @@
     <style>
         .main-content { background-color: #F4F6F8; min-height: 100vh; }
         .readonly-input { background: #e5e7eb; color: #374151; border-color: #d1d5db; opacity: 0.9; }
-        .action-icons i { width: 32px; height: 32px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; background: #f8fafc; color: #64748b; margin: 0 2px;}
         .action-icons i:hover { transform: translateY(-2px); background: #e2e8f0; color: var(--primary-main); }
         
         .modal-overlay { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.45); display: none; align-items: center; justify-content: center; padding: 24px; z-index: 999; }
@@ -106,13 +105,13 @@
                         <table class="w-full text-left border-collapse min-w-[900px]">
                             <thead>
                                 <tr class="bg-gray-50 border-y border-gray-200">
-                                    <th width="60" class="py-4 px-4 font-bold text-sm text-primary uppercase text-center">STT</th>
-                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase">Mã phiếu</th>
-                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase">Nhà cung cấp</th>
-                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase">Ngày nhập</th>
-                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase">Tổng tiền</th>
-                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase">Trạng thái</th>
-                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase text-right">Thao tác</th>
+                                    <th class="w-stt">STT</th>
+                                    <th class="w-code">Mã phiếu</th>
+                                    <th>Nhà cung cấp</th>
+                                    <th class="w-date">Ngày nhập</th>
+                                    <th class="w-price">Tổng tiền</th>
+                                    <th class="w-status">Trạng thái</th>
+                                    <th class="w-action">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody id="importTableBody">
@@ -139,12 +138,18 @@
                                         {% endif %}
                                     </td>
                                     <td class="py-4 px-4 text-right">
-                                        <div class="action-icons">
-                                            <i class="fa-solid fa-eye" onclick="openImportDetail('{{ record.maPhieuNhap }}')" title="Xem chi tiết"></i>
-                                            {% if record.trangthaiNhap == 0 %}
-                                            <i class="fa-solid fa-edit" onclick="openEditImport('{{ record.maPhieuNhap }}')" title="Chỉnh sửa"></i>
-                                            <i class="fa-solid fa-trash-can" onclick="deleteImport('{{ record.maPhieuNhap }}')" title="Hủy phiếu"></i>
-                                            {% endif %}
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button onclick="openImportDetail('{{ record.maPhieuNhap }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Xem chi tiết">
+                                                <i class="fas fa-eye text-xs"></i>
+                                            </button>
+                                            <button onclick="{% if record.trangthaiNhap == 0 %}openEditImport('{{ record.maPhieuNhap }}'){% else %}alert('Không thể chỉnh sửa phiếu đã hoàn thành hoặc đã hủy.'){% endif %}" 
+                                                class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-green-500 hover:bg-green-500 hover:text-white transition-all shadow-sm {% if record.trangthaiNhap != 0 %}opacity-50 grayscale cursor-not-allowed{% endif %}" title="Chỉnh sửa">
+                                                <i class="fas fa-edit text-xs"></i>
+                                            </button>
+                                            <button onclick="{% if record.trangthaiNhap == 0 %}deleteImport('{{ record.maPhieuNhap }}'){% else %}alert('Không thể xóa phiếu đã hoàn thành hoặc đã hủy.'){% endif %}" 
+                                                class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-red-500 hover:bg-primary hover:text-white transition-all shadow-sm {% if record.trangthaiNhap != 0 %}opacity-50 grayscale cursor-not-allowed{% endif %}" title="Hủy phiếu">
+                                                <i class="fas fa-trash-alt text-xs"></i>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -279,14 +284,14 @@
                         <table class="w-full text-left border-collapse min-w-[900px]">
                             <thead>
                                 <tr class="bg-gray-50 border-y border-gray-200">
-                                    <th width="60" class="py-4 px-4 font-bold text-sm text-primary uppercase text-center">STT</th>
-                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase">Mã Phiếu Trả</th>
-                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase">Phiếu Nhập</th>
-                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase">Nhà Cung Cấp</th>
-                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase text-center">Ngày Trả</th>
-                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase text-center">Tổng Tiền</th>
-                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase text-center">Trạng Thái</th>
-                                    <th class="py-4 px-4 font-bold text-sm text-primary uppercase text-right">THAO TÁC</th>
+                                    <th class="w-stt">STT</th>
+                                    <th class="w-code text-center">Mã Phiếu</th>
+                                    <th class="w-code">Mã Nhập</th>
+                                    <th>Nhà Cung Cấp</th>
+                                    <th class="w-date">Ngày Trả</th>
+                                    <th class="w-price">Tổng Tiền</th>
+                                    <th class="w-status">Trạng Thái</th>
+                                    <th class="w-action">THAO TÁC</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -308,12 +313,18 @@
                                         {% endif %}
                                     </td>
                                      <td class="py-4 px-4 text-right">
-                                         <div class="action-icons">
-                                             <i class="fa-solid fa-eye" onclick="openReturnDetail('{{ ret.maPhieuTra }}')" title="Xem chi tiết"></i>
-                                             {% if ret.trangThai == 0 %}
-                                             <i class="fa-solid fa-edit" onclick="openEditReturn('{{ ret.maPhieuTra }}')" title="Chỉnh sửa"></i>
-                                             <i class="fa-solid fa-trash-can" onclick="deleteReturn('{{ ret.maPhieuTra }}')" title="Hủy phiếu"></i>
-                                             {% endif %}
+                                         <div class="flex items-center justify-end gap-2">
+                                             <button onclick="openReturnDetail('{{ ret.maPhieuTra }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Xem chi tiết">
+                                                 <i class="fas fa-eye text-xs"></i>
+                                             </button>
+                                             <button onclick="{% if ret.trangThai == 0 %}openEditReturn('{{ ret.maPhieuTra }}'){% else %}alert('Không thể chỉnh sửa phiếu đã hoàn thành hoặc đã hủy.'){% endif %}" 
+                                                 class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-green-500 hover:bg-green-500 hover:text-white transition-all shadow-sm {% if ret.trangThai != 0 %}opacity-50 grayscale cursor-not-allowed{% endif %}" title="Chỉnh sửa">
+                                                 <i class="fas fa-edit text-xs"></i>
+                                             </button>
+                                             <button onclick="{% if ret.trangThai == 0 %}deleteReturn('{{ ret.maPhieuTra }}'){% else %}alert('Không thể xóa phiếu đã hoàn thành hoặc đã hủy.'){% endif %}" 
+                                                 class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-red-500 hover:bg-primary hover:text-white transition-all shadow-sm {% if ret.trangThai != 0 %}opacity-50 grayscale cursor-not-allowed{% endif %}" title="Hủy phiếu">
+                                                 <i class="fas fa-trash-alt text-xs"></i>
+                                             </button>
                                          </div>
                                      </td>
                                 </tr>

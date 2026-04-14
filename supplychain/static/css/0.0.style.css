@@ -259,7 +259,6 @@ body { background-color: var(--bg-body); display: flex; min-height: 100vh; color
 .table-wrapper table thead th:last-child { border-top-right-radius: var(--table-radius); }
 
 .table-wrapper.data-table-wrapper {
-    height: var(--table-data-height);
     max-height: var(--table-data-height);
     overflow-y: auto;
     overflow-x: auto;
@@ -523,3 +522,13 @@ tbody tr:not([id*="noResult"]):not(.empty-row):not(.no-data):hover {
 /* CSS cho ô đề xuất nằm trong container Relative */
 .suggestion-container { position: relative; width: 100%; }
 .suggestion-container .search-suggestions { left: 0; top: 100%; width: 100%; }
+
+/* ==================== GLOBAL COLUMN WIDTH UTILITIES ==================== */
+.w-stt { width: 1% !important; white-space: nowrap !important; text-align: center !important; }
+.w-code { width: 1% !important; white-space: nowrap !important; }
+.w-unit { width: 1% !important; white-space: nowrap !important; text-align: center !important; }
+.w-price { width: 1% !important; white-space: nowrap !important; text-align: right !important; }
+.w-qty { width: 1% !important; white-space: nowrap !important; text-align: center !important; }
+.w-status { width: 1% !important; white-space: nowrap !important; text-align: center !important; }
+.w-action { width: 1% !important; white-space: nowrap !important; text-align: right !important; }
+.w-date { width: 1% !important; white-space: nowrap !important; text-align: center !important; }
