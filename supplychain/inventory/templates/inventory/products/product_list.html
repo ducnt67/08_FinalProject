@@ -121,19 +121,19 @@
                         data-status="{{ product.trangThai }}" data-masp="{{ product.maSP }}" style="cursor: pointer;">
                         <td class="col-index text-center font-bold">{{ forloop.counter }}</td>
                         <td class="col-index sp-code">{{ product.maSP }}</td>
-                        <td><span class="product-name">{{ product.tenSP }}</span><span class="product-meta">{{ product.nhaCungCap.tenNCC }}</span>
+                        <td class="w-supplier"><span class="product-name">{{ product.tenSP }}</span><span class="product-meta" title="{{ product.nhaCungCap.tenNCC }}">{{ product.nhaCungCap.tenNCC }}</span>
                         </td>
                         <td>{{ product.danhMuc.tenDanhMuc }}</td>
                         <td class="price-text">{{ product.giaBan|floatformat:0|intcomma }} ₫</td>
-                        <td class="{% if product.tonkho.soluongTon > 50 %}stock-high{% elif product.tonkho.soluongTon == 0 %}stock-low{% else %}stock-med{% endif %}">
+                        <td class="{% if product.tonkho.soluongTon > 50 %}stock-high{% elif product.tonkho.soluongTon == 0 %}stock-low{% else %}stock-med{% endif %} text-center">
                             {{ product.tonKhoToiThieu|default:0 }}
                         </td>
-                        <td>{{ product.donViTinh }}</td>
-                        <td><span
+                        <td class="text-center">{{ product.donViTinh }}</td>
+                        <td class="text-center"><span
                                 class="badge-pill-custom {% if product.trangThai == 1 %}badge-active{% else %}badge-inactive{% endif %}">{% if product.trangThai == 1 %}Đang bán{% else %}Ngừng bán{% endif %}</span>
                         </td>
-                        <td class="pr-10" onclick="event.stopPropagation()">
-                            <div class="flex items-center justify-end gap-2">
+                        <td class="w-action" onclick="event.stopPropagation()">
+                            <div class="flex items-center justify-center gap-2">
                                 <button onclick="openProductModal('view', '{{ product.maSP }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Xem chi tiết">
                                     <i class="fas fa-eye text-xs"></i>
                                 </button>

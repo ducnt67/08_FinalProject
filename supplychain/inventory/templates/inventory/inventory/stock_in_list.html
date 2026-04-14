@@ -102,7 +102,7 @@
                     </div>
 
                     <div class="table-wrapper data-table-wrapper">
-                        <table class="w-full text-left border-collapse min-w-[900px]">
+                        <table class="w-full border-collapse min-w-[900px]">
                             <thead>
                                 <tr class="bg-gray-50 border-y border-gray-200">
                                     <th class="w-stt">STT</th>
@@ -117,12 +117,12 @@
                             <tbody id="importTableBody">
                                 {% for record in inbound_records %}
                                 <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
-                                    <td class="py-4 px-4 text-gray-500 text-center font-bold">{{ forloop.counter }}</td>
-                                    <td class="py-4 px-4 font-semibold text-gray-800">{{ record.maPhieuNhap }}</td>
-                                    <td class="py-4 px-4 text-gray-600">{{ record.nhaCungCap.tenNCC }}</td>
-                                    <td class="py-4 px-4 text-gray-600">{{ record.ngayNhap|date:"d/m/Y H:i" }}</td>
-                                    <td class="py-4 px-4 font-bold text-gray-900">{{ record.tongtienNhap|floatformat:0|intcomma }} ₫</td>
-                                    <td class="py-4 px-4">
+                                    <td class="w-stt font-bold">{{ forloop.counter }}</td>
+                                    <td class="w-code text-center font-semibold text-gray-800">{{ record.maPhieuNhap }}</td>
+                                    <td class="w-supplier text-gray-600" title="{{ record.nhaCungCap.tenNCC }}">{{ record.nhaCungCap.tenNCC }}</td>
+                                    <td class="w-date text-center text-gray-600">{{ record.ngayNhap|date:"d/m/Y H:i" }}</td>
+                                    <td class="w-price font-bold text-gray-900">{{ record.tongtienNhap|floatformat:0|intcomma }} ₫</td>
+                                    <td class="w-status text-center">
                                         {% if record.trangthaiNhap == 1 %}
                                         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-green-100 text-green-700 border border-green-200">
                                             <i class="fa-solid fa-circle-check"></i> Hoàn thành
@@ -137,8 +137,8 @@
                                         </span>
                                         {% endif %}
                                     </td>
-                                    <td class="py-4 px-4 text-right">
-                                        <div class="flex items-center justify-end gap-2">
+                                    <td class="w-action" onclick="event.stopPropagation()">
+                                        <div class="flex items-center justify-center gap-2">
                                             <button onclick="openImportDetail('{{ record.maPhieuNhap }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Xem chi tiết">
                                                 <i class="fas fa-eye text-xs"></i>
                                             </button>
@@ -281,11 +281,11 @@
                     </div>
 
                     <div class="table-wrapper data-table-wrapper">
-                        <table class="w-full text-left border-collapse min-w-[900px]">
+                        <table class="w-full border-collapse min-w-[900px]">
                             <thead>
                                 <tr class="bg-gray-50 border-y border-gray-200">
                                     <th class="w-stt">STT</th>
-                                    <th class="w-code text-center">Mã Phiếu</th>
+                                    <th class="w-code">Mã Phiếu</th>
                                     <th class="w-code">Mã Nhập</th>
                                     <th>Nhà Cung Cấp</th>
                                     <th class="w-date">Ngày Trả</th>
@@ -297,13 +297,13 @@
                             <tbody>
                                 {% for ret in return_records %}
                                 <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
-                                    <td class="py-4 px-4 text-gray-500 text-center font-bold">{{ forloop.counter }}</td>
-                                    <td class="py-4 px-4 font-semibold text-gray-800">{{ ret.maPhieuTra }}</td>
-                                    <td class="py-4 px-4 text-blue-600 font-medium">{{ ret.phieuNhap.maPhieuNhap }}</td>
-                                    <td class="py-4 px-4 text-gray-600">{{ ret.nhaCungCap.tenNCC }}</td>
-                                    <td class="py-4 px-4 text-gray-600 text-center font-medium">{{ ret.ngayTra|date:"d/m/Y H:i" }}</td>
-                                    <td class="py-4 px-4 font-bold text-gray-900 text-center">{{ ret.tongtienTra|floatformat:0|intcomma }} ₫</td>
-                                    <td class="py-4 px-4 text-center">
+                                    <td class="w-stt font-bold">{{ forloop.counter }}</td>
+                                    <td class="w-code text-center font-semibold text-gray-800">{{ ret.maPhieuTra }}</td>
+                                    <td class="w-code text-center text-blue-600 font-medium">{{ ret.phieuNhap.maPhieuNhap }}</td>
+                                    <td class="w-supplier text-gray-600" title="{{ ret.nhaCungCap.tenNCC }}">{{ ret.nhaCungCap.tenNCC }}</td>
+                                    <td class="w-date text-center text-gray-600">{{ ret.ngayTra|date:"d/m/Y H:i" }}</td>
+                                    <td class="w-price font-bold text-gray-900">{{ ret.tongtienTra|floatformat:0|intcomma }} ₫</td>
+                                    <td class="w-status text-center">
                                         {% if ret.trangThai == 1 %}
                                             <span class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-green-100 text-green-700 border border-green-200 uppercase">Đã trả hàng</span>
                                         {% elif ret.trangThai == 0 %}
@@ -312,21 +312,21 @@
                                             <span class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-red-100 text-red-700 border border-red-200 uppercase">Đã hủy</span>
                                         {% endif %}
                                     </td>
-                                     <td class="py-4 px-4 text-right">
-                                         <div class="flex items-center justify-end gap-2">
-                                             <button onclick="openReturnDetail('{{ ret.maPhieuTra }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Xem chi tiết">
-                                                 <i class="fas fa-eye text-xs"></i>
-                                             </button>
-                                             <button onclick="{% if ret.trangThai == 0 %}openEditReturn('{{ ret.maPhieuTra }}'){% else %}alert('Không thể chỉnh sửa phiếu đã hoàn thành hoặc đã hủy.'){% endif %}" 
-                                                 class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-green-500 hover:bg-green-500 hover:text-white transition-all shadow-sm {% if ret.trangThai != 0 %}opacity-50 grayscale cursor-not-allowed{% endif %}" title="Chỉnh sửa">
-                                                 <i class="fas fa-edit text-xs"></i>
-                                             </button>
-                                             <button onclick="{% if ret.trangThai == 0 %}deleteReturn('{{ ret.maPhieuTra }}'){% else %}alert('Không thể xóa phiếu đã hoàn thành hoặc đã hủy.'){% endif %}" 
-                                                 class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-red-500 hover:bg-primary hover:text-white transition-all shadow-sm {% if ret.trangThai != 0 %}opacity-50 grayscale cursor-not-allowed{% endif %}" title="Hủy phiếu">
-                                                 <i class="fas fa-trash-alt text-xs"></i>
-                                             </button>
-                                         </div>
-                                     </td>
+                                    <td class="w-action" onclick="event.stopPropagation()">
+                                        <div class="flex items-center justify-center gap-2">
+                                            <button onclick="openReturnDetail('{{ ret.maPhieuTra }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Xem chi tiết">
+                                                <i class="fas fa-eye text-xs"></i>
+                                            </button>
+                                            <button onclick="{% if ret.trangThai == 0 %}openEditReturn('{{ ret.maPhieuTra }}'){% else %}alert('Không thể chỉnh sửa phiếu đã hoàn thành hoặc đã hủy.'){% endif %}" 
+                                                class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-green-500 hover:bg-green-500 hover:text-white transition-all shadow-sm {% if ret.trangThai != 0 %}opacity-50 grayscale cursor-not-allowed{% endif %}" title="Chỉnh sửa">
+                                                <i class="fas fa-edit text-xs"></i>
+                                            </button>
+                                            <button onclick="{% if ret.trangThai == 0 %}deleteReturn('{{ ret.maPhieuTra }}'){% else %}alert('Không thể xóa phiếu đã hoàn thành hoặc đã hủy.'){% endif %}" 
+                                                class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-red-500 hover:bg-primary hover:text-white transition-all shadow-sm {% if ret.trangThai != 0 %}opacity-50 grayscale cursor-not-allowed{% endif %}" title="Hủy phiếu">
+                                                <i class="fas fa-trash-alt text-xs"></i>
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
                                 {% empty %}
                                 <tr><td colspan="7" class="text-center py-10">Không có phiếu trả hàng nào</td></tr>
