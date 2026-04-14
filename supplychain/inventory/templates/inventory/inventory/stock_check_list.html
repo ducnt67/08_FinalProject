@@ -60,25 +60,22 @@
         <div class="content-header">
             <h1>QUẢN LÝ KIỂM KÊ</h1>
         </div>
+        <div class="content-body p-8">
             <!-- Danh sách phiếu kiểm kê -->
             <div id="checkListView" class="view-section active">
-                <div class="bg-white rounded-b-xl shadow-sm border border-gray-100 p-6">
-                    
-                    <div class="flex flex-nowrap gap-3 items-center justify-between mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    <div class="flex flex-col md:flex-row gap-4 items-center justify-between mb-6">
                         <div class="flex flex-nowrap gap-3 flex-1 items-center">
-                            <div class="frm-search-box"><i class="fas fa-search"></i><input type="text" id="checkSearchInput" placeholder="Tìm kiếm phiếu kiểm..." oninput="" onkeyup=""></div>
-                            
-                            <select id="checkStatusFilter" class="frm-select">
+                            <div class="frm-search-box flex-1 max-w-xs">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="checkSearchInput" placeholder="Tìm kiếm phiếu kiểm..." onkeyup="filterTable()">
+                            </div>
+                            <select id="checkStatusFilter" class="frm-select" onchange="filterTable()">
                                 <option value="all">Tất cả trạng thái</option>
                                 <option value="1">Đã cân bằng</option>
                                 <option value="0">Đang kiểm</option>
                                 <option value="-1">Đã hủy</option>
                             </select>
-
-                            <div class="frm-date-box"><input type="date" id="dateFilter" value=""><i class="fa-regular fa-calendar-days"></i></div>
-                            <button onclick="filterTable()" class="bg-white hover:bg-red-50 text-primary px-4 py-2 whitespace-nowrap rounded-lg text-[13px] font-semibold transition-colors flex items-center gap-2 shadow-sm border border-primary">
-                                Lọc dữ liệu
-                            </button>
                             <button onclick="resetFilters()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 whitespace-nowrap rounded-lg text-[13px] font-semibold transition-colors flex items-center gap-2 shadow-sm border border-gray-200">
                                 Làm mới
                             </button>
@@ -90,9 +87,9 @@
                     </div>
 
                     <div class="table-wrapper data-table-wrapper border border-gray-200 rounded-lg">
-                        <table class="w-full text-left border-collapse min-w-[900px]">
+                        <table class="w-full border-collapse min-w-[900px]">
                             <thead>
-                                <tr class="bg-gray-50 border-y border-gray-200">
+                                <tr class="border-y border-gray-200">
                                     <th class="w-stt">STT</th>
                                     <th class="w-code">Mã Phiếu</th>
                                     <th class="w-date">Ngày Kiểm</th>
@@ -107,7 +104,7 @@
                                     <td class="w-stt font-bold">{{ forloop.counter }}</td>
                                     <td class="w-code font-bold text-gray-800">{{ check.maKiemKe }}</td>
                                     <td class="w-date text-gray-600">{{ check.ngayKiem|date:"d/m/Y H:i" }}</td>
-                                    <td class="py-4 px-4 text-gray-600">{{ check.kiemke_ct_set.count }} mặt hàng</td>
+                                    <td class="py-4 px-4 text-gray-800 font-medium">{{ check.kiemke_ct_set.count }} mặt hàng</td>
                                     <td class="w-status text-center">
                                         {% if check.trangThai == 1 %}
                                         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-green-100 text-green-700 border border-green-200">
@@ -152,7 +149,7 @@
 
             <!-- View Tạo/Sửa phiếu kiểm kê -->
             <div id="checkFormView" class="view-section">
-                <div class="bg-white rounded-b-xl shadow-sm border border-gray-100 p-6">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <div class="flex items-center justify-between mb-6">
                         <div class="flex items-center gap-4">
                             <button onclick="backToList()" class="w-10 h-10 rounded-full flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors">
@@ -236,7 +233,7 @@
 
             <!-- View 3: Chi Tiết Phiếu Kiểm Kê -->
             <div id="checkDetailView" class="view-section">
-                <div class="bg-white rounded-b-xl shadow-sm border border-gray-100 p-6">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <div class="flex items-center justify-between mb-6 print:hidden">
                         <div class="flex items-center gap-4">
                             <button onclick="backToList()" class="w-10 h-10 rounded-full flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors">
@@ -265,6 +262,7 @@
                     </div>
                 </div>
             </div>
+        </div>
   </main>
 
 

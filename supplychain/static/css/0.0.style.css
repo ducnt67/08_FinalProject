@@ -528,9 +528,9 @@ tbody tr:not([id*="noResult"]):not(.empty-row):not(.no-data):hover {
 .w-stt { width: 1% !important; white-space: nowrap !important; text-align: center !important; }
 .w-code { width: 1% !important; white-space: nowrap !important; }
 .w-unit { width: 1% !important; white-space: nowrap !important; text-align: center !important; }
-.w-price { width: 1% !important; white-space: nowrap !important; text-align: right !important; }
+.w-price { min-width: 110px; white-space: nowrap !important; text-align: right !important; }
 .w-qty { width: 1% !important; white-space: nowrap !important; text-align: center !important; }
-.w-status { width: 1% !important; white-space: nowrap !important; text-align: center !important; }
+.w-status { min-width: 120px; white-space: nowrap !important; text-align: center !important; }
 .w-action { width: 1% !important; white-space: nowrap !important; text-align: center !important; }
-.w-supplier { min-width: 150px; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.w-supplier { width: 400px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .w-date { width: 1% !important; white-space: nowrap !important; text-align: center !important; }
