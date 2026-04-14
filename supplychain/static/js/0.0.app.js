@@ -100,66 +100,12 @@ function showDeleteModal(entityName, message, onConfirm) {
 }
 
 // ==========================================
-// HÀM HIỂN THỊ PHÂN TRANG DÙNG CHUNG CỦA HỆ THỐNG
+// PHÂN TRANG ĐÃ TẮT TOÀN HỆ THỐNG (dùng scroll bảng)
 // ==========================================
 function renderGlobalPagination(totalItems, itemsPerPage, currentPage, containerId, itemName, onPageChangeName) {
     const container = document.getElementById(containerId);
     if (!container) return;
-    
-    // Nếu không có dữ liệu
-    if (totalItems === 0) {
-        container.innerHTML = '';
-        return;
-    }
-
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    const start = (currentPage - 1) * itemsPerPage + 1;
-    const end = Math.min(currentPage * itemsPerPage, totalItems);
-
-    let html = `
-    <div class="pg-container">
-        <div class="pg-info">
-            Hiển thị <span>${start}-${end}</span> trên tổng số <span>${totalItems}</span> ${itemName}
-        </div>
-        <div class="pg-nav">
-    `;
-
-    // Nút Previous
-    html += `
-        <button onclick="${currentPage > 1 ? onPageChangeName + '(' + (currentPage - 1) + ')' : ''}" 
-            class="pg-btn" ${currentPage === 1 ? 'disabled' : ''}>
-            <i class="fa-solid fa-angle-left"></i>
-        </button>
-    `;
-
-    // Nút Page Numbers
-    for (let i = 1; i <= totalPages; i++) {
-        if (i === currentPage) {
-            html += `
-            <button class="pg-btn active">
-                ${i}
-            </button>`;
-        } else {
-            html += `
-            <button onclick="${onPageChangeName}(${i})" class="pg-btn">
-                ${i}
-            </button>`;
-        }
-    }
-
-    // Nút Next
-    html += `
-        <button onclick="${currentPage < totalPages ? onPageChangeName + '(' + (currentPage + 1) + ')' : ''}" 
-            class="pg-btn" ${currentPage === totalPages ? 'disabled' : ''}>
-            <i class="fa-solid fa-angle-right"></i>
-        </button>
-    `;
-
-    html += `
-        </div>
-    </div>`;
-
-    container.innerHTML = html;
+    container.innerHTML = '';
 }
 
 // ==========================================

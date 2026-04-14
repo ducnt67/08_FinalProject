@@ -27,10 +27,6 @@
     <style>
         /* Ghi đè một số style để khớp với hệ thống */
         .main-content { background-color: #F3F4F6; min-height: 100vh; }
-        .pagination-link { cursor: pointer; transition: 0.2s; }
-        .pagination-link:hover { background-color: #fef2f2; color: #dc2626; }
-        .active-page { background-color: #dc2626 !important; color: white !important; }
-        
         /* Modal Style */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -96,7 +92,7 @@
                     Danh sách danh mục sản phẩm
                 </h2>
                 
-                <div class="table-wrapper flex-1 bg-white">
+                <div class="table-wrapper data-table-wrapper flex-1 bg-white">
                     <table class="table-custom w-full category-table">
                         <thead>
                             <tr>
@@ -139,8 +135,6 @@
                     </table>
                 </div>
             </div>
-            <!-- Missing pagination controls div from the original block. Add it here. -->
-            <div id="catPagination" class="w-full mt-6"></div>
         </div>
   </main>
 
@@ -244,8 +238,6 @@
 
         const allParentRows = Array.from(document.querySelectorAll('.parent-row'));
         const allChildRows = Array.from(document.querySelectorAll('.child-row'));
-        const itemsPerPage = 8;
-        let currentPage = 1;
         let filteredParents = [...allParentRows];
 
         function filterCategories() {
@@ -261,7 +253,6 @@
                 return matchSearch && matchStatus;
             });
 
-            currentPage = 1;
             renderTable();
         }
 
@@ -273,16 +264,11 @@
             
             if (filteredParents.length === 0) {
                 if (noResult) noResult.classList.remove('hidden');
-                renderPagination(0);
                 return;
             }
             if (noResult) noResult.classList.add('hidden');
 
-            const start = (currentPage - 1) * itemsPerPage;
-            const end = start + itemsPerPage;
-            const pageData = filteredParents.slice(start, end);
-
-            pageData.forEach(pRow => {
+            filteredParents.forEach(pRow => {
                 pRow.classList.remove('hidden');
                 const pid = pRow.getAttribute('data-id');
                 const icon = document.getElementById('icon-' + pid);
@@ -295,17 +281,7 @@
                     });
                 }
             });
-
-            renderPagination(Math.ceil(filteredParents.length / itemsPerPage));
         }
-
-        function renderPagination(total) {
-            if (typeof renderGlobalPagination === 'function') {
-                renderGlobalPagination(filteredParents.length, itemsPerPage, currentPage, 'catPagination', 'danh mục', 'goToPage');
-            }
-        }
-
-        function goToPage(p) { currentPage = p; renderTable(); }
 
         function toggleChildren(parentId) {
             const children = allChildRows.filter(c => c.getAttribute('data-parent') === parentId);

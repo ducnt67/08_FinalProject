@@ -26,8 +26,6 @@
 
     <style>
         .main-content { background-color: #F4F6F8; min-height: 100vh; }
-        .table-wrapper { overflow-x: auto; }
-        
         .readonly-input { background: #e5e7eb; color: #374151; border-color: #d1d5db; opacity: 0.9; }
         .action-icons i { width: 32px; height: 32px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; background: #f8fafc; color: #64748b; margin: 0 2px;}
         .action-icons i:hover { transform: translateY(-2px); background: #e2e8f0; color: var(--primary-main); }
@@ -104,7 +102,7 @@
                         </div>
                     </div>
 
-                    <div class="table-wrapper">
+                    <div class="table-wrapper data-table-wrapper">
                         <table class="w-full text-left border-collapse min-w-[900px]">
                             <thead>
                                 <tr class="bg-gray-50 border-y border-gray-200">
@@ -215,7 +213,7 @@
                             </div>
                         </div>
 
-                        <div class="table-wrapper mb-6 border border-gray-100 rounded-lg">
+                        <div class="table-wrapper data-table-wrapper mb-6 border border-gray-100 rounded-lg">
                             <table class="w-full text-left">
                                 <thead class="bg-gray-50 border-y border-gray-100">
                                     <tr>
@@ -277,7 +275,7 @@
                         </button>
                     </div>
 
-                    <div class="table-wrapper">
+                    <div class="table-wrapper data-table-wrapper">
                         <table class="w-full text-left border-collapse min-w-[900px]">
                             <thead>
                                 <tr class="bg-gray-50 border-y border-gray-200">
@@ -367,7 +365,7 @@
 
                         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                             <h3 class="font-bold text-gray-800 mb-4">Chi tiết hàng trả</h3>
-                            <div class="table-wrapper mb-6 border border-gray-100 rounded-lg">
+                            <div class="table-wrapper data-table-wrapper mb-6 border border-gray-100 rounded-lg">
                                 <table class="w-full text-left">
                                     <thead class="bg-gray-50 border-y border-gray-100">
                                         <tr>
@@ -662,7 +660,7 @@
                                 <h3 class="font-bold text-gray-800 text-lg">Danh sách hàng hóa</h3>
                                 <span class="text-primary font-bold text-sm">Tổng ${data.items.length} mặt hàng</span>
                             </div>
-                            <div class="table-wrapper border border-gray-100 rounded-xl overflow-hidden">
+                            <div class="table-wrapper data-table-wrapper border border-gray-100 rounded-xl overflow-hidden">
                                 <table class="w-full text-sm">
                                     <thead>
                                         <tr>
@@ -893,7 +891,7 @@
                                 </h3>
                                 <span class="text-primary font-bold text-sm">Tổng ${data.items.length} mặt hàng</span>
                             </div>
-                            <div class="table-wrapper border border-gray-100 rounded-xl overflow-hidden shadow-sm">
+                            <div class="table-wrapper data-table-wrapper border border-gray-100 rounded-xl overflow-hidden shadow-sm">
                                 <table class="w-full text-sm">
                                     <thead>
                                         <tr>
