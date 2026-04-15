@@ -784,13 +784,13 @@
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
                     body: JSON.stringify({ maPhieuTra: editingReturn, items: items, trangThai: status })
-                }).then(res => res.json()).then(res => { alert(res.message); if (res.status === 'success') location.reload(); });
+                }).then(res => res.json()).then(res => { alert(res.message); if (res.status === 'success') window.location.search = '?view=returnListView'; });
             } else {
                 fetch('/trahang/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
                     body: JSON.stringify({ maPhieuNhap: document.getElementById('return_origin_code').value, items: items, trangThai: status })
-                }).then(res => res.json()).then(res => { alert(res.message); if (res.status === 'success') location.reload(); });
+                }).then(res => res.json()).then(res => { alert(res.message); if (res.status === 'success') window.location.search = '?view=returnListView'; });
             }
         }
 
@@ -840,7 +840,7 @@
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
                 body: JSON.stringify({ maPhieuTra: code })
-            }).then(res => res.json()).then(res => { alert(res.message); if (res.status === 'success') location.reload(); });
+            }).then(res => res.json()).then(res => { alert(res.message); if (res.status === 'success') window.location.search = '?view=returnListView'; });
         }
 
         function openReturnDetail(code) {
@@ -950,6 +950,15 @@
             setupSearchAutocomplete('create_goods_search', (kw) => goodsCatalog.filter(p => p.name.toLowerCase().includes(kw.toLowerCase()) || p.code.toLowerCase().includes(kw.toLowerCase())), (item) => `<div class="suggestion-title">${item.code} - ${item.name}</div><div class="suggestion-meta">${item.price.toLocaleString('vi-VN')} ₫</div>`, (item, input) => { addProdToTable(item.code, item.name, item.price); input.value = ''; });
             const allImports = [ {% for r in inbound_records %}{% if r.trangthaiNhap == 1 %}{ "code": "{{ r.maPhieuNhap }}", "supplier": "{{ r.nhaCungCap.tenNCC }}" },{% endif %}{% endfor %} ];
             setupSearchAutocomplete('return_import_search', (kw) => allImports.filter(r => r.code.toLowerCase().includes(kw.toLowerCase())), (item) => `<div class="suggestion-title">${item.code}</div><div class="suggestion-meta">${item.supplier}</div>`, (item, input) => { input.value = item.code; loadImportForReturn(item.code); });
+            
+            // Xử lý chuyển view dựa trên tham số URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const viewParam = urlParams.get('view');
+            if (viewParam) {
+                switchView(viewParam);
+                // Xóa tham số URL sau khi đã chuyển để tránh lặp lại khi reload thủ công
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
         });
     </script>
 </body>
