@@ -746,7 +746,12 @@
                         <td class="py-4 px-4"><div class="font-semibold text-gray-800 text-sm">${item.maSP}</div><div class="text-xs text-gray-500">${item.tenSP}</div></td>
                         <td class="py-4 px-4 text-center font-bold item-price">${parseFloat(item.price).toLocaleString('vi-VN')}</td>
                         <td class="py-4 px-4 text-center font-semibold">${item.qty}</td>
-                        <td class="py-4 px-4 text-center"><input type="number" class="item-return-qty w-full border rounded px-2 py-1 text-center font-bold" value="0" min="0" max="${item.qty}" oninput="updateReturnTotals()"></td>
+                        <td class="py-4 px-4 text-center">
+                            <div class="relative">
+                                <input type="number" class="item-return-qty w-full border rounded px-2 py-1 text-center font-bold" value="0" min="0" max="${item.qty}" data-max="${item.qty}" oninput="validateReturnQty(this); updateReturnTotals()">
+                                <span class="item-qty-error text-red-500 text-xs mt-1 hidden block text-left">Vượt số lượng đã nhập (tối đa: ${item.qty})</span>
+                            </div>
+                        </td>
                         <td class="py-4 px-4"><select class="item-reason w-full border rounded px-2 py-1"><option value="Hàng lỗi">Hàng lỗi</option><option value="Sai mẫu mã">Sai mẫu mã</option><option value="Hết hạn">Hết hạn</option></select></td>
                         <td class="py-4 px-4 text-center font-bold text-primary item-return-amount">0 ₫</td>
                     `;
@@ -757,10 +762,26 @@
             });
         }
 
+        function validateReturnQty(input) {
+            const max = parseInt(input.dataset.max) || 0;
+            const val = parseInt(input.value) || 0;
+            const errorEl = input.parentElement.querySelector('.item-qty-error');
+            if (val > max) {
+                input.classList.add('border-red-500', 'bg-red-50', 'text-red-600');
+                input.classList.remove('border-gray-300');
+                if (errorEl) errorEl.classList.remove('hidden');
+            } else {
+                input.classList.remove('border-red-500', 'bg-red-50', 'text-red-600');
+                input.classList.add('border-gray-300');
+                if (errorEl) errorEl.classList.add('hidden');
+            }
+        }
+
         function updateReturnTotals() {
             let total = 0;
             document.querySelectorAll('#return_goods_body tr').forEach(tr => {
-                const qty = parseInt(tr.querySelector('.item-return-qty').value) || 0;
+                const qtyInput = tr.querySelector('.item-return-qty');
+                const qty = parseInt(qtyInput.value) || 0;
                 const price = parseFloat(tr.querySelector('.item-price').textContent.replace(/\./g, '')) || 0;
                 const amount = qty * price;
                 tr.querySelector('.item-return-amount').textContent = amount.toLocaleString('vi-VN') + ' ₫';
@@ -770,6 +791,21 @@
         }
 
         function saveReturn(status) {
+            // Kiểm tra lỗi số lượng trước khi gửi
+            let hasError = false;
+            document.querySelectorAll('#return_goods_body tr').forEach(tr => {
+                const input = tr.querySelector('.item-return-qty');
+                const max = parseInt(input.dataset.max) || 0;
+                const val = parseInt(input.value) || 0;
+                if (val > max) {
+                    hasError = true;
+                    input.classList.add('border-red-500', 'bg-red-50', 'text-red-600');
+                    const errorEl = input.parentElement.querySelector('.item-qty-error');
+                    if (errorEl) errorEl.classList.remove('hidden');
+                }
+            });
+            if (hasError) return alert('Số lượng trả vượt quá số lượng đã nhập. Vui lòng kiểm tra lại!');
+
             const items = [];
             document.querySelectorAll('#return_goods_body tr').forEach(tr => {
                 const qty = parseInt(tr.querySelector('.item-return-qty').value) || 0;
@@ -819,7 +855,12 @@
                         <td class="py-4 px-4"><div class="font-semibold text-gray-800 text-sm">${item.maSP}</div><div class="text-xs text-gray-500">${item.tenSP}</div></td>
                         <td class="py-4 px-4 text-center font-bold item-price">${parseFloat(item.price).toLocaleString('vi-VN')}</td>
                         <td class="py-4 px-4 text-center font-semibold">${item.originalQty}</td>
-                        <td class="py-4 px-4 text-center"><input type="number" class="item-return-qty w-full border rounded px-2 py-1 text-center font-bold" value="${item.qty}" min="0" max="${item.originalQty}" oninput="updateReturnTotals()"></td>
+                        <td class="py-4 px-4 text-center">
+                            <div class="relative">
+                                <input type="number" class="item-return-qty w-full border rounded px-2 py-1 text-center font-bold" value="${item.qty}" min="0" max="${item.originalQty}" data-max="${item.originalQty}" oninput="validateReturnQty(this); updateReturnTotals()">
+                                <span class="item-qty-error text-red-500 text-xs mt-1 hidden block text-left">Vượt số lượng đã nhập (tối đa: ${item.originalQty})</span>
+                            </div>
+                        </td>
                         <td class="py-4 px-4"><select class="item-reason w-full border rounded px-2 py-1"><option value="Hàng lỗi" ${item.reason === 'Hàng lỗi' ? 'selected' : ''}>Hàng lỗi</option><option value="Sai mẫu mã" ${item.reason === 'Sai mẫu mã' ? 'selected' : ''}>Sai mẫu mã</option><option value="Hết hạn" ${item.reason === 'Hết hạn' ? 'selected' : ''}>Hết hạn</option></select></td>
                         <td class="py-4 px-4 text-center font-bold text-primary item-return-amount">0 ₫</td>
                     `;
