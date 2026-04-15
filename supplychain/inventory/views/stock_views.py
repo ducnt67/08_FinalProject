@@ -258,6 +258,20 @@ def trahang(request):
                 qty = int(item['qty'])
                 price = Decimal(str(item['price']))
                 
+                # Kiem tra so luong tra khong vuot qua so luong da thuc nhan
+                try:
+                    phieu_nhap_ct = import_record.phieunhap_ct_set.get(sanPham=sanPham)
+                    if qty > phieu_nhap_ct.soluongThucNhan:
+                        return JsonResponse({
+                            'status': 'error',
+                            'message': f'Số lượng trả của "{sanPham.tenSP}" ({qty}) vượt quá số lượng đã nhập ({phieu_nhap_ct.soluongThucNhan}).'
+                        }, status=400)
+                except import_record.phieunhap_ct_set.model.DoesNotExist:
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': f'Sản phẩm "{sanPham.tenSP}" không tồn tại trong phiếu nhập gốc.'
+                    }, status=400)
+                
                 TraHangNCC_CT.objects.create(
                     phieuTra=tra_hang,
                     sanPham=sanPham,
@@ -306,6 +320,21 @@ def trahang(request):
                 sanPham = get_object_or_404(SanPham, maSP=item['maSP'])
                 qty = int(item['qty'])
                 price = Decimal(str(item['price']))
+                
+                # Kiem tra so luong tra khong vuot qua so luong da thuc nhan
+                if tra_hang.phieuNhap:
+                    try:
+                        phieu_nhap_ct = tra_hang.phieuNhap.phieunhap_ct_set.get(sanPham=sanPham)
+                        if qty > phieu_nhap_ct.soluongThucNhan:
+                            return JsonResponse({
+                                'status': 'error',
+                                'message': f'Số lượng trả của "{sanPham.tenSP}" ({qty}) vượt quá số lượng đã nhập ({phieu_nhap_ct.soluongThucNhan}).'
+                            }, status=400)
+                    except tra_hang.phieuNhap.phieunhap_ct_set.model.DoesNotExist:
+                        return JsonResponse({
+                            'status': 'error',
+                            'message': f'Sản phẩm "{sanPham.tenSP}" không tồn tại trong phiếu nhập gốc.'
+                        }, status=400)
                 
                 TraHangNCC_CT.objects.create(
                     phieuTra=tra_hang,
