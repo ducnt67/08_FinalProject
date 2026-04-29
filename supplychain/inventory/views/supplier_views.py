@@ -42,6 +42,11 @@ def ncc(request):
             data = json.loads(request.body)
             maNCC = data.get('maNCC')
             supplier = get_object_or_404(NhaCungCap, maNCC=maNCC)
+            
+            from inventory.models import DonDatHang
+            if DonDatHang.objects.filter(nhaCungCap=supplier).exists():
+                return JsonResponse({'status': 'error', 'message': 'Không thể xóa nhà cung cấp này vì đã có dữ liệu giao dịch (đơn đặt hàng).'}, status=400)
+                
             supplier.delete()
             return JsonResponse({'status': 'success', 'message': 'Đã xóa nhà cung cấp!'})
         except Exception as e:

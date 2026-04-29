@@ -134,16 +134,25 @@ def nhapkho(request):
             maPhieuNhap = data.get('maPhieuNhap')
             import_record = get_object_or_404(NhapKho, maPhieuNhap=maPhieuNhap)
             
-            if import_record.trangthaiNhap == 1:
-                return JsonResponse({'status': 'error', 'message': 'Không thể xóa/hủy phiếu đã hoàn thành.'}, status=400)
-            
             if import_record.trangthaiNhap == -1:
                 return JsonResponse({'status': 'error', 'message': 'Phiếu đã được hủy trước đó.'}, status=400)
-                        
-            # Chuyển trạng thái thành Đã hủy (-1) thay vì xóa thật
-            import_record.trangthaiNhap = -1
-            import_record.save()
-            return JsonResponse({'status': 'success', 'message': 'Đã hủy phiếu nhập thành công!'})
+                
+            elif import_record.trangthaiNhap == 0:
+                import_record.delete()
+                return JsonResponse({'status': 'success', 'message': 'Đã xóa phiếu nhập tạm thành công!'})
+            
+            elif import_record.trangthaiNhap == 1:
+                # Rollback inventory
+                for ct in import_record.phieunhap_ct_set.all():
+                    tk, _ = TonKho.objects.get_or_create(sanPham=ct.sanPham)
+                    tk.soluongTon -= ct.soluongThucNhan
+                    tk.save()
+                
+                # Chuyển trạng thái thành Đã hủy (-1)
+                import_record.trangthaiNhap = -1
+                import_record.save()
+                return JsonResponse({'status': 'success', 'message': 'Đã hủy phiếu nhập hoàn thành và hoàn tác tồn kho!'})
+                
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
             
@@ -505,7 +514,15 @@ def xuatkho(request):
             maPhieuXuat = data.get('maPhieuXuat')
             export_record = get_object_or_404(XuatKho, maPhieuXuat=maPhieuXuat)
 
-            if export_record.trangThai == 1:
+            if export_record.trangThai == -1:
+                return JsonResponse({'status': 'error', 'message': 'Phiếu đã bị hủy trước đó.'}, status=400)
+                
+            elif export_record.trangThai == 0:
+                export_record.delete()
+                return JsonResponse({'status': 'success', 'message': 'Đã xóa phiếu xuất tạm!'})
+                
+            elif export_record.trangThai == 1:
+                # Rollback TonKho
                 for ct in export_record.phieuxuat_ct_set.all():
                     try:
                         tonkho_obj = TonKho.objects.get(sanPham=ct.sanPham)
@@ -513,9 +530,11 @@ def xuatkho(request):
                         tonkho_obj.save()
                     except TonKho.DoesNotExist:
                         pass
-
-            export_record.delete()
-            return JsonResponse({'status': 'success', 'message': 'Đã xóa phiếu xuất!'})
+                
+                export_record.trangThai = -1
+                export_record.save()
+                return JsonResponse({'status': 'success', 'message': 'Đã hủy phiếu xuất hoàn thành và hoàn tác tồn kho!'})
+                
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
@@ -624,8 +643,25 @@ def kiemke(request):
             data = json.loads(request.body)
             maKiemKe = data.get('maKiemKe')
             check_record = get_object_or_404(KiemKe, maKiemKe=maKiemKe)
-            check_record.delete()
-            return JsonResponse({'status': 'success', 'message': 'Đã xóa phiếu kiểm kê!'})
+            
+            if check_record.trangThai == -1:
+                return JsonResponse({'status': 'error', 'message': 'Phiếu đã bị hủy trước đó.'}, status=400)
+                
+            elif check_record.trangThai == 0:
+                check_record.delete()
+                return JsonResponse({'status': 'success', 'message': 'Đã xóa phiếu kiểm kê tạm!'})
+                
+            elif check_record.trangThai == 1:
+                # Rollback TonKho to slTonKho (original quantity before check)
+                for ct in check_record.kiemke_ct_set.all():
+                    tonkho_obj, _ = TonKho.objects.get_or_create(sanPham=ct.sanPham)
+                    tonkho_obj.soluongTon = ct.slTonKho
+                    tonkho_obj.save()
+                    
+                check_record.trangThai = -1
+                check_record.save()
+                return JsonResponse({'status': 'success', 'message': 'Đã hủy phiếu kiểm kê và hoàn tác tồn kho!'})
+                
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
