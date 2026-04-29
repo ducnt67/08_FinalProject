@@ -143,9 +143,11 @@ def dathang(request):
             
         return JsonResponse({
             'maDatHang': order.maDatHang,
-            'ngayDatHang': order.ngayDatHang.strftime('%Y-%m-%d'),
-            'nhaCungCap': order.nhaCungCap.maNCC,
-            'ghiChu': order.ghiChu,
+            'ngayDatHang': timezone.localtime(order.ngayDatHang).strftime('%d/%m/%Y %H:%M') if order.ngayDatHang else '',
+            'ngayDatHangRaw': timezone.localtime(order.ngayDatHang).strftime('%Y-%m-%dT%H:%M') if order.ngayDatHang else '',
+            'maNCC': order.nhaCungCap.maNCC,
+            'tenNCC': order.nhaCungCap.tenNCC,
+            'ghichu': order.ghiChu,
             'trangThai': status_reverse_map.get(order.trangThai, 'Chờ xác nhận'),
             'trangThaiClass': status_class_map.get(order.trangThai, 'status-warning'),
             'items': items

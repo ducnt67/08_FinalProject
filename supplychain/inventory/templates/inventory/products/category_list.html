@@ -63,27 +63,40 @@
 
   <main class="main-content">
         <div class="content-header shrink-0">
-            <h1>QUẢN LÝ DANH MỤC</h1>
+            <h1>Quản lý danh mục</h1>
         </div>
 
         <div class="content-body p-8 flex flex-col min-h-0">
             
-            <div class="bg-white rounded-xl shadow-sm p-4 mb-6 flex flex-nowrap items-center justify-between gap-3 shrink-0">
-                <div class="flex flex-nowrap items-center gap-3 flex-1">
-                    <div class="frm-search-box"><i class="fas fa-search"></i><input type="text" id="searchCat" placeholder="Tên danh mục..." oninput="filterCategories()" onkeyup="filterCategories()"></div>
-                    
-                    <div>
-                        <select id="statusCat" class="frm-select" onchange="filterCategories()">
-                            <option value="all">Tất cả trạng thái</option>
-                            <option value="1">Đang hoạt động</option>
-                            <option value="0">Ngừng hoạt động</option>
-                        </select>
+            <div class="mb-6 bg-gray-50 p-6 rounded-xl border border-gray-100">
+                <div class="flex flex-col md:flex-row gap-6 items-end justify-between">
+                    <div class="flex flex-col md:flex-row gap-4 flex-1 items-end">
+                        <div class="w-auto">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Tìm kiếm danh mục</label>
+                            <div class="frm-search-box" style="width: 550px; max-width: none;">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="searchCat" placeholder="Tên danh mục..." oninput="filterCategories()" onkeyup="filterCategories()" class="w-full">
+                            </div>
+                        </div>
+                        
+                        <div class="w-full md:w-56">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Trạng thái</label>
+                            <select id="statusCat" class="frm-select w-full" onchange="filterCategories()">
+                                <option value="all">Tất cả trạng thái</option>
+                                <option value="1">Đang hoạt động</option>
+                                <option value="0">Ngừng hoạt động</option>
+                            </select>
+                        </div>
+                        
+                        <button onclick="location.reload()" class="bg-white hover:bg-gray-50 text-gray-700 h-[42px] px-4 whitespace-nowrap rounded-lg text-[13px] font-semibold transition-colors flex items-center gap-2 shadow-sm border border-gray-200">
+                            <i class="fa-solid fa-rotate"></i> Làm mới
+                        </button>
                     </div>
-                </div>
 
-                <button onclick="openCatModal('create')" class="bg-primary hover:bg-red-700 text-white px-4 py-2 whitespace-nowrap rounded-lg text-sm font-bold transition-all flex items-center gap-2 shadow-md active:scale-95">
-                    <i class="fa-solid fa-plus"></i> THÊM DANH MỤC
-                </button>
+                    <button onclick="openCatModal('create')" class="bg-primary hover:bg-red-700 text-white h-[42px] px-6 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shadow-md whitespace-nowrap active:scale-95">
+                        <i class="fa-solid fa-plus text-xs"></i> Thêm danh mục
+                    </button>
+                </div>
             </div>
 
             <div class="bg-white rounded-xl shadow-sm p-6 flex flex-col min-h-0 overflow-hidden">
@@ -96,12 +109,12 @@
                     <table class="table-custom w-full category-table">
                         <thead>
                             <tr class="bg-gray-50 border-y border-gray-200">
-                                <th class="w-stt">STT</th>
-                                <th>Tên danh mục</th>
-                                <th class="w-code">Mã danh mục</th>
-                                <th>Danh mục cha</th>
-                                <th class="w-status">Trạng thái</th>
-                                <th class="w-action pr-10">Thao tác</th>
+                                <th style="width: 5%; text-align: center !important;">STT</th>
+                                <th style="width: 20%; text-align: left !important;">Tên danh mục</th>
+                                <th style="width: 20%; text-align: center !important;">Mã danh mục</th>
+                                <th style="width: 20%; text-align: left !important;">Danh mục cha</th>
+                                <th style="width: 20%; text-align: center !important;">Trạng thái</th>
+                                <th style="width: 15%; text-align: center !important;">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody id="catTableBody" class="text-sm">
@@ -109,7 +122,7 @@
                             {% for category in categories %}
                             <tr class="cat-row {% if not category.maDanhMucCha %}parent-row{% else %}child-row show-row{% endif %}" data-status="{{ category.trangThai }}" data-id="{{ category.maDanhMuc }}" {% if category.maDanhMucCha %}data-parent="{{ category.maDanhMucCha.maDanhMuc }}"{% endif %} style="cursor: pointer;" {% if not category.maDanhMucCha %}onclick="toggleChildren('{{ category.maDanhMuc }}')"{% endif %}>
                                 <td class="font-semibold text-gray-800 text-center col-index font-bold">{{ forloop.counter }}</td>
-                                <td class="font-medium text-gray-800">
+                                <td class="font-medium text-gray-800" style="text-align: left !important;">
                                     <div class="cat-name-wrap {% if category.maDanhMucCha %}cat-child-indent{% endif %}">
                                         {% if not category.maDanhMucCha %}
                                         <i id="icon-{{ category.maDanhMuc }}" class="fa-solid fa-angle-right text-gray-400 text-xs w-3 transition-transform duration-200 rotate-90"></i>
@@ -117,13 +130,13 @@
                                         <span class="cat-name">{{ category.tenDanhMuc }}</span>
                                     </div>
                                 </td>
-                                <td class="text-gray-600 cat-code">{{ category.maDanhMuc }}</td>
-                                <td class="text-gray-600 cat-parent">{% if category.maDanhMucCha %}{{ category.maDanhMucCha.tenDanhMuc }}{% else %}-{% endif %}</td>
-                                <td>
+                                <td class="text-gray-600 cat-code text-center">{{ category.maDanhMuc }}</td>
+                                <td class="text-gray-600 cat-parent" style="text-align: left !important;">{% if category.maDanhMucCha %}{{ category.maDanhMucCha.tenDanhMuc }}{% else %}-{% endif %}</td>
+                                <td class="text-center">
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium {% if category.trangThai %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">{% if category.trangThai %}Đang hoạt động{% else %}Ngừng hoạt động{% endif %}</span>
                                 </td>
-                                <td class="pr-10" onclick="event.stopPropagation()">
-                                    <div class="flex items-center justify-end gap-2">
+                                <td onclick="event.stopPropagation()">
+                                    <div class="flex items-center justify-center gap-2">
                                         <button onclick="openCatModal('view', '{{ category.maDanhMuc }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Xem chi tiết">
                                             <i class="fas fa-eye text-xs"></i>
                                         </button>
@@ -467,8 +480,24 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Sắp xếp lại thứ tự dòng: di chuyển con về ngay dưới cha của nó
+            const tbody = document.getElementById('catTableBody');
+            const parents = Array.from(tbody.querySelectorAll('.parent-row'));
+            const children = Array.from(tbody.querySelectorAll('.child-row'));
+
+            parents.forEach(pRow => {
+                const pid = pRow.getAttribute('data-id');
+                const pChildren = children.filter(cRow => cRow.getAttribute('data-parent') === pid);
+                
+                // Chèn các dòng con ngay sau dòng cha
+                let lastRow = pRow;
+                pChildren.forEach(cRow => {
+                    lastRow.after(cRow);
+                    lastRow = cRow;
+                });
+            });
+
             filterCategories();
-            // Xóa autocomplete cũ vì logic DOM đã thay đổi khi dùng reload
         });
     </script>
 </body>
