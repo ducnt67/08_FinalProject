@@ -76,6 +76,10 @@ def dathang(request):
             data = json.loads(request.body)
             maDatHang = data.get('maDatHang')
             order = get_object_or_404(DonDatHang, maDatHang=maDatHang)
+            
+            if order.trangThai in [1, 3]:
+                return JsonResponse({'status': 'error', 'message': 'Không thể xóa đơn đặt hàng đã hoàn thành hoặc đã hủy.'}, status=400)
+                
             order.delete()
             return JsonResponse({'status': 'success', 'message': 'Đã xóa đơn đặt hàng!'})
         except Exception as e:
