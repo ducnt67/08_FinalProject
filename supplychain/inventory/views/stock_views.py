@@ -493,7 +493,7 @@ def xuatkho(request):
             elif trangThai == -1:
                 msg = "Đã hủy phiếu xuất!"
             else:
-                msg = "Đã lưu nháp phiếu xuất!"
+                msg = "Đã lưu phiếu tạm xuất kho!"
 
             return JsonResponse({'status': 'success', 'message': msg, 'maPhieuXuat': export_record.maPhieuXuat})
         except Exception as e:
@@ -535,8 +535,8 @@ def xuatkho(request):
                 'qty': ct.soluongXuat
             })
 
-        status_map = {0: 'Nháp', 1: 'Hoàn thành', -1: 'Hủy'}
-        status_class_map = { 0: 'bg-gray-100 text-gray-700', 1: 'bg-green-100 text-green-700', -1: 'bg-red-100 text-red-700' }
+        status_map = {0: 'Phiếu tạm', 1: 'Hoàn thành', -1: 'Hủy'}
+        status_class_map = { 0: 'bg-yellow-100 text-yellow-700 border-yellow-200', 1: 'bg-green-100 text-green-700 border-green-200', -1: 'bg-red-100 text-red-700 border-red-200' }
 
         return JsonResponse({
             'maPhieuXuat': record.maPhieuXuat,

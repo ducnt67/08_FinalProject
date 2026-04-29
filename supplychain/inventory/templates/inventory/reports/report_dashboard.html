@@ -69,7 +69,7 @@
                             $
                         </div>
                         <div>
-                            <h3 class="text-[13px] font-bold text-[#64748b] mb-1">GIÁ TRỊ TỒN KHO</h3>
+                            <h3 class="text-[13px] font-bold text-[#64748b] mb-1">Giá trị tồn kho</h3>
                             <div class="text-[30px] font-extrabold text-[#111827] leading-none">
                                 {% if inventory_value %}{{ inventory_value|floatformat:1 }}{% else %}0{% endif %} <span class="text-[16px] font-medium text-gray-400">triệu</span>
                             </div>
@@ -85,7 +85,7 @@
                             <i class="fa-solid fa-triangle-exclamation"></i>
                         </div>
                         <div>
-                            <h3 class="text-[13px] font-bold text-[#64748b] mb-1">SẮP HẾT HÀNG</h3>
+                            <h3 class="text-[13px] font-bold text-[#64748b] mb-1">Sắp hết hàng</h3>
                             <div class="text-[30px] font-extrabold text-[#ef4444] leading-none">
                                 {% if low_stock_count %}{{ low_stock_count }}{% else %}0{% endif %} <span class="text-[16px] font-medium text-gray-400">SP</span>
                             </div>
@@ -101,7 +101,7 @@
                             <i class="fa-solid fa-right-left"></i>
                         </div>
                         <div>
-                            <h3 class="text-[13px] font-bold text-[#64748b] mb-1">GIAO DỊCH HÔM NAY</h3>
+                            <h3 class="text-[13px] font-bold text-[#64748b] mb-1">Giao dịch hôm nay</h3>
                             <div class="text-[30px] font-extrabold text-[#111827] leading-none">
                                 {% if today_transactions %}{{ today_transactions }}{% else %}0{% endif %} <span class="text-[16px] font-medium text-gray-400">GD</span>
                             </div>

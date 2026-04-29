@@ -51,65 +51,66 @@
 
 <main class="main-content">
     <div class="content-header">
-        <h1>QUẢN LÝ SẢN PHẨM</h1>
+        <h1>Quản lý sản phẩm</h1>
     </div>
 
     <div class="content-body" style="padding-top: 20px;">
 
-        <div class="content-block" style="margin-bottom: 15px; padding: 20px;">
-            <div class="row align-items-end">
-                <div class="col-md-3">
-                    <div class="frm-search-box"><i class="fas fa-search"></i><input type="text" id="searchInput"
-                                                                                    placeholder="Tên, mã SP..."
-                                                                                    oninput="filterProducts()"
-                                                                                    onkeyup="filterProducts()"></div>
-                </div>
-                <div class="col-md-3">
-                    <select id="categoryFilter" class="frm-select" onchange="filterProducts()">
-                        <option value="all">Tất cả danh mục</option>
-                        {% for category in categories %}
-                        <option value="{{ category.maDanhMuc }}">{{ category.tenDanhMuc }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <select id="statusFilter" class="frm-select" onchange="filterProducts()">
-                        <option value="all">Tất cả</option>
-                        <option value="1">Đang bán</option>
-                        <option value="0">Ngừng bán</option>
-                    </select>
-                </div>
-                <div class="col-md-3 d-flex justify-content-end gap-2">
-                    <button class="btn-search"
-                            style="padding: 8px 10px; flex: 1; font-size: 0.85rem; white-space: nowrap;"
-                            onclick="filterProducts()">Lọc dữ liệu
-                    </button>
-                    <button class="btn-cancel"
-                            style="padding: 8px 10px; flex: 1; font-size: 0.85rem; margin: 0; white-space: nowrap;"
-                            onclick="resetFilters()">Làm mới
-                    </button>
-                    <button class="btn-add" onclick="openProductModal('create')"
-                            style="padding: 8px 10px; flex: 1; font-size: 0.85rem; white-space: nowrap;">
-                        <i class="fa-solid fa-plus"></i> Thêm
+        <div class="mb-6 bg-gray-50 p-6 rounded-xl border border-gray-100">
+            <div class="flex flex-col md:flex-row gap-6 items-end justify-between">
+                <div class="flex flex-col md:flex-row gap-4 flex-1 items-end">
+                    <div class="w-auto">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Tìm kiếm sản phẩm</label>
+                        <div class="frm-search-box" style="width: 550px; max-width: none;">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchInput" placeholder="Tên, mã SP..." oninput="filterProducts()" onkeyup="filterProducts()" class="w-full">
+                        </div>
+                    </div>
+                    <div class="w-full md:w-56">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Danh mục</label>
+                        <select id="categoryFilter" class="frm-select w-full" onchange="filterProducts()">
+                            <option value="all">Tất cả danh mục</option>
+                            {% for category in categories %}
+                            <option value="{{ category.maDanhMuc }}">{{ category.tenDanhMuc }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="w-full md:w-48">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Trạng thái</label>
+                        <select id="statusFilter" class="frm-select w-full" onchange="filterProducts()">
+                            <option value="all">Tất cả</option>
+                            <option value="1">Đang bán</option>
+                            <option value="0">Ngừng bán</option>
+                        </select>
+                    </div>
+                    <button class="bg-white hover:bg-gray-50 text-gray-700 h-[42px] px-4 whitespace-nowrap rounded-lg text-[13px] font-semibold transition-colors flex items-center gap-2 shadow-sm border border-gray-200" onclick="resetFilters()">
+                        <i class="fa-solid fa-rotate"></i> Làm mới
                     </button>
                 </div>
+                <button class="bg-primary hover:bg-red-700 text-white h-[42px] px-6 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shadow-md whitespace-nowrap" onclick="openProductModal('create')">
+                    <i class="fa-solid fa-plus text-xs"></i> Thêm sản phẩm
+                </button>
             </div>
         </div>
 
         <div class="table-block" style="padding: 20px;">
+            <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2 shrink-0" style="font-family: 'Plus Jakarta Sans', sans-serif;">
+                <i class="fa-solid fa-list-ul text-primary"></i>
+                Danh sách sản phẩm
+            </h2>
             <div class="table-wrapper data-table-wrapper">
                 <table class="table-custom" id="productTable">
                     <thead>
                     <tr>
-                        <th class="w-stt">STT</th>
-                        <th class="w-code text-center">Mã SP</th>
-                        <th>Tên sản phẩm</th>
-                        <th>Danh mục</th>
-                        <th class="w-price">Giá bán</th>
-                        <th class="w-qty">Hạn mức tồn</th>
-                        <th class="w-unit">ĐVT</th>
-                        <th class="w-status">Trạng thái</th>
-                        <th class="w-action pr-10">Thao tác</th>
+                        <th style="width: 5%; text-align: center !important;">STT</th>
+                        <th style="width: 10%; text-align: center !important;">Mã SP</th>
+                        <th style="width: 20%; text-align: left !important;">Tên sản phẩm</th>
+                        <th style="width: 12%; text-align: left !important;">Danh mục</th>
+                        <th class="w-price" style="width: 15%;">Giá bán</th>
+                        <th style="width: 13%; text-align: center !important;">Hạn mức tồn</th>
+                        <th style="width: 7%; text-align: center !important;">ĐVT</th>
+                        <th style="width: 10%; text-align: center !important;">Trạng thái</th>
+                        <th style="width: 8%; text-align: center !important;">Thao tác</th>
                     </tr>
                     </thead>
                     <tbody id="tableBody">
@@ -120,11 +121,13 @@
                     <tr class="product-row" data-category="{{ product.danhMuc.maDanhMuc }}"
                         data-status="{{ product.trangThai }}" data-masp="{{ product.maSP }}" style="cursor: pointer;">
                         <td class="col-index text-center font-bold">{{ forloop.counter }}</td>
-                        <td class="col-index sp-code">{{ product.maSP }}</td>
-                        <td class="w-supplier"><span class="product-name">{{ product.tenSP }}</span><span class="product-meta" title="{{ product.nhaCungCap.tenNCC }}">{{ product.nhaCungCap.tenNCC }}</span>
+                        <td class="col-index sp-code text-center">{{ product.maSP }}</td>
+                        <td style="text-align: left !important; white-space: normal;">
+                            <span class="product-name">{{ product.tenSP }}</span>
+                            <span class="product-meta" title="{{ product.nhaCungCap.tenNCC }}">{{ product.nhaCungCap.tenNCC }}</span>
                         </td>
-                        <td>{{ product.danhMuc.tenDanhMuc }}</td>
-                        <td class="price-text">{{ product.giaBan|floatformat:0|intcomma }} ₫</td>
+                        <td style="text-align: left !important;">{{ product.danhMuc.tenDanhMuc }}</td>
+                        <td class="price-text w-price">{{ product.giaBan|floatformat:0|intcomma }} ₫</td>
                         <td class="{% if product.tonkho.soluongTon > 50 %}stock-high{% elif product.tonkho.soluongTon == 0 %}stock-low{% else %}stock-med{% endif %} text-center">
                             {{ product.tonKhoToiThieu|default:0 }}
                         </td>
@@ -277,7 +280,7 @@
                         <div id="bookInfoSection"
                              class="border border-dashed border-orange-300 bg-orange-50/30 rounded-lg p-4 mt-2 hidden">
                             <h6 class="text-orange-500 font-bold text-[12px] uppercase mb-3 flex items-center gap-2">
-                                <i class="fa-solid fa-book"></i> THÔNG TIN XUẤT BẢN (SÁCH)
+                                <i class="fa-solid fa-book"></i> Thông tin xuất bản (Sách)
                             </h6>
                             <div class="flex gap-4 mb-3">
                                 <div class="flex-1">

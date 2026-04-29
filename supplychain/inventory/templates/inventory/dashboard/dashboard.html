@@ -38,7 +38,7 @@
 
   <main class="main-content">
     <div class="content-header">
-        <h1>TỔNG QUAN HOẠT ĐỘNG</h1>
+        <h1>Tổng quan hoạt động</h1>
     </div>
 
     <div class="content-body">
@@ -217,18 +217,18 @@
             tbody.innerHTML = '';
 
             data.items.forEach(item => {
-                let row = \`<tr class="border-b border-gray-100"><td class="py-4 px-4 font-medium text-gray-700">\${item.tenSP}</td>\`;
+                let row = `<tr class="border-b border-gray-100"><td class="py-4 px-4 font-medium text-gray-700">${item.tenSP}</td>`;
                 if (type === 'kiemke') {
-                    row += \`<td class="py-4 px-4 text-center text-gray-600">\${item.slTonKho}</td>\`;
-                    row += \`<td class="py-4 px-4 text-center font-bold text-gray-900">\${item.slThucTe}</td>\`;
+                    row += `<td class="py-4 px-4 text-center text-gray-600">${item.slTonKho}</td>`;
+                    row += `<td class="py-4 px-4 text-center font-bold text-gray-900">${item.slThucTe}</td>`;
                 } else {
-                    row += \`<td class="py-4 px-4 text-center font-bold text-gray-800">\${item.qty}</td>\`;
+                    row += `<td class="py-4 px-4 text-center font-bold text-gray-800">${item.qty}</td>`;
                 }
 
                 if (type === 'nhapkho') {
                     const price = parseFloat(item.price).toLocaleString();
                     const amount = parseFloat(item.amount).toLocaleString();
-                    row += \`<td class="py-4 px-4 text-right text-gray-600">\${price}Ä'</td><td class="py-4 px-4 text-right font-bold text-gray-900">\${amount}Ä'</td>\`;
+                    row += `<td class="py-4 px-4 text-right text-gray-600">${price}đ</td><td class="py-4 px-4 text-right font-bold text-gray-900">${amount}đ</td>`;
                 }
                 row += '</tr>';
                 tbody.insertAdjacentHTML('beforeend', row);
@@ -243,6 +243,8 @@
     function closeQuickModal() {
         document.getElementById('quickDetailModal').classList.remove('active');
     }
+
+
   </script>
 
   <script src="{% static 'js/0.0.app.js' %}"></script>

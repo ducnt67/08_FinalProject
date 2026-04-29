@@ -29,15 +29,6 @@
         .readonly-input { background: #e5e7eb; color: #374151; border-color: #d1d5db; opacity: 0.9; }
         .action-icons i:hover { transform: translateY(-2px); background: #e2e8f0; color: var(--primary-main); }
         
-        .modal-overlay { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.45); display: none; align-items: center; justify-content: center; padding: 24px; z-index: 999; }
-        .modal-overlay.active { display: flex; }
-
-        .detail-modal { width: min(1000px, 100%); max-height: 90vh; overflow-y: auto; background: #fff; border-radius: 16px; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2); }
-        .detail-modal-header { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: #fff; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; }
-        .detail-modal-close { background: none; border: none; color: white; font-size: 24px; cursor: pointer; transition: 0.2s; }
-        .detail-modal-close:hover { transform: scale(1.1); }
-        .detail-modal-body { padding: 24px; }
-        
         .view-section { display: none; }
         .view-section.active { display: block; }
 
@@ -50,13 +41,6 @@
             z-index: 1000;
             margin-top: 4px;
         }
-
-        /* Redesign classes */
-        .detail-field-box { background: #f8fafc; padding: 10px 14px; border-radius: 8px; border: 1px solid #f1f5f9; }
-        .detail-field-label { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; display: block; }
-        .detail-field-value { font-size: 14px; font-weight: 700; color: #1e293b; min-height: 1.25rem; }
-        .note-box { background: #fffbeb; border: 1px solid #fef3c7; padding: 12px 16px; border-radius: 8px; color: #92400e; font-style: italic; font-size: 13px; }
-        .modal-footer { padding: 20px 24px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: #fff; }
         
     </style>
 </head>
@@ -68,34 +52,53 @@
 
   <main class="main-content">
         <div class="content-header">
-            <h1>QUẢN LÝ NHẬP KHO (PO)</h1>
+            <h1>Quản lý nhập kho (PO)</h1>
         </div>
 
         <div class="content-body p-8">
             <!-- View 1: Nhập kho List -->
             <div id="importListView" class="view-section active">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                    <div class="flex flex-nowrap gap-3 items-center justify-between mb-6">
-                        <div class="frm-search-box"><i class="fas fa-search"></i><input type="text" id="importSearchInput" placeholder="Tìm mã phiếu, NCC, người nhập..."></div>
-                        
-                        <div class="flex gap-2">
-                            <button onclick="switchView('returnListView')" class="bg-orange-100 hover:bg-orange-200 text-orange-700 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2">
-                                <i class="fa-solid fa-rotate-left"></i> Trả hàng
-                            </button>
-                            <div class="relative" id="createImportDropdownWrapper">
-                                <button onclick="toggleCreateImportDropdown()" class="bg-primary hover:bg-red-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2">
-                                    <i class="fa-solid fa-plus"></i> Tạo phiếu nhập <i class="fa-solid fa-chevron-down ml-1 text-[10px]"></i>
+                    <div class="mb-6 bg-gray-50 p-6 rounded-xl border border-gray-100">
+                        <div class="flex flex-col md:flex-row gap-6 items-end justify-between">
+                            <div class="flex flex-col md:flex-row gap-4 flex-1 items-end">
+                                <div class="w-auto">
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">Tìm kiếm phiếu nhập</label>
+                                    <div class="frm-search-box" style="width: 550px; max-width: none;">
+                                        <i class="fas fa-search"></i>
+                                        <input type="text" id="importSearchInput" placeholder="Tìm mã phiếu, NCC, người nhập..." onkeyup="filterInbound()" class="w-full">
+                                    </div>
+                                </div>
+                                <div class="w-full md:w-48">
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">Trạng thái</label>
+                                    <select id="importStatusFilter" class="frm-select w-full" onchange="filterInbound()">
+                                        <option value="all">Tất cả trạng thái</option>
+                                        <option value="1">Hoàn thành</option>
+                                        <option value="0">Phiếu tạm</option>
+                                        <option value="-1">Hủy</option>
+                                    </select>
+                                </div>
+                                <button onclick="resetInboundFilters()" class="bg-white hover:bg-gray-50 text-gray-700 h-[42px] px-4 whitespace-nowrap rounded-lg text-[13px] font-semibold transition-colors flex items-center gap-2 shadow-sm border border-gray-200">
+                                    <i class="fa-solid fa-rotate"></i> Làm mới
                                 </button>
-                                
-                                <div id="createImportDropdown" class="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-gray-100 py-2 hidden z-50">
-                                    <button onclick="openCreateImport('PO')" class="w-full text-left px-5 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50">
-                                        <div class="font-bold text-gray-800 text-sm mb-1">Từ đơn đặt hàng (PO)</div>
-                                        <div class="text-xs text-gray-500 leading-relaxed">Dành cho hàng về theo kế hoạch, đối soát theo số lượng và giá đã đặt.</div>
+                            </div>
+                            
+                            <div class="flex gap-2">
+                                <button onclick="switchView('returnListView')" class="bg-orange-100 hover:bg-orange-200 text-orange-700 h-[42px] px-4 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2">
+                                    <i class="fa-solid fa-rotate-left"></i> Trả hàng
+                                </button>
+                                <div class="relative" id="createImportDropdownWrapper">
+                                    <button onclick="toggleCreateImportDropdown()" class="bg-primary hover:bg-red-700 text-white h-[42px] px-4 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 shadow-md">
+                                        <i class="fa-solid fa-plus"></i> Tạo phiếu nhập <i class="fa-solid fa-chevron-down ml-1 text-[10px]"></i>
                                     </button>
-                                    <button onclick="openCreateImport('DIRECT')" class="w-full text-left px-5 py-3 hover:bg-gray-50 transition-colors">
-                                        <div class="font-bold text-gray-800 text-sm mb-1">Nhập trực tiếp</div>
-                                        <div class="text-xs text-gray-500 leading-relaxed">Dành cho hàng mua lẻ, hàng tặng hoặc ký gửi không qua PO.</div>
-                                    </button>
+                                    <div id="createImportDropdown" class="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 hidden z-50">
+                                        <button onclick="openCreateImport('PO')" class="w-full text-left px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                                            <i class="fa-solid fa-file-invoice text-blue-500"></i> Từ đơn đặt hàng (PO)
+                                        </button>
+                                        <button onclick="openCreateImport('DIRECT')" class="w-full text-left px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                                            <i class="fa-solid fa-plus-circle text-green-500"></i> Nhập trực tiếp
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -116,7 +119,7 @@
                             </thead>
                             <tbody id="importTableBody">
                                 {% for record in inbound_records %}
-                                <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+                                <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors" data-status="{{ record.trangthaiNhap }}">
                                     <td class="w-stt font-bold">{{ forloop.counter }}</td>
                                     <td class="w-code text-center font-semibold text-gray-800">{{ record.maPhieuNhap }}</td>
                                     <td class="w-supplier text-gray-600" title="{{ record.nhaCungCap.tenNCC }}">{{ record.nhaCungCap.tenNCC }}</td>
@@ -220,15 +223,15 @@
 
                         <div class="table-wrapper data-table-wrapper mb-6 border border-gray-100 rounded-lg">
                             <table class="w-full text-left">
-                                <thead class="bg-gray-50 border-y border-gray-100">
+                                <thead class="bg-gray-50 border-y border-gray-100" style="background-color: #f9fafb !important;">
                                     <tr>
-                                        <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-20">STT</th>
-                                        <th class="py-4 px-4 font-bold text-red-600 text-sm uppercase">SÁCH</th>
-                                        <th class="py-4 px-4 font-bold text-red-600 text-sm text-center uppercase">ĐƠN GIÁ NHẬP</th>
-                                        <th id="create_th_po_qty" class="py-4 px-4 font-bold text-red-600 text-sm text-center uppercase">SL ĐẶT</th>
-                                        <th id="create_th_real_qty" class="py-4 px-4 font-bold text-red-600 text-sm text-center uppercase">SL THỰC NHẬN</th>
-                                        <th class="py-4 px-4 font-bold text-red-600 text-sm text-center uppercase">THÀNH TIỀN</th>
-                                        <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-24 uppercase">THAO TÁC</th>
+                                        <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-20 uppercase" style="background: transparent !important; color: #dc2626 !important;">STT</th>
+                                        <th class="py-4 px-4 font-bold text-red-600 text-sm text-left uppercase" style="background: transparent !important; color: #dc2626 !important;">SÁCH</th>
+                                        <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">ĐƠN GIÁ NHẬP</th>
+                                        <th id="create_th_po_qty" class="py-4 px-4 font-bold text-red-600 text-sm text-center w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">SL ĐẶT</th>
+                                        <th id="create_th_real_qty" class="py-4 px-4 font-bold text-red-600 text-sm text-center w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">SL THỰC NHẬN</th>
+                                        <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">THÀNH TIỀN</th>
+                                        <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-24 uppercase" style="background: transparent !important; color: #dc2626 !important;">THAO TÁC</th>
                                     </tr>
                                 </thead>
                                 <tbody id="create_goods_body" class="divide-y divide-gray-100"></tbody>
@@ -268,16 +271,33 @@
                 </div>
 
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                    <div class="flex flex-col md:flex-row gap-4 items-center justify-between mb-6">
-                        <div class="flex flex-1 gap-3 w-full">
-                            <div class="frm-search-box flex-1"><i class="fas fa-search"></i><input type="text" id="returnSearchInput" placeholder="Tìm theo mã phiếu, NCC..."></div>
-                            <div class="frm-date-box"><input type="date" id="returnDateFilter"></div>
-                            <button class="bg-white hover:bg-red-50 text-primary px-4 py-2 rounded-lg text-sm font-semibold border border-primary transition-colors">Lọc</button>
-                            <button class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold border border-gray-200 transition-colors">Làm mới</button>
+                    <div class="mb-6 bg-gray-50 p-6 rounded-xl border border-gray-100">
+                        <div class="flex flex-col md:flex-row gap-6 items-end justify-between">
+                            <div class="flex flex-col md:flex-row gap-4 flex-1 items-end">
+                                <div class="w-auto">
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">Tìm kiếm phiếu trả</label>
+                                    <div class="frm-search-box" style="width: 550px; max-width: none;">
+                                        <i class="fas fa-search"></i>
+                                        <input type="text" id="returnSearchInput" placeholder="Tìm theo mã phiếu, NCC..." class="w-full">
+                                    </div>
+                                </div>
+                                <div class="w-full md:w-48">
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">Ngày trả</label>
+                                    <div class="frm-date-box w-full">
+                                        <input type="date" id="returnDateFilter" class="w-full">
+                                    </div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="bg-white hover:bg-red-50 text-primary h-[42px] px-4 rounded-lg text-sm font-semibold border border-primary transition-colors shadow-sm">Lọc</button>
+                                    <button onclick="location.reload()" class="bg-white hover:bg-gray-50 text-gray-700 h-[42px] px-4 whitespace-nowrap rounded-lg text-[13px] font-semibold transition-colors flex items-center gap-2 shadow-sm border border-gray-200">
+                                        <i class="fa-solid fa-rotate"></i> Làm mới
+                                    </button>
+                                </div>
+                            </div>
+                            <button onclick="openCreateReturn()" class="bg-primary hover:bg-red-700 text-white h-[42px] px-6 rounded-lg text-sm font-bold shadow-md transition-all whitespace-nowrap">
+                                <i class="fa-solid fa-plus mr-2"></i>Tạo phiếu trả
+                            </button>
                         </div>
-                        <button onclick="openCreateReturn()" class="bg-primary hover:bg-red-700 text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-all whitespace-nowrap">
-                            <i class="fa-solid fa-plus mr-2"></i>TẠO PHIẾU TRẢ
-                        </button>
                     </div>
 
                     <div class="table-wrapper data-table-wrapper">
@@ -287,7 +307,7 @@
                                     <th class="w-stt">STT</th>
                                     <th class="w-code">Mã Phiếu</th>
                                     <th class="w-code">Mã Nhập</th>
-                                    <th>Nhà Cung Cấp</th>
+                                    <th style="width: 25%; text-align: center !important;">Nhà Cung Cấp</th>
                                     <th class="w-date">Ngày Trả</th>
                                     <th class="w-price">Tổng Tiền</th>
                                     <th class="w-status">Trạng Thái</th>
@@ -297,10 +317,10 @@
                             <tbody>
                                 {% for ret in return_records %}
                                 <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
-                                    <td class="w-stt font-bold">{{ forloop.counter }}</td>
+                                    <td class="w-stt font-bold text-center !important">{{ forloop.counter }}</td>
                                     <td class="w-code text-center font-semibold text-gray-800">{{ ret.maPhieuTra }}</td>
                                     <td class="w-code text-center text-blue-600 font-medium">{{ ret.phieuNhap.maPhieuNhap }}</td>
-                                    <td class="w-supplier text-gray-600" title="{{ ret.nhaCungCap.tenNCC }}">{{ ret.nhaCungCap.tenNCC }}</td>
+                                    <td class="text-gray-600 truncate" style="max-width: 250px; text-align: center !important;" title="{{ ret.nhaCungCap.tenNCC }}">{{ ret.nhaCungCap.tenNCC }}</td>
                                     <td class="w-date text-center text-gray-600">{{ ret.ngayTra|date:"d/m/Y H:i" }}</td>
                                     <td class="w-price font-bold text-gray-900">{{ ret.tongtienTra|floatformat:0|intcomma }} ₫</td>
                                     <td class="w-status text-center">
@@ -378,15 +398,15 @@
                             <h3 class="font-bold text-gray-800 mb-4">Chi tiết hàng trả</h3>
                             <div class="table-wrapper data-table-wrapper mb-6 border border-gray-100 rounded-lg">
                                 <table class="w-full text-left">
-                                    <thead class="bg-gray-50 border-y border-gray-100">
+                                    <thead class="bg-gray-50 border-y border-gray-100" style="background-color: #f9fafb !important;">
                                         <tr>
-                                            <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-20">STT</th>
-                                            <th class="py-4 px-4 font-bold text-red-600 text-sm uppercase">SÁCH</th>
-                                            <th class="py-4 px-4 font-bold text-red-600 text-sm text-center uppercase">ĐƠN GIÁ NHẬP</th>
-                                            <th class="py-4 px-4 font-bold text-red-600 text-sm text-center uppercase">ĐÃ NHẬP</th>
-                                            <th class="py-4 px-4 font-bold text-red-600 text-sm text-center uppercase">SL TRẢ</th>
-                                            <th class="py-4 px-4 font-bold text-red-600 text-sm text-center uppercase w-40">LÝ DO</th>
-                                            <th class="py-4 px-4 font-bold text-red-600 text-sm text-center uppercase">THÀNH TIỀN</th>
+                                            <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-20 uppercase" style="background: transparent !important; color: #dc2626 !important;">STT</th>
+                                            <th class="py-4 px-4 font-bold text-red-600 text-sm text-left uppercase" style="background: transparent !important; color: #dc2626 !important;">SÁCH</th>
+                                            <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">ĐƠN GIÁ</th>
+                                            <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">ĐÃ NHẬP</th>
+                                            <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">SL TRẢ</th>
+                                            <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-48 uppercase" style="background: transparent !important; color: #dc2626 !important;">LÝ DO</th>
+                                            <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">THÀNH TIỀN</th>
                                         </tr>
                                     </thead>
                                     <tbody id="return_goods_body" class="divide-y divide-gray-100"></tbody>
@@ -480,6 +500,7 @@
 
             if (type === 'PO') {
                 document.getElementById('createImportTitle').textContent = 'Tạo phiếu nhập từ đơn hàng';
+                document.getElementById('createImportSubtitle').textContent = 'Đối soát hàng về theo PO đã đặt';
                 createRow2.className = 'grid grid-cols-1 md:grid-cols-3 gap-6';
                 poContainer.classList.remove('hidden');
                 thPoQty.classList.remove('hidden');
@@ -489,6 +510,7 @@
                 document.getElementById('create_mpo_search').value = '';
             } else {
                 document.getElementById('createImportTitle').textContent = 'Tạo phiếu nhập trực tiếp';
+                document.getElementById('createImportSubtitle').textContent = 'Nhập hàng không qua đơn đặt hàng (nhập lẻ, nhập bổ sung)';
                 createRow2.className = 'grid grid-cols-1 md:grid-cols-2 gap-6';
                 poContainer.classList.add('hidden');
                 thPoQty.classList.add('hidden');
@@ -504,6 +526,9 @@
             fetch(`?maPhieuNhap=${code}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(res => res.json())
             .then(data => {
+                document.getElementById('createImportTitle').textContent = 'Chỉnh sửa phiếu nhập kho ' + code;
+                document.getElementById('createImportSubtitle').textContent = 'Cập nhật thông tin phiếu nhập kho đã lập';
+                
                 const type = data.donDatHang ? 'PO' : 'DIRECT';
                 document.getElementById('create_maphieu').value = data.maPhieuNhap;
                 document.getElementById('create_maphieu').readOnly = true;
@@ -546,13 +571,16 @@
             tr.className = "hover:bg-gray-50 border-b border-gray-100";
             tr.dataset.maSP = code;
             tr.innerHTML = `
-                <td class="py-4 px-4 text-center text-gray-600">${tbody.rows.length + 1}</td>
-                <td class="py-4 px-4"><div class="font-semibold text-gray-800 text-sm">${code}</div><div class="text-xs text-gray-500">${name}</div></td>
-                <td class="py-4 px-4 text-center"><input type="number" class="item-price w-full border rounded px-2 py-1 text-center" value="${price}" oninput="updateCreateTotals()"></td>
-                ${type === 'PO' ? `<td class="py-4 px-4 text-center font-semibold item-ordered-qty">${orderedQty}</td>` : ''}
-                <td class="py-4 px-4 text-center"><input type="number" class="item-qty w-full border rounded px-2 py-1 text-center" value="${realQty}" min="0" oninput="updateCreateTotals()"></td>
-                <td class="py-4 px-4 text-center font-bold text-primary item-amount">0</td>
-                <td class="py-4 px-4 text-center"><button class="text-red-500 hover:text-red-700" onclick="this.closest('tr').remove(); updateCreateTotals()"><i class="fa-solid fa-trash"></i></button></td>
+                <td class="py-4 px-4 text-center text-gray-600 font-bold">${tbody.rows.length + 1}</td>
+                <td class="py-4 px-4 text-left">
+                    <div class="font-bold text-gray-800 text-sm">${name}</div>
+                    <div class="text-[11px] text-gray-500 font-medium">${code}</div>
+                </td>
+                <td class="py-4 px-4 text-center"><input type="number" class="item-price w-full border rounded px-2 py-1 text-center font-bold" value="${price}" oninput="updateCreateTotals()"></td>
+                ${type === 'PO' ? `<td class="py-4 px-4 text-center font-bold text-gray-700 item-ordered-qty">${orderedQty}</td>` : ''}
+                <td class="py-4 px-4 text-center"><input type="number" class="item-qty w-full border rounded px-2 py-1 text-center font-bold" value="${realQty}" min="0" oninput="updateCreateTotals()"></td>
+                <td class="py-4 px-4 text-center font-black text-primary item-amount">0</td>
+                <td class="py-4 px-4 text-center"><button class="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-all" onclick="this.closest('tr').remove(); updateCreateTotals()"><i class="fa-solid fa-trash-can"></i></button></td>
             `;
             tbody.appendChild(tr);
             updateCreateTotals();
@@ -612,12 +640,10 @@
             .then(res => res.json())
             .then(data => {
                 const itemsHtml = data.items.map((item, idx) => `
-                    <tr class="border-b border-gray-50 hover:bg-gray-50/50">
+                    <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors text-sm">
                         <td class="p-4 text-center text-gray-400 font-bold">${idx + 1}</td>
-                        <td class="p-4">
-                            <div class="font-bold text-gray-800">${item.maSP}</div>
-                            <div class="text-xs text-gray-500">${item.tenSP}</div>
-                        </td>
+                        <td class="p-4 font-bold text-gray-800">${item.maSP}</td>
+                        <td class="p-4 text-gray-700">${item.tenSP}</td>
                         <td class="p-4 text-center font-bold text-gray-700">${item.donViTinh || 'Cuốn'}</td>
                         <td class="p-4 text-center font-bold text-gray-700">${item.qty}</td>
                         <td class="p-4 text-right text-gray-500">${parseFloat(item.price).toLocaleString('vi-VN')}</td>
@@ -673,7 +699,7 @@
                             </div>
                             <div class="table-wrapper data-table-wrapper border border-gray-100 rounded-xl overflow-hidden">
                                 <table class="w-full text-sm">
-                                    <thead>
+                                    <thead class="bg-gray-50 text-red-600 font-bold text-[10px] uppercase tracking-widest">
                                         <tr>
                                             <th class="p-4 text-center">STT</th>
                                             <th class="p-4 text-left">Mã SP</th>
@@ -742,18 +768,21 @@
                     tr.className = "hover:bg-gray-50 border-b border-gray-100";
                     tr.dataset.maSP = item.maSP;
                     tr.innerHTML = `
-                        <td class="py-4 px-4 text-center text-gray-600">${idx+1}</td>
-                        <td class="py-4 px-4"><div class="font-semibold text-gray-800 text-sm">${item.maSP}</div><div class="text-xs text-gray-500">${item.tenSP}</div></td>
-                        <td class="py-4 px-4 text-center font-bold item-price">${parseFloat(item.price).toLocaleString('vi-VN')}</td>
-                        <td class="py-4 px-4 text-center font-semibold">${item.qty}</td>
+                        <td class="py-4 px-4 text-center text-gray-600 font-bold">${idx+1}</td>
+                        <td class="py-4 px-4 text-left">
+                            <div class="font-bold text-gray-800 text-sm">${item.tenSP}</div>
+                            <div class="text-[11px] text-gray-500 font-medium">${item.maSP}</div>
+                        </td>
+                        <td class="py-4 px-4 text-center font-bold text-gray-700 item-price">${parseFloat(item.price).toLocaleString('vi-VN')}</td>
+                        <td class="py-4 px-4 text-center font-bold text-gray-500">${item.qty}</td>
                         <td class="py-4 px-4 text-center">
                             <div class="relative">
-                                <input type="number" class="item-return-qty w-full border rounded px-2 py-1 text-center font-bold" value="0" min="0" max="${item.qty}" data-max="${item.qty}" oninput="validateReturnQty(this); updateReturnTotals()">
-                                <span class="item-qty-error text-red-500 text-xs mt-1 hidden block text-left">Vượt số lượng đã nhập (tối đa: ${item.qty})</span>
+                                <input type="number" class="item-return-qty w-full border border-gray-200 rounded-lg px-2 py-1.5 text-center font-bold focus:ring-1 focus:ring-primary outline-none" value="0" min="0" max="${item.qty}" data-max="${item.qty}" oninput="validateReturnQty(this); updateReturnTotals()">
+                                <span class="item-qty-error text-red-500 text-[10px] mt-1 hidden block text-left">Vượt số lượng (tối đa: ${item.qty})</span>
                             </div>
                         </td>
-                        <td class="py-4 px-4"><select class="item-reason w-full border rounded px-2 py-1"><option value="Hàng lỗi">Hàng lỗi</option><option value="Sai mẫu mã">Sai mẫu mã</option><option value="Hết hạn">Hết hạn</option></select></td>
-                        <td class="py-4 px-4 text-center font-bold text-primary item-return-amount">0 ₫</td>
+                        <td class="py-4 px-4"><select class="item-reason w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-primary"><option value="Hàng lỗi">Hàng lỗi</option><option value="Sai mẫu mã">Sai mẫu mã</option><option value="Hết hạn">Hết hạn</option></select></td>
+                        <td class="py-4 px-4 text-center font-black text-primary item-return-amount">0 ₫</td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -889,12 +918,10 @@
             .then(res => res.json())
             .then(data => {
                 const itemsHtml = data.items.map((item, idx) => `
-                    <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                    <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors text-sm">
                         <td class="p-4 text-center text-gray-400 font-bold">${idx + 1}</td>
-                        <td class="p-4">
-                            <div class="font-bold text-gray-800">${item.maSP}</div>
-                            <div class="text-xs text-gray-500">${item.tenSP}</div>
-                        </td>
+                        <td class="p-4 font-bold text-gray-800">${item.maSP}</td>
+                        <td class="p-4 text-gray-700">${item.tenSP}</td>
                         <td class="p-4 text-center font-bold text-gray-700">${item.donViTinh || 'Cuốn'}</td>
                         <td class="p-4 text-center font-bold text-gray-700">${item.qty}</td>
                         <td class="p-4 text-right text-gray-500">${parseFloat(item.price).toLocaleString('vi-VN')}</td>
@@ -945,9 +972,9 @@
                             </div>
                             <div class="table-wrapper data-table-wrapper border border-gray-100 rounded-xl overflow-hidden shadow-sm">
                                 <table class="w-full text-sm">
-                                    <thead>
-                                        <tr>
-                                            <th class="p-4 text-center">#</th>
+                                    <thead class="bg-gray-50">
+                                        <tr class="text-red-600 font-bold">
+                                            <th class="p-4 text-center">STT</th>
                                             <th class="p-4 text-left">Sản phẩm</th>
                                             <th class="p-4 text-center">ĐVT</th>
                                             <th class="p-4 text-center">Số lượng</th>
@@ -971,11 +998,11 @@
                             </div>
                             <div class="flex gap-3">
                                 <button onclick="window.print()" class="px-5 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg font-bold transition-all flex items-center gap-2">
-                                    <i class="fa-solid fa-print"></i> IN PHIẾU
+                                    <i class="fa-solid fa-print"></i> In phiếu
                                 </button>
                                 ${data.trangThai === 0 ? `
                                 <button onclick="closeDetailModal('returnDetailModal'); openEditReturn('${data.maPhieuTra}')" class="px-5 py-2.5 bg-primary text-white rounded-lg font-bold hover:bg-red-700 shadow-sm transition-all flex items-center gap-2">
-                                    <i class="fa-solid fa-edit"></i> CHỈNH SỬA
+                                    <i class="fa-solid fa-edit"></i> Sửa phiếu
                                 </button>` : ''}
                             </div>
                         </div>
@@ -985,12 +1012,31 @@
             });
         }
 
+        function filterInbound() {
+            const search = document.getElementById('importSearchInput').value.toLowerCase();
+            const status = document.getElementById('importStatusFilter').value;
+            document.querySelectorAll('#importTableBody tr').forEach(row => {
+                if (row.cells.length < 2) return;
+                const text = row.innerText.toLowerCase();
+                const rowStatus = row.dataset.status;
+                const matchesSearch = text.includes(search);
+                const matchesStatus = status === 'all' || rowStatus === status;
+                row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
+            });
+        }
+
+        function resetInboundFilters() {
+            document.getElementById('importSearchInput').value = '';
+            document.getElementById('importStatusFilter').value = 'all';
+            filterInbound();
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             setupSearchAutocomplete('create_mpo_search', (kw) => poCatalog.filter(po => po.code.toLowerCase().includes(kw.toLowerCase())), (item) => `<div class="suggestion-title">${item.code}</div><div class="suggestion-meta">${item.supplier}</div>`, (item, input) => { input.value = item.code; document.getElementById('create_nhacungcap').value = item.supplier; const tbody = document.getElementById('create_goods_body'); tbody.innerHTML = ''; item.items.forEach(prod => addProdToTable(prod.code, prod.name, prod.price, prod.orderedQty, prod.orderedQty, 'PO')); });
             setupSearchAutocomplete('create_nhacungcap', (kw) => supplierCatalog.filter(s => s.name.toLowerCase().includes(kw.toLowerCase())), (item) => `<div class="suggestion-title">${item.name}</div>`, (item, input) => { input.value = item.name; });
             setupSearchAutocomplete('create_goods_search', (kw) => goodsCatalog.filter(p => p.name.toLowerCase().includes(kw.toLowerCase()) || p.code.toLowerCase().includes(kw.toLowerCase())), (item) => `<div class="suggestion-title">${item.code} - ${item.name}</div><div class="suggestion-meta">${item.price.toLocaleString('vi-VN')} ₫</div>`, (item, input) => { addProdToTable(item.code, item.name, item.price); input.value = ''; });
-            const allImports = [ {% for r in inbound_records %}{% if r.trangthaiNhap == 1 %}{ "code": "{{ r.maPhieuNhap }}", "supplier": "{{ r.nhaCungCap.tenNCC }}" },{% endif %}{% endfor %} ];
-            setupSearchAutocomplete('return_import_search', (kw) => allImports.filter(r => r.code.toLowerCase().includes(kw.toLowerCase())), (item) => `<div class="suggestion-title">${item.code}</div><div class="suggestion-meta">${item.supplier}</div>`, (item, input) => { input.value = item.code; loadImportForReturn(item.code); });
+            const allImports = [ {% for r in inbound_records %}{% if r.trangthaiNhap == 1 %}{ "code": "{{ r.maPhieuNhap }}", "supplier": "{{ r.nhaCungCap.tenNCC }}", "status": "Hoàn thành" },{% endif %}{% endfor %} ];
+            setupSearchAutocomplete('return_import_search', (kw) => allImports.filter(r => r.code.toLowerCase().includes(kw.toLowerCase())), (item) => `<div class="suggestion-title flex justify-between items-center"><span>${item.code}</span><span class="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] rounded-full font-bold">Hoàn thành</span></div><div class="suggestion-meta">${item.supplier}</div>`, (item, input) => { input.value = item.code; loadImportForReturn(item.code); });
             
             // Xử lý chuyển view dựa trên tham số URL
             const urlParams = new URLSearchParams(window.location.search);
