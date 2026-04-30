@@ -509,7 +509,7 @@
         };
 
         // 4. Gửi yêu cầu
-        fetch("{% url 'inventory:xuatkho' %}", {
+        fetch("{% url 'khohang:xuatkho' %}", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -533,7 +533,7 @@
     }
 
     function viewExportDetail(maPhieu) {
-        fetch(`{% url 'inventory:xuatkho' %}?maPhieuXuat=${maPhieu}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        fetch(`{% url 'khohang:xuatkho' %}?maPhieuXuat=${maPhieu}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(res => res.json())
         .then(data => {
             const itemsHtml = data.items.map((item, idx) => {
@@ -636,7 +636,7 @@
     }
 
     function editExport(maPhieu) {
-        fetch(`{% url 'inventory:xuatkho' %}?maPhieuXuat=${maPhieu}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        fetch(`{% url 'khohang:xuatkho' %}?maPhieuXuat=${maPhieu}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(res => res.json())
         .then(data => {
             document.getElementById('createViewTitle').innerText = 'CHỈNH SỬA PHIẾU XUẤT: ' + maPhieu;
@@ -664,7 +664,7 @@
 
     function deleteExport(maPhieu) {
         if (confirm('Xác nhận xóa phiếu xuất này khỏi hệ thống?')) {
-            fetch("{% url 'inventory:xuatkho' %}", {
+            fetch("{% url 'khohang:xuatkho' %}", {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
                 body: JSON.stringify({ maPhieuXuat: maPhieu })

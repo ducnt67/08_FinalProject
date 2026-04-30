@@ -6,7 +6,7 @@
 <div class="menu-scroll">
     <div class="menu-group">
         <div class="menu-title">Dashboard</div>
-        <a href="{% url 'inventory:tongquan' %}"
+        <a href="{% url 'hethong:tongquan' %}"
            class="menu-link {% if request.resolver_match.url_name == 'tongquan' %}active{% endif %}">
             <i class="fa-solid fa-chart-line"></i> Tổng quan
         </a>
@@ -14,17 +14,17 @@
 
     <div class="menu-group">
         <div class="menu-title">Quản lý Hàng Hóa</div>
-        <a href="{% url 'inventory:sanpham' %}"
+        <a href="{% url 'sanpham:sanpham' %}"
            class="menu-link {% if request.resolver_match.url_name == 'sanpham' %}active{% endif %}">
             <i class="fa-solid fa-book"></i> Sản phẩm
         </a>
 
-        <a href="{% url 'inventory:danhmuc' %}"
+        <a href="{% url 'sanpham:danhmuc' %}"
            class="menu-link {% if request.resolver_match.url_name == 'danhmuc' %}active{% endif %}">
             <i class="fa-solid fa-list"></i> Danh mục
         </a>
 
-        <a href="{% url 'inventory:tonkho' %}"
+        <a href="{% url 'khohang:tonkho' %}"
            class="menu-link {% if request.resolver_match.url_name == 'tonkho' %}active{% endif %}">
             <i class="fa-solid fa-warehouse"></i> Tồn kho
         </a>
@@ -32,17 +32,17 @@
 
     <div class="menu-group">
         <div class="menu-title">Vận Hành Kho</div>
-        <a href="{% url 'inventory:nhapkho' %}"
+        <a href="{% url 'khohang:nhapkho' %}"
            class="menu-link {% if request.resolver_match.url_name == 'nhapkho' %}active{% endif %}">
             <i class="fa-solid fa-dolly"></i> Nhập kho
         </a>
 
-        <a href="{% url 'inventory:xuatkho' %}"
+        <a href="{% url 'khohang:xuatkho' %}"
            class="menu-link {% if request.resolver_match.url_name == 'xuatkho' %}active{% endif %}">
             <i class="fa-solid fa-truck-ramp-box"></i> Xuất kho
         </a>
 
-        <a href="{% url 'inventory:kiemke' %}"
+        <a href="{% url 'khohang:kiemke' %}"
            class="menu-link {% if request.resolver_match.url_name == 'kiemke' %}active{% endif %}">
             <i class="fa-solid fa-clipboard-check"></i> Kiểm kê kho
         </a>
@@ -50,12 +50,12 @@
 
     <div class="menu-group">
         <div class="menu-title">Kinh doanh</div>
-        <a href="{% url 'inventory:dathang' %}"
+        <a href="{% url 'dathang:dathang' %}"
            class="menu-link {% if request.resolver_match.url_name == 'dathang' %}active{% endif %}">
             <i class="fa-solid fa-file-invoice"></i> Đơn đặt hàng
         </a>
 
-        <a href="{% url 'inventory:ncc' %}"
+        <a href="{% url 'nhacungcap:ncc' %}"
            class="menu-link {% if request.resolver_match.url_name == 'ncc' %}active{% endif %}">
             <i class="fa-solid fa-handshake"></i> Nhà cung cấp
         </a>
@@ -63,7 +63,7 @@
 
     <div class="menu-group">
         <div class="menu-title">Hệ Thống</div>
-        <a href="{% url 'inventory:baocao' %}"
+        <a href="{% url 'khohang:baocao' %}"
            class="menu-link {% if request.resolver_match.url_name == 'baocao' %}active{% endif %}">
             <i class="fa-solid fa-chart-pie"></i> Báo cáo thống kê
         </a>
@@ -78,7 +78,7 @@
             <div style="font-size: 12px; opacity: 0.7;">Admin Hệ thống</div>
         </div>
     </div>
-    <a href="{% url 'inventory:login' %}" class="logout-btn" title="Đăng xuất khỏi hệ thống">
+    <a href="{% url 'hethong:login' %}" class="logout-btn" title="Đăng xuất khỏi hệ thống">
         <i class="fa-solid fa-arrow-right-from-bracket"></i>
     </a>
 </div>
