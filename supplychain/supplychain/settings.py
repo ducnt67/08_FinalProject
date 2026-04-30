@@ -38,6 +38,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'inventory',
+    'hethong',
+    'sanpham',
+    'nhacungcap',
+    'dathang',
+    'khohang',
     'django.contrib.humanize',
 ]
 

@@ -22,8 +22,16 @@ from django.shortcuts import redirect
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', lambda request: redirect('inventory:login'), name='home'),
-    path('', include('inventory.urls')),
+    path('', lambda request: redirect('hethong:login'), name='home'),
+    
+    # Map everything back to /inventory/ to keep URLs unchanged
+    path('inventory/', include([
+        path('', include('hethong.urls')),
+        path('', include('sanpham.urls')),
+        path('', include('nhacungcap.urls')),
+        path('', include('dathang.urls')),
+        path('', include('khohang.urls')),
+    ])),
 ]
 
 if settings.DEBUG:
