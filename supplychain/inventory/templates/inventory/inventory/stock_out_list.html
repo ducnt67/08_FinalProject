@@ -41,6 +41,127 @@
             z-index: 1000;
             margin-top: 4px;
         }
+
+        /* =========================
+           FIX NÚT TẠO PHIẾU XUẤT KHO RESPONSIVE
+           Giữ nguyên bảng data như cũ
+           ========================= */
+
+        .export-list-filter-row {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 24px;
+            width: 100%;
+            min-width: 0;
+        }
+
+        .export-list-filter-left {
+            display: flex;
+            align-items: flex-end;
+            gap: 16px;
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .export-search-field {
+            flex: 1 1 520px;
+            min-width: 280px;
+            max-width: 550px;
+        }
+
+        .export-search-field .frm-search-box {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        .export-search-field .frm-search-box input {
+            width: 100% !important;
+            min-width: 0;
+        }
+
+        .export-status-field {
+            flex: 0 0 210px;
+            min-width: 180px;
+        }
+
+        .export-create-action {
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-end;
+            flex: 0 0 auto;
+            white-space: nowrap;
+        }
+
+        .export-create-action > button {
+            white-space: nowrap !important;
+            flex-shrink: 0;
+            min-width: max-content;
+        }
+
+        @media (max-width: 1366px) {
+            .export-list-filter-row {
+                gap: 12px;
+            }
+
+            .export-list-filter-left {
+                gap: 12px;
+            }
+
+            .export-search-field {
+                max-width: 500px;
+                min-width: 260px;
+            }
+
+            .export-status-field {
+                flex-basis: 190px;
+                min-width: 170px;
+            }
+
+            .export-create-action > button {
+                padding-left: 14px !important;
+                padding-right: 14px !important;
+                font-size: 12px !important;
+            }
+        }
+
+        @media (max-width: 1180px) {
+            .export-list-filter-row {
+                flex-wrap: wrap;
+            }
+
+            .export-list-filter-left {
+                flex: 1 1 100%;
+            }
+
+            .export-create-action {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .export-list-filter-row,
+            .export-list-filter-left,
+            .export-create-action {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .export-search-field,
+            .export-status-field {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                flex: 1 1 auto;
+            }
+
+            .export-create-action > button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
     </style>
 </head>
 <body class="bg-gray-50">
@@ -59,16 +180,16 @@
             <div id="exportListView" class="view-section active">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <div class="mb-6 bg-gray-50 p-6 rounded-xl border border-gray-100">
-                        <div class="flex flex-col md:flex-row gap-6 items-end justify-between">
-                            <div class="flex flex-col md:flex-row gap-4 flex-1 items-end">
-                                <div class="w-auto">
+                        <div class="export-list-filter-row">
+                            <div class="export-list-filter-left">
+                                <div class="export-search-field">
                                     <label class="block text-sm font-bold text-gray-700 mb-2">Tìm kiếm phiếu xuất</label>
-                                    <div class="frm-search-box" style="width: 550px; max-width: none;">
+                                    <div class="frm-search-box">
                                         <i class="fas fa-search"></i>
                                         <input type="text" id="exportSearchInput" placeholder="Tìm mã phiếu, khách hàng..." onkeyup="filterTable()" class="w-full">
                                     </div>
                                 </div>
-                                <div class="w-full md:w-48">
+                                <div class="export-status-field">
                                     <label class="block text-sm font-bold text-gray-700 mb-2">Trạng thái</label>
                                     <select id="exportStatusFilter" class="frm-select w-full" onchange="filterTable()">
                                         <option value="all">Tất cả trạng thái</option>
@@ -81,9 +202,11 @@
                                     <i class="fa-solid fa-rotate"></i> Làm mới
                                 </button>
                             </div>
-                            <button type="button" onclick="openCreateExport()" class="bg-primary hover:bg-red-700 text-white h-[42px] px-6 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shadow-md">
-                                <i class="fa-solid fa-plus text-xs"></i> Tạo phiếu xuất kho
-                            </button>
+                            <div class="export-create-action">
+                                <button type="button" onclick="openCreateExport()" class="bg-primary hover:bg-red-700 text-white h-[42px] px-6 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shadow-md whitespace-nowrap">
+                                    <i class="fa-solid fa-plus text-xs"></i> Tạo phiếu xuất kho
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -128,11 +251,11 @@
                                             <button onclick="viewExportDetail('{{ record.maPhieuXuat }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Xem chi tiết">
                                                 <i class="fas fa-eye text-xs"></i>
                                             </button>
-                                            <button onclick="{% if record.trangThai == 0 %}editExport('{{ record.maPhieuXuat }}'){% else %}alert('Không thể chỉnh sửa phiếu đã hoàn thành hoặc đã hủy.'){% endif %}" 
+                                            <button onclick="{% if record.trangThai == 0 %}editExport('{{ record.maPhieuXuat }}'){% else %}alert('Không thể chỉnh sửa phiếu đã hoàn thành hoặc đã hủy.'){% endif %}"
                                                 class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-green-500 hover:bg-green-500 hover:text-white transition-all shadow-sm {% if record.trangThai != 0 %}opacity-50 grayscale cursor-not-allowed{% endif %}" title="Chỉnh sửa">
                                                 <i class="fas fa-edit text-xs"></i>
                                             </button>
-                                            <button onclick="{% if record.trangThai == 0 %}deleteExport('{{ record.maPhieuXuat }}'){% else %}alert('Không thể xóa phiếu đã hoàn thành hoặc đã hủy.'){% endif %}" 
+                                            <button onclick="{% if record.trangThai == 0 %}deleteExport('{{ record.maPhieuXuat }}'){% else %}alert('Không thể xóa phiếu đã hoàn thành hoặc đã hủy.'){% endif %}"
                                                 class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-red-500 hover:bg-primary hover:text-white transition-all shadow-sm {% if record.trangThai != 0 %}opacity-50 grayscale cursor-not-allowed{% endif %}" title="Xóa">
                                                 <i class="fas fa-trash-alt text-xs"></i>
                                             </button>
@@ -195,7 +318,7 @@
                             <h3 class="font-bold text-gray-800 flex items-center gap-2">
                                 <i class="fa-solid fa-box-open text-primary"></i> DANH SÁCH SẢN PHẨM
                             </h3>
-                            
+
                             <div class="w-full md:w-96">
                                 <div class="autocomplete-wrapper">
                                     <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
@@ -268,13 +391,13 @@
   <script>
     let selectedProducts = [];
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-    
+
     // Data cho autocomplete
     const productCatalog = [
         {% for p in products %}
-        { 
-            maSP: "{{ p.maSP }}", 
-            tenSP: "{{ p.tenSP }}", 
+        {
+            maSP: "{{ p.maSP }}",
+            tenSP: "{{ p.tenSP }}",
             donViTinh: "{{ p.donViTinh }}",
             tonKho: {{ p.tonkho.soluongTon|default:0 }}
         },
@@ -388,9 +511,9 @@
         // 4. Gửi yêu cầu
         fetch("{% url 'khohang:xuatkho' %}", {
             method: 'POST',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken 
+                'X-CSRFToken': csrfToken
             },
             body: JSON.stringify(payload)
         })
@@ -424,7 +547,7 @@
                     </tr>
                 `;
             }).join('');
-            
+
             const totalQty = data.items.reduce((s,i)=>s+parseInt(i.qty),0);
 
             document.getElementById('exportDetailContent').innerHTML = `
@@ -486,7 +609,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="modal-footer">
                     <div class="flex gap-8">
                         <div class="flex flex-col">
@@ -533,7 +656,7 @@
                     tonKho: catalogProd ? catalogProd.tonKho : 0
                 };
             });
-            
+
             renderSelectedProducts();
             switchView('exportCreateView');
         });
@@ -565,7 +688,7 @@
     // Init Autocomplete
     document.addEventListener('DOMContentLoaded', () => {
         setupSearchAutocomplete(
-            'productSearchInput', 
+            'productSearchInput',
             (kw) => productCatalog.filter(p => p.tenSP.toLowerCase().includes(kw) || p.maSP.toLowerCase().includes(kw)),
             (item, kw) => `
                 <div class="suggestion-title font-bold text-gray-800">${item.tenSP}</div>

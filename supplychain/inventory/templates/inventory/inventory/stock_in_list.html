@@ -41,7 +41,144 @@
             z-index: 1000;
             margin-top: 4px;
         }
-        
+
+
+        /* =========================
+           FIX 2 NÚT TRẢ HÀNG / TẠO PHIẾU NHẬP RESPONSIVE
+           Giữ nguyên bảng data như cũ
+           ========================= */
+
+        .import-list-filter-row {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 24px;
+            width: 100%;
+            min-width: 0;
+        }
+
+        .import-list-filter-left {
+            display: flex;
+            align-items: flex-end;
+            gap: 16px;
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .import-search-field {
+            flex: 1 1 520px;
+            min-width: 280px;
+            max-width: 550px;
+        }
+
+        .import-search-field .frm-search-box {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        .import-search-field .frm-search-box input {
+            width: 100% !important;
+            min-width: 0;
+        }
+
+        .import-status-field {
+            flex: 0 0 210px;
+            min-width: 180px;
+        }
+
+        .import-action-buttons {
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-end;
+            gap: 8px;
+            flex: 0 0 auto;
+            flex-wrap: nowrap;
+            white-space: nowrap;
+        }
+
+        .import-action-buttons > button,
+        .import-action-buttons #createImportDropdownWrapper > button {
+            white-space: nowrap !important;
+            flex-shrink: 0;
+            min-width: max-content;
+        }
+
+        #createImportDropdownWrapper {
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 1366px) {
+            .import-list-filter-row {
+                gap: 12px;
+            }
+
+            .import-list-filter-left {
+                gap: 12px;
+            }
+
+            .import-search-field {
+                max-width: 500px;
+                min-width: 260px;
+            }
+
+            .import-status-field {
+                flex-basis: 190px;
+                min-width: 170px;
+            }
+
+            .import-action-buttons > button,
+            .import-action-buttons #createImportDropdownWrapper > button {
+                padding-left: 12px !important;
+                padding-right: 12px !important;
+                font-size: 12px !important;
+            }
+        }
+
+        @media (max-width: 1180px) {
+            .import-list-filter-row {
+                flex-wrap: wrap;
+            }
+
+            .import-list-filter-left {
+                flex: 1 1 100%;
+            }
+
+            .import-action-buttons {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .import-list-filter-row,
+            .import-list-filter-left,
+            .import-action-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .import-search-field,
+            .import-status-field {
+                width: 100%;
+                max-width: 100%;
+                min-width: 0;
+                flex: 1 1 auto;
+            }
+
+            .import-action-buttons > button,
+            .import-action-buttons #createImportDropdownWrapper,
+            .import-action-buttons #createImportDropdownWrapper > button {
+                width: 100%;
+                justify-content: center;
+            }
+
+            #createImportDropdown {
+                width: 100%;
+                left: 0;
+                right: auto;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -60,16 +197,16 @@
             <div id="importListView" class="view-section active">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                     <div class="mb-6 bg-gray-50 p-6 rounded-xl border border-gray-100">
-                        <div class="flex flex-col md:flex-row gap-6 items-end justify-between">
-                            <div class="flex flex-col md:flex-row gap-4 flex-1 items-end">
-                                <div class="w-auto">
+                        <div class="import-list-filter-row">
+                            <div class="import-list-filter-left">
+                                <div class="import-search-field">
                                     <label class="block text-sm font-bold text-gray-700 mb-2">Tìm kiếm phiếu nhập</label>
-                                    <div class="frm-search-box" style="width: 550px; max-width: none;">
+                                    <div class="frm-search-box">
                                         <i class="fas fa-search"></i>
                                         <input type="text" id="importSearchInput" placeholder="Tìm mã phiếu, NCC, người nhập..." onkeyup="filterInbound()" class="w-full">
                                     </div>
                                 </div>
-                                <div class="w-full md:w-48">
+                                <div class="import-status-field">
                                     <label class="block text-sm font-bold text-gray-700 mb-2">Trạng thái</label>
                                     <select id="importStatusFilter" class="frm-select w-full" onchange="filterInbound()">
                                         <option value="all">Tất cả trạng thái</option>
@@ -82,13 +219,13 @@
                                     <i class="fa-solid fa-rotate"></i> Làm mới
                                 </button>
                             </div>
-                            
-                            <div class="flex gap-2">
-                                <button onclick="switchView('returnListView')" class="bg-orange-100 hover:bg-orange-200 text-orange-700 h-[42px] px-4 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2">
+
+                            <div class="import-action-buttons">
+                                <button onclick="switchView('returnListView')" class="bg-orange-100 hover:bg-orange-200 text-orange-700 h-[42px] px-4 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 whitespace-nowrap">
                                     <i class="fa-solid fa-rotate-left"></i> Trả hàng
                                 </button>
                                 <div class="relative" id="createImportDropdownWrapper">
-                                    <button onclick="toggleCreateImportDropdown()" class="bg-primary hover:bg-red-700 text-white h-[42px] px-4 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 shadow-md">
+                                    <button onclick="toggleCreateImportDropdown()" class="bg-primary hover:bg-red-700 text-white h-[42px] px-4 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 shadow-md whitespace-nowrap">
                                         <i class="fa-solid fa-plus"></i> Tạo phiếu nhập <i class="fa-solid fa-chevron-down ml-1 text-[10px]"></i>
                                     </button>
                                     <div id="createImportDropdown" class="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2 hidden z-50">
@@ -145,11 +282,11 @@
                                             <button onclick="openImportDetail('{{ record.maPhieuNhap }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Xem chi tiết">
                                                 <i class="fas fa-eye text-xs"></i>
                                             </button>
-                                            <button onclick="{% if record.trangthaiNhap == 0 %}openEditImport('{{ record.maPhieuNhap }}'){% else %}alert('Không thể chỉnh sửa phiếu đã hoàn thành hoặc đã hủy.'){% endif %}" 
+                                            <button onclick="{% if record.trangthaiNhap == 0 %}openEditImport('{{ record.maPhieuNhap }}'){% else %}alert('Không thể chỉnh sửa phiếu đã hoàn thành hoặc đã hủy.'){% endif %}"
                                                 class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-green-500 hover:bg-green-500 hover:text-white transition-all shadow-sm {% if record.trangthaiNhap != 0 %}opacity-50 grayscale cursor-not-allowed{% endif %}" title="Chỉnh sửa">
                                                 <i class="fas fa-edit text-xs"></i>
                                             </button>
-                                            <button onclick="{% if record.trangthaiNhap == 0 %}deleteImport('{{ record.maPhieuNhap }}'){% else %}alert('Không thể xóa phiếu đã hoàn thành hoặc đã hủy.'){% endif %}" 
+                                            <button onclick="{% if record.trangthaiNhap == 0 %}deleteImport('{{ record.maPhieuNhap }}'){% else %}alert('Không thể xóa phiếu đã hoàn thành hoặc đã hủy.'){% endif %}"
                                                 class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-red-500 hover:bg-primary hover:text-white transition-all shadow-sm {% if record.trangthaiNhap != 0 %}opacity-50 grayscale cursor-not-allowed{% endif %}" title="Hủy phiếu">
                                                 <i class="fas fa-trash-alt text-xs"></i>
                                             </button>
@@ -190,7 +327,7 @@
                                 <input id="create_ngaynhap" type="datetime-local" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary outline-none">
                             </div>
                         </div>
-                        
+
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 transition-all" id="create_row_2">
                             <div>
                                 <label class="block text-sm text-gray-600 mb-2 font-bold">Người nhập kho</label>
@@ -337,11 +474,11 @@
                                             <button onclick="openReturnDetail('{{ ret.maPhieuTra }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Xem chi tiết">
                                                 <i class="fas fa-eye text-xs"></i>
                                             </button>
-                                            <button onclick="{% if ret.trangThai == 0 %}openEditReturn('{{ ret.maPhieuTra }}'){% else %}alert('Không thể chỉnh sửa phiếu đã hoàn thành hoặc đã hủy.'){% endif %}" 
+                                            <button onclick="{% if ret.trangThai == 0 %}openEditReturn('{{ ret.maPhieuTra }}'){% else %}alert('Không thể chỉnh sửa phiếu đã hoàn thành hoặc đã hủy.'){% endif %}"
                                                 class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-green-500 hover:bg-green-500 hover:text-white transition-all shadow-sm {% if ret.trangThai != 0 %}opacity-50 grayscale cursor-not-allowed{% endif %}" title="Chỉnh sửa">
                                                 <i class="fas fa-edit text-xs"></i>
                                             </button>
-                                            <button onclick="{% if ret.trangThai == 0 %}deleteReturn('{{ ret.maPhieuTra }}'){% else %}alert('Không thể xóa phiếu đã hoàn thành hoặc đã hủy.'){% endif %}" 
+                                            <button onclick="{% if ret.trangThai == 0 %}deleteReturn('{{ ret.maPhieuTra }}'){% else %}alert('Không thể xóa phiếu đã hoàn thành hoặc đã hủy.'){% endif %}"
                                                 class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-red-500 hover:bg-primary hover:text-white transition-all shadow-sm {% if ret.trangThai != 0 %}opacity-50 grayscale cursor-not-allowed{% endif %}" title="Hủy phiếu">
                                                 <i class="fas fa-trash-alt text-xs"></i>
                                             </button>
@@ -491,7 +628,7 @@
             document.getElementById('create_nhacungcap').value = '';
             document.getElementById('create_ghichu').value = '';
             document.getElementById('create_goods_body').innerHTML = '';
-            
+
             const poContainer = document.getElementById('create_po_container');
             const thPoQty = document.getElementById('create_th_po_qty');
             const searchContainer = document.getElementById('product_search_container');
@@ -528,7 +665,7 @@
             .then(data => {
                 document.getElementById('createImportTitle').textContent = 'Chỉnh sửa phiếu nhập kho ' + code;
                 document.getElementById('createImportSubtitle').textContent = 'Cập nhật thông tin phiếu nhập kho đã lập';
-                
+
                 const type = data.donDatHang ? 'PO' : 'DIRECT';
                 document.getElementById('create_maphieu').value = data.maPhieuNhap;
                 document.getElementById('create_maphieu').readOnly = true;
@@ -717,7 +854,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="modal-footer">
                         <div class="flex gap-8">
                             <div class="flex flex-col">
@@ -988,7 +1125,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="modal-footer">
                         <div></div> <!-- Khoảng trống -->
                         <div class="flex items-center gap-8">
@@ -1037,7 +1174,7 @@
             setupSearchAutocomplete('create_goods_search', (kw) => goodsCatalog.filter(p => p.name.toLowerCase().includes(kw.toLowerCase()) || p.code.toLowerCase().includes(kw.toLowerCase())), (item) => `<div class="suggestion-title">${item.code} - ${item.name}</div><div class="suggestion-meta">${item.price.toLocaleString('vi-VN')} ₫</div>`, (item, input) => { addProdToTable(item.code, item.name, item.price); input.value = ''; });
             const allImports = [ {% for r in inbound_records %}{% if r.trangthaiNhap == 1 %}{ "code": "{{ r.maPhieuNhap }}", "supplier": "{{ r.nhaCungCap.tenNCC }}", "status": "Hoàn thành" },{% endif %}{% endfor %} ];
             setupSearchAutocomplete('return_import_search', (kw) => allImports.filter(r => r.code.toLowerCase().includes(kw.toLowerCase())), (item) => `<div class="suggestion-title flex justify-between items-center"><span>${item.code}</span><span class="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] rounded-full font-bold">Hoàn thành</span></div><div class="suggestion-meta">${item.supplier}</div>`, (item, input) => { input.value = item.code; loadImportForReturn(item.code); });
-            
+
             // Xử lý chuyển view dựa trên tham số URL
             const urlParams = new URLSearchParams(window.location.search);
             const viewParam = urlParams.get('view');
