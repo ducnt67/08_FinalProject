@@ -46,7 +46,8 @@ def dathang(request):
                 defaults={
                     'nhaCungCap': nhaCungCap,
                     'trangThai': trangThai,
-                    'ghiChu': ghiChu
+                    'ghiChu': ghiChu,
+                    'nguoiLap': request.user.get_full_name() or request.user.username
                 }
             )
             
@@ -152,6 +153,7 @@ def dathang(request):
             'maNCC': order.nhaCungCap.maNCC,
             'tenNCC': order.nhaCungCap.tenNCC,
             'ghichu': order.ghiChu,
+            'nguoiLap': order.nguoiLap or 'Admin',
             'trangThai': status_reverse_map.get(order.trangThai, 'Chờ xác nhận'),
             'trangThaiClass': status_class_map.get(order.trangThai, 'status-warning'),
             'items': items

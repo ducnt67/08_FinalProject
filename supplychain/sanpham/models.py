@@ -33,8 +33,8 @@ class DanhMuc(models.Model):
 
 class SanPham(models.Model):
     maSP = models.CharField(max_length=50, primary_key=True)
-    danhMuc = models.ForeignKey(DanhMuc, on_delete=models.CASCADE)
-    nhaCungCap = models.ForeignKey('nhacungcap.NhaCungCap', on_delete=models.CASCADE)
+    danhMuc = models.ForeignKey(DanhMuc, on_delete=models.RESTRICT)
+    nhaCungCap = models.ForeignKey('nhacungcap.NhaCungCap', on_delete=models.RESTRICT)
     tenSP = models.CharField(max_length=255)
     donViTinh = models.CharField(max_length=50)
     giaBan = models.DecimalField(max_digits=15, decimal_places=2, validators=[MinValueValidator(0)])

@@ -1,0 +1,240 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Vị trí kho - Cẩm Lệ Books</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/0.0.style.css' %}">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#DC2626', bglight: '#F4F6F8' },
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        .modal-overlay { background: rgba(0,0,0,0.5); display: none; }
+        .modal-overlay.active { display: flex; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    {% csrf_token %}
+    <nav class="sidebar" id="sidebar-container">
+        {% include 'partials/sidebar.html' %}
+    </nav>
+
+    <main class="main-content">
+        <div class="content-header">
+            <h1>Sơ đồ Vị trí Kho</h1>
+        </div>
+
+        <div class="content-body p-8">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <div class="flex gap-4 items-center flex-1 w-full">
+                        <div class="frm-search-box w-full max-w-md">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="locSearch" placeholder="Tìm kiếm vị trí, khu vực..." onkeyup="filterLocations()" class="w-full">
+                        </div>
+                    </div>
+                    <button onclick="openLocModal()" class="bg-primary hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-bold shadow-md transition-all flex items-center gap-2 whitespace-nowrap">
+                        <i class="fa-solid fa-plus"></i> Thêm vị trí mới
+                    </button>
+                </div>
+
+                <div class="table-wrapper data-table-wrapper overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50 border-y border-gray-200">
+                                <th class="py-4 px-4 font-bold text-gray-700 text-sm text-center w-20">STT</th>
+                                <th class="py-4 px-4 font-bold text-gray-700 text-sm">Mã Vị Trí</th>
+                                <th class="py-4 px-4 font-bold text-gray-700 text-sm">Khu Vực</th>
+                                <th class="py-4 px-4 font-bold text-gray-700 text-sm">Kệ Kho</th>
+                                <th class="py-4 px-4 font-bold text-gray-700 text-sm">Ô Chứa</th>
+                                <th class="py-4 px-4 font-bold text-gray-700 text-sm">Ghi Chú</th>
+                                <th class="py-4 px-4 font-bold text-gray-700 text-sm text-center w-32">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="locTableBody">
+                            {% for loc in vitris %}
+                            <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+                                <td class="py-4 px-4 text-center font-bold text-gray-400">{{ forloop.counter }}</td>
+                                <td class="py-4 px-4 font-bold text-gray-800">{{ loc.maViTri }}</td>
+                                <td class="py-4 px-4">
+                                    <span class="px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 text-[11px] font-bold uppercase tracking-wider">{{ loc.khuVuc }}</span>
+                                </td>
+                                <td class="py-4 px-4 text-gray-700 font-medium">{{ loc.keKho }}</td>
+                                <td class="py-4 px-4 text-gray-700 font-medium">{{ loc.oChua }}</td>
+                                <td class="py-4 px-4 text-gray-500 text-sm italic">{{ loc.ghiChu|default:"-" }}</td>
+                                <td class="py-4 px-4">
+                                    <div class="flex justify-center gap-2">
+                                        <button onclick="editLoc('{{ loc.maViTri }}', '{{ loc.khuVuc }}', '{{ loc.keKho }}', '{{ loc.oChua }}', '{{ loc.ghiChu|default:'' }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-green-500 hover:bg-green-500 hover:text-white transition-all shadow-sm">
+                                            <i class="fas fa-edit text-xs"></i>
+                                        </button>
+                                        <button onclick="deleteLoc('{{ loc.maViTri }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-red-500 hover:bg-primary hover:text-white transition-all shadow-sm">
+                                            <i class="fas fa-trash text-xs"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="7" class="text-center py-16 text-gray-400">
+                                <i class="fa-solid fa-map-location-dot text-4xl mb-4 opacity-20 block"></i>
+                                Chưa có vị trí kho nào được thiết lập.
+                            </td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Thêm/Sửa Vị Trí -->
+        <div id="locModal" class="modal-overlay fixed inset-0 z-50 items-center justify-center p-4">
+            <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl animate-in zoom-in duration-200">
+                <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50 rounded-t-2xl">
+                    <h3 class="text-xl font-bold text-gray-800" id="modalTitle">Thêm Vị Trí Mới</h3>
+                    <button onclick="closeLocModal()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 text-gray-500 transition-colors">&times;</button>
+                </div>
+                <div class="p-6 space-y-5">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1.5 uppercase tracking-wide text-[11px]">Mã Vị Trí (VD: A1-1-01)</label>
+                        <input type="text" id="modalMaViTri" class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-bold">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1.5 uppercase tracking-wide text-[11px]">Khu Vực</label>
+                            <input type="text" id="modalKhuVuc" placeholder="Khu A" oninput="suggestMaViTri()" class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1.5 uppercase tracking-wide text-[11px]">Kệ Kho</label>
+                            <input type="text" id="modalKeKho" placeholder="Kệ 1" oninput="suggestMaViTri()" class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1.5 uppercase tracking-wide text-[11px]">Ô Chứa</label>
+                        <input type="text" id="modalOChua" placeholder="Ô 1" oninput="suggestMaViTri()" class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1.5 uppercase tracking-wide text-[11px]">Ghi Chú</label>
+                        <textarea id="modalGhiChu" class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none h-24 resize-none transition-all" placeholder="Thông tin bổ sung..."></textarea>
+                    </div>
+                </div>
+                <div class="p-6 bg-gray-50 border-t border-gray-100 flex justify-end gap-3 rounded-b-2xl">
+                    <button onclick="closeLocModal()" class="px-6 py-2.5 bg-white border border-gray-300 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition-all">Hủy</button>
+                    <button onclick="saveLoc()" class="px-8 py-2.5 bg-primary text-white rounded-xl font-bold hover:bg-red-700 shadow-lg shadow-red-200 transition-all">Lưu Vị Trí</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="{% static 'js/0.0.app.js' %}"></script>
+    <script>
+        function suggestMaViTri() {
+            const title = document.getElementById('modalTitle').textContent;
+            if (title.includes('Chỉnh sửa')) return;
+
+            const khu = document.getElementById('modalKhuVuc').value.trim();
+            const ke = document.getElementById('modalKeKho').value.trim();
+            const o = document.getElementById('modalOChua').value.trim();
+            
+            // Xử lý lấy mã (VD: "Khu A" -> "A", "Kệ 1" -> "1")
+            let maKhu = khu.replace(/Khu/gi, '').trim().toUpperCase();
+            let maKe = ke.replace(/Kệ/gi, '').trim();
+            let maO = o.replace(/Ô/gi, '').trim();
+            
+            if (maKhu || maKe || maO) {
+                let suggested = `${maKhu}${maKe ? '-' + maKe : ''}${maO ? '-' + maO : ''}`;
+                document.getElementById('modalMaViTri').value = suggested;
+            }
+        }
+
+        function openLocModal() {
+            document.getElementById('modalTitle').textContent = 'Thêm Vị Trí Mới';
+            document.getElementById('modalMaViTri').value = '';
+            document.getElementById('modalMaViTri').readOnly = false;
+            document.getElementById('modalMaViTri').classList.remove('bg-gray-50');
+            document.getElementById('modalKhuVuc').value = '';
+            document.getElementById('modalKeKho').value = '';
+            document.getElementById('modalOChua').value = '';
+            document.getElementById('modalGhiChu').value = '';
+            document.getElementById('locModal').classList.add('active');
+        }
+
+        function closeLocModal() {
+            document.getElementById('locModal').classList.remove('active');
+        }
+
+        function editLoc(code, khu, ke, o, note) {
+            document.getElementById('modalTitle').textContent = 'Chỉnh sửa Vị Trí ' + code;
+            document.getElementById('modalMaViTri').value = code;
+            document.getElementById('modalMaViTri').readOnly = true;
+            document.getElementById('modalMaViTri').classList.add('bg-gray-50');
+            document.getElementById('modalKhuVuc').value = khu;
+            document.getElementById('modalKeKho').value = ke;
+            document.getElementById('modalOChua').value = o;
+            document.getElementById('modalGhiChu').value = note;
+            document.getElementById('locModal').classList.add('active');
+        }
+
+        function saveLoc() {
+            const data = {
+                maViTri: document.getElementById('modalMaViTri').value,
+                khuVuc: document.getElementById('modalKhuVuc').value,
+                keKho: document.getElementById('modalKeKho').value,
+                oChua: document.getElementById('modalOChua').value,
+                ghiChu: document.getElementById('modalGhiChu').value,
+            };
+            if (!data.maViTri) return alert('Vui lòng nhập mã vị trí');
+            
+            fetch('', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value 
+                },
+                body: JSON.stringify(data)
+            }).then(res => res.json()).then(res => {
+                if (res.status === 'success') {
+                    location.reload();
+                } else {
+                    alert('Lỗi: ' + res.message);
+                }
+            });
+        }
+
+        function deleteLoc(code) {
+            if (!confirm(`Xác nhận xóa vị trí ${code}? Lưu ý: Không thể xóa nếu có hàng đang lưu tại đây.`)) return;
+            fetch('', {
+                method: 'DELETE',
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value 
+                },
+                body: JSON.stringify({ maViTri: code })
+            }).then(res => res.json()).then(res => {
+                if (res.status === 'success') {
+                    location.reload();
+                } else {
+                    alert('Lỗi: ' + res.message);
+                }
+            });
+        }
+
+        function filterLocations() {
+            const q = document.getElementById('locSearch').value.toLowerCase();
+            document.querySelectorAll('#locTableBody tr').forEach(tr => {
+                const text = tr.innerText.toLowerCase();
+                tr.style.display = text.includes(q) ? '' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>

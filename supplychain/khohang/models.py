@@ -3,9 +3,50 @@ from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 
-# 5. Tồn kho
+# --- NEW WMS MODELS ---
+
+class ViTriKho(models.Model):
+    maViTri = models.CharField(max_length=50, primary_key=True) # VD: A1-1-01
+    khuVuc = models.CharField(max_length=100) # Khu A, Khu B
+    keKho = models.CharField(max_length=100) # Kệ A1, Kệ A2
+    oChua = models.CharField(max_length=100) # Ô số 3
+    ghiChu = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'inventory_vitrikho'
+        verbose_name = "Vị trí kho"
+
+    def __str__(self):
+        return self.maViTri
+
+class LoHang(models.Model):
+    maLo = models.CharField(max_length=50, primary_key=True)
+    sanPham = models.ForeignKey('sanpham.SanPham', on_delete=models.RESTRICT, related_name='lohangs')
+    ngaySanXuat = models.DateField(null=True, blank=True)
+    hanSuDung = models.DateField(null=True, blank=True)
+    ngayNhapVao = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'inventory_lohang'
+        verbose_name = "Lô hàng"
+
+    def __str__(self):
+        return f"{self.maLo} ({self.sanPham.tenSanPham})"
+
+class TonKhoChiTiet(models.Model):
+    sanPham = models.ForeignKey('sanpham.SanPham', on_delete=models.RESTRICT)
+    viTri = models.ForeignKey(ViTriKho, on_delete=models.RESTRICT)
+    soluong = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+
+    class Meta:
+        db_table = 'inventory_tonkho_chitiet'
+        unique_together = ('sanPham', 'viTri')
+
+# --- EXISTING MODELS (UPDATED) ---
+
+# 5. Tồn kho (Summary)
 class TonKho(models.Model):
-    sanPham = models.OneToOneField('sanpham.SanPham', on_delete=models.CASCADE, primary_key=True, related_name='tonkho')
+    sanPham = models.OneToOneField('sanpham.SanPham', on_delete=models.RESTRICT, primary_key=True, related_name='tonkho')
     soluongTon = models.IntegerField(default=0, validators=[MinValueValidator(0)])
     trangthaiCanhBao = models.IntegerField(default=0)
 
@@ -35,11 +76,12 @@ class TonKho(models.Model):
 # 7. Nhập kho
 class NhapKho(models.Model):
     maPhieuNhap = models.CharField(max_length=50, primary_key=True)
-    nhaCungCap = models.ForeignKey('nhacungcap.NhaCungCap', on_delete=models.CASCADE)
+    nhaCungCap = models.ForeignKey('nhacungcap.NhaCungCap', on_delete=models.RESTRICT)
     ngayNhap = models.DateTimeField()
     trangthaiNhap = models.IntegerField(default=0, choices=[(0, 'Phiếu tạm'), (1, 'Đã hoàn thành'), (-1, 'Đã hủy')])
     ghichu = models.TextField(null=True, blank=True)
     donDatHang = models.ForeignKey('dathang.DonDatHang', on_delete=models.SET_NULL, null=True)
+    nguoiLap = models.CharField(max_length=100, null=True, blank=True)
     tongtienNhap = models.DecimalField(max_digits=15, decimal_places=2, validators=[MinValueValidator(0)])
 
     class Meta:
@@ -58,7 +100,8 @@ class NhapKho(models.Model):
 
 class PhieuNhap_CT(models.Model):
     phieuNhap = models.ForeignKey(NhapKho, on_delete=models.CASCADE)
-    sanPham = models.ForeignKey('sanpham.SanPham', on_delete=models.CASCADE)
+    sanPham = models.ForeignKey('sanpham.SanPham', on_delete=models.RESTRICT)
+    viTri = models.ForeignKey(ViTriKho, on_delete=models.SET_NULL, null=True, blank=True)
     soluongDat = models.IntegerField(validators=[MinValueValidator(1)])
     dongiaNhap = models.DecimalField(max_digits=15, decimal_places=2, validators=[MinValueValidator(0)])
     thanhTien = models.DecimalField(max_digits=15, decimal_places=2, validators=[MinValueValidator(0)])
@@ -67,10 +110,6 @@ class PhieuNhap_CT(models.Model):
     class Meta:
         db_table = 'inventory_phieunhap_ct'
         constraints = [
-            models.UniqueConstraint(
-                fields=['phieuNhap', 'sanPham'],
-                name='pnct_unique_phieuNhap_sanPham_new'
-            ),
             models.CheckConstraint(
                 check=Q(soluongDat__gt=0),
                 name='pnct_soluongDat_gt_0_new'
@@ -117,16 +156,13 @@ class XuatKho(models.Model):
 
 class PhieuXuat_CT(models.Model):
     phieuXuat = models.ForeignKey(XuatKho, on_delete=models.CASCADE)
-    sanPham = models.ForeignKey('sanpham.SanPham', on_delete=models.CASCADE)
+    sanPham = models.ForeignKey('sanpham.SanPham', on_delete=models.RESTRICT)
+    viTri = models.ForeignKey(ViTriKho, on_delete=models.SET_NULL, null=True, blank=True)
     soluongXuat = models.IntegerField(validators=[MinValueValidator(1)])
 
     class Meta:
         db_table = 'inventory_phieuxuat_ct'
         constraints = [
-            models.UniqueConstraint(
-                fields=['phieuXuat', 'sanPham'],
-                name='pxct_unique_phieuXuat_sanPham_new'
-            ),
             models.CheckConstraint(
                 check=Q(soluongXuat__gt=0),
                 name='pxct_soluongXuat_gt_0_new'
@@ -153,17 +189,14 @@ class KiemKe(models.Model):
 
 class KiemKe_CT(models.Model):
     kiemKe = models.ForeignKey(KiemKe, on_delete=models.CASCADE)
-    sanPham = models.ForeignKey('sanpham.SanPham', on_delete=models.CASCADE)
+    sanPham = models.ForeignKey('sanpham.SanPham', on_delete=models.RESTRICT)
+    viTri = models.ForeignKey(ViTriKho, on_delete=models.SET_NULL, null=True, blank=True)
     slTonKho = models.IntegerField(validators=[MinValueValidator(0)])
     slThucTe = models.IntegerField(validators=[MinValueValidator(0)])
 
     class Meta:
         db_table = 'inventory_kiemke_ct'
         constraints = [
-            models.UniqueConstraint(
-                fields=['kiemKe', 'sanPham'],
-                name='kkct_unique_kiemKe_sanPham_new'
-            ),
             models.CheckConstraint(
                 check=Q(slTonKho__gte=0),
                 name='kkct_slTonKho_gte_0_new'
@@ -178,7 +211,7 @@ class KiemKe_CT(models.Model):
 # 10. Trả hàng NCC
 class TraHangNCC(models.Model):
     maPhieuTra = models.CharField(max_length=50, primary_key=True)
-    nhaCungCap = models.ForeignKey('nhacungcap.NhaCungCap', on_delete=models.CASCADE)
+    nhaCungCap = models.ForeignKey('nhacungcap.NhaCungCap', on_delete=models.RESTRICT)
     ngayTra = models.DateTimeField()
     phieuNhap = models.ForeignKey(NhapKho, on_delete=models.SET_NULL, null=True)
     trangThai = models.IntegerField(default=0, choices=[(0, 'Phiếu tạm'), (1, 'Đã trả hàng'), (-1, 'Đã hủy')])
@@ -200,7 +233,7 @@ class TraHangNCC(models.Model):
 
 class TraHangNCC_CT(models.Model):
     phieuTra = models.ForeignKey(TraHangNCC, on_delete=models.CASCADE)
-    sanPham = models.ForeignKey('sanpham.SanPham', on_delete=models.CASCADE)
+    sanPham = models.ForeignKey('sanpham.SanPham', on_delete=models.RESTRICT)
     soluongTra = models.IntegerField(validators=[MinValueValidator(1)])
     dongiaTra = models.DecimalField(max_digits=15, decimal_places=2, validators=[MinValueValidator(0)])
     thanhTien = models.DecimalField(max_digits=15, decimal_places=2, validators=[MinValueValidator(0)])

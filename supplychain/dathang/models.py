@@ -7,9 +7,10 @@ from django.db.models import Q
 class DonDatHang(models.Model):
     maDatHang = models.CharField(max_length=50, primary_key=True)
     ngayDatHang = models.DateTimeField(auto_now_add=True)
-    nhaCungCap = models.ForeignKey('nhacungcap.NhaCungCap', on_delete=models.CASCADE)
+    nhaCungCap = models.ForeignKey('nhacungcap.NhaCungCap', on_delete=models.RESTRICT)
     trangThai = models.IntegerField()
     ghiChu = models.TextField(null=True, blank=True)
+    nguoiLap = models.CharField(max_length=100, null=True, blank=True)
 
     class Meta:
         db_table = 'inventory_dondathang'
@@ -23,7 +24,7 @@ class DonDatHang(models.Model):
 
 class DonDatHang_CT(models.Model):
     donDatHang = models.ForeignKey(DonDatHang, on_delete=models.CASCADE, related_name='dondathang_ct_set')
-    sanPham = models.ForeignKey('sanpham.SanPham', on_delete=models.CASCADE)
+    sanPham = models.ForeignKey('sanpham.SanPham', on_delete=models.RESTRICT)
     soluongDat = models.IntegerField(validators=[MinValueValidator(1)])
     giaNhap = models.DecimalField(max_digits=15, decimal_places=2, validators=[MinValueValidator(0)])
     thanhTien = models.DecimalField(max_digits=15, decimal_places=2, validators=[MinValueValidator(0)])

@@ -3,7 +3,8 @@ import json
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 
-from inventory.models import NhaCungCap
+from nhacungcap.models import NhaCungCap
+from django.core.exceptions import ValidationError
 
 def ncc(request):
     if request.method == 'POST':
@@ -35,7 +36,19 @@ def ncc(request):
             )
             return JsonResponse({'status': 'success', 'message': 'Lưu nhà cung cấp thành công!', 'maNCC': supplier.maNCC})
         except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+            # Trích xuất thông báo lỗi thân thiện
+            if hasattr(e, 'message_dict'):
+                messages = [str(m[0] if isinstance(m, list) else m) for m in e.message_dict.values()]
+                error_msg = ". ".join(messages)
+            elif hasattr(e, 'messages'):
+                error_msg = ". ".join([str(m) for m in e.messages])
+            else:
+                error_msg = str(e)
+                
+            # Loại bỏ các ký tự thừa nếu str(e) vẫn còn dạng dict/list
+            error_msg = error_msg.replace("{", "").replace("}", "").replace("[", "").replace("]", "").replace("'", "")
+            
+            return JsonResponse({'status': 'error', 'message': error_msg}, status=400)
             
     elif request.method == 'DELETE':
         try:
