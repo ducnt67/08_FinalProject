@@ -44,7 +44,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name='dondathang',
-            constraint=models.CheckConstraint(check=models.Q(('trangThai__gte', 0)), name='ddh_trangThai_gte_0_new'),
+            constraint=models.CheckConstraint(condition=models.Q(('trangThai__gte', 0)), name='ddh_trangThai_gte_0_new'),
         ),
         migrations.AddConstraint(
             model_name='dondathang_ct',
@@ -52,14 +52,14 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name='dondathang_ct',
-            constraint=models.CheckConstraint(check=models.Q(('soluongDat__gt', 0)), name='ddhct_soluongDat_gt_0_new'),
+            constraint=models.CheckConstraint(condition=models.Q(('soluongDat__gt', 0)), name='ddhct_soluongDat_gt_0_new'),
         ),
         migrations.AddConstraint(
             model_name='dondathang_ct',
-            constraint=models.CheckConstraint(check=models.Q(('giaNhap__gte', 0)), name='ddhct_giaNhap_gte_0_new'),
+            constraint=models.CheckConstraint(condition=models.Q(('giaNhap__gte', 0)), name='ddhct_giaNhap_gte_0_new'),
         ),
         migrations.AddConstraint(
             model_name='dondathang_ct',
-            constraint=models.CheckConstraint(check=models.Q(('thanhTien__gte', 0)), name='ddhct_thanhTien_gte_0_new'),
+            constraint=models.CheckConstraint(condition=models.Q(('thanhTien__gte', 0)), name='ddhct_thanhTien_gte_0_new'),
         ),
     ]

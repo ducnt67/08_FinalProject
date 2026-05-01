@@ -54,27 +54,27 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'inventory_chitiet_sach',
-                'constraints': [models.CheckConstraint(check=models.Q(('namXuatBan__gte', 0)), name='cts_namXuatBan_gte_0_new')],
+                'constraints': [models.CheckConstraint(condition=models.Q(('namXuatBan__gte', 0)), name='cts_namXuatBan_gte_0_new')],
             },
         ),
         migrations.AddConstraint(
             model_name='sanpham',
-            constraint=models.CheckConstraint(check=models.Q(('giaBan__gte', 0)), name='sp_giaBan_gte_0_new'),
+            constraint=models.CheckConstraint(condition=models.Q(('giaBan__gte', 0)), name='sp_giaBan_gte_0_new'),
         ),
         migrations.AddConstraint(
             model_name='sanpham',
-            constraint=models.CheckConstraint(check=models.Q(('tonKhoToiThieu__gte', 0)), name='sp_tonKhoToiThieu_gte_0_new'),
+            constraint=models.CheckConstraint(condition=models.Q(('tonKhoToiThieu__gte', 0)), name='sp_tonKhoToiThieu_gte_0_new'),
         ),
         migrations.AddConstraint(
             model_name='sanpham',
-            constraint=models.CheckConstraint(check=models.Q(('trangThai__in', [0, 1])), name='sp_trangThai_valid_new'),
+            constraint=models.CheckConstraint(condition=models.Q(('trangThai__in', [0, 1])), name='sp_trangThai_valid_new'),
         ),
         migrations.AddConstraint(
             model_name='danhmuc',
-            constraint=models.CheckConstraint(check=models.Q(('trangThai__in', [0, 1])), name='dm_trangThai_valid_new'),
+            constraint=models.CheckConstraint(condition=models.Q(('trangThai__in', [0, 1])), name='dm_trangThai_valid_new'),
         ),
         migrations.AddConstraint(
             model_name='danhmuc',
-            constraint=models.CheckConstraint(check=models.Q(('maDanhMuc', models.F('maDanhMucCha')), _negated=True), name='dm_not_self_parent_new'),
+            constraint=models.CheckConstraint(condition=models.Q(('maDanhMuc', models.F('maDanhMucCha')), _negated=True), name='dm_not_self_parent_new'),
         ),
     ]

@@ -19,19 +19,6 @@ class ViTriKho(models.Model):
     def __str__(self):
         return self.maViTri
 
-class LoHang(models.Model):
-    maLo = models.CharField(max_length=50, primary_key=True)
-    sanPham = models.ForeignKey('sanpham.SanPham', on_delete=models.RESTRICT, related_name='lohangs')
-    ngaySanXuat = models.DateField(null=True, blank=True)
-    hanSuDung = models.DateField(null=True, blank=True)
-    ngayNhapVao = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = 'inventory_lohang'
-        verbose_name = "Lô hàng"
-
-    def __str__(self):
-        return f"{self.maLo} ({self.sanPham.tenSanPham})"
 
 class TonKhoChiTiet(models.Model):
     sanPham = models.ForeignKey('sanpham.SanPham', on_delete=models.RESTRICT)
