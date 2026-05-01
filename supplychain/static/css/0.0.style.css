@@ -262,7 +262,7 @@ body { background-color: var(--bg-body); display: flex; min-height: 100vh; color
 .table-wrapper.data-table-wrapper {
     max-height: var(--table-data-height);
     overflow-y: auto;
-    overflow-x: auto;
+    overflow-x: hidden;
 }
 
 .table-wrapper.data-table-wrapper table {
@@ -334,7 +334,7 @@ body { background-color: var(--bg-body); display: flex; min-height: 100vh; color
 .table-block {
     background-color: white; border-radius: 12px; box-shadow: 0 2px 15px rgba(0,0,0,0.03); overflow: hidden; 
 }
-.table-wrapper { overflow-x: auto; }
+.table-wrapper { overflow-x: hidden; }
 .table-custom { margin-bottom: 0; width: 100%; border-collapse: separate; border-spacing: 0; }
 .table-custom th, .table-custom td { white-space: nowrap; vertical-align: middle; text-align: left; }
 .table-custom thead th { position: sticky; top: 0; z-index: 8; }
