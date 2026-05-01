@@ -14,12 +14,12 @@ class DonDatHang(models.Model):
 
     class Meta:
         db_table = 'inventory_dondathang'
-        constraints = [
-            models.CheckConstraint(
-                check=Q(trangThai__gte=0),
-                name='ddh_trangThai_gte_0_new'
-            ),
-        ]
+        # constraints = [
+        #     models.CheckConstraint(
+        #         check=Q(trangThai__gte=0),
+        #         name='ddh_trangThai_gte_0_new'
+        #     ),
+        # ]
 
 
 class DonDatHang_CT(models.Model):
@@ -31,24 +31,24 @@ class DonDatHang_CT(models.Model):
 
     class Meta:
         db_table = 'inventory_dondathang_ct'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['donDatHang', 'sanPham'],
-                name='ddhct_unique_donDatHang_sanPham_new'
-            ),
-            models.CheckConstraint(
-                check=Q(soluongDat__gt=0),
-                name='ddhct_soluongDat_gt_0_new'
-            ),
-            models.CheckConstraint(
-                check=Q(giaNhap__gte=0),
-                name='ddhct_giaNhap_gte_0_new'
-            ),
-            models.CheckConstraint(
-                check=Q(thanhTien__gte=0),
-                name='ddhct_thanhTien_gte_0_new'
-            ),
-        ]
+        # constraints = [
+        #     models.UniqueConstraint(
+        #         fields=['donDatHang', 'sanPham'],
+        #         name='ddhct_unique_donDatHang_sanPham_new'
+        #     ),
+        #     models.CheckConstraint(
+        #         check=Q(soluongDat__gt=0),
+        #         name='ddhct_soluongDat_gt_0_new'
+        #     ),
+        #     models.CheckConstraint(
+        #         check=Q(giaNhap__gte=0),
+        #         name='ddhct_giaNhap_gte_0_new'
+        #     ),
+        #     models.CheckConstraint(
+        #         check=Q(thanhTien__gte=0),
+        #         name='ddhct_thanhTien_gte_0_new'
+        #     ),
+        # ]
 
     def clean(self):
         if self.soluongDat is not None and self.giaNhap is not None and self.thanhTien is not None:
