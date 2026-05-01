@@ -35,7 +35,16 @@ def auto_create_order(request):
             if not nha_cung_cap:
                 return JsonResponse({'status': 'error', 'message': 'Sản phẩm này chưa có nhà cung cấp.'}, status=400)
 
-            SO_LUONG_DAT_MAC_DINH = 50
+            # Tính toán số lượng đặt thông minh
+            min_stock = san_pham.tonKhoToiThieu
+            current_stock = 0
+            if hasattr(san_pham, 'tonkho'):
+                current_stock = san_pham.tonkho.soluongTon
+            
+            # Mục tiêu: Đưa tồn kho lên mức gấp đôi tồn tối thiểu
+            # Số lượng cần đặt = (Tồn tối thiểu * 2) - Tồn hiện tại
+            # Đảm bảo đặt ít nhất 10 sản phẩm nếu tính toán ra số quá nhỏ
+            qty_to_order = max(10, (min_stock * 2) - current_stock)
 
             def generate_auto_order_code():
                 year = timezone.now().year
@@ -63,18 +72,18 @@ def auto_create_order(request):
                 donDatHang=don_dat_hang,
                 sanPham=san_pham,
                 defaults={
-                    'soluongDat': SO_LUONG_DAT_MAC_DINH,
+                    'soluongDat': qty_to_order,
                     'giaNhap': gia_nhap,
-                    'thanhTien': SO_LUONG_DAT_MAC_DINH * gia_nhap
+                    'thanhTien': qty_to_order * gia_nhap
                 }
             )
 
             if not ct_created:
-                ct_don_hang.soluongDat = F('soluongDat') + SO_LUONG_DAT_MAC_DINH
+                ct_don_hang.soluongDat = F('soluongDat') + qty_to_order
                 ct_don_hang.thanhTien = F('soluongDat') * ct_don_hang.giaNhap
                 ct_don_hang.save()
             
-            return JsonResponse({'status': 'success', 'message': f'Đã thêm {san_pham.tenSP} vào đơn hàng tự động {don_dat_hang.maDatHang}.'})
+            return JsonResponse({'status': 'success', 'message': f'Đã thêm {san_pham.tenSP} (SL: {qty_to_order}) vào đơn hàng tự động {don_dat_hang.maDatHang}.'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
     return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
