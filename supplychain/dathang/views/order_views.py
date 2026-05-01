@@ -1,4 +1,5 @@
 import json
+import logging
 from decimal import Decimal
 
 from django.http import JsonResponse
@@ -8,6 +9,8 @@ from django.utils import timezone
 from dathang.models import DonDatHang, DonDatHang_CT
 from nhacungcap.models import NhaCungCap
 from sanpham.models import SanPham
+
+logger = logging.getLogger(__name__)
 
 def dathang(request):
     if request.method == 'POST':
@@ -120,44 +123,56 @@ def dathang(request):
     products = SanPham.objects.select_related('danhMuc', 'nhaCungCap').all()
     
     # Check if request is AJAX (for getting data for edit/view)
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest' and 'maDatHang' in request.GET:
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' and 'maDatHang' in request.GET:
         maDatHang = request.GET.get('maDatHang')
-        order = get_object_or_404(DonDatHang, maDatHang=maDatHang)
-        items = []
-        for ct in order.dondathang_ct_set.all():
-            items.append({
-                'maSP': ct.sanPham.maSP,
-                'tenSP': ct.sanPham.tenSP,
-                'danhMuc': ct.sanPham.danhMuc.tenDanhMuc,
-                'qty': ct.soluongDat,
-                'price': str(ct.giaNhap),
-                'amount': str(ct.thanhTien)
-            })
-            
-        status_reverse_map = {
-            0: 'Chờ xác nhận',
-            1: 'Hoàn thành',
-            2: 'Đang giao',
-            3: 'Đã hủy'
-        }
-        status_class_map = {
-            0: 'status-warning',
-            1: 'status-success',
-            2: 'status-info',
-            3: 'status-danger'
-        }
-            
-        return JsonResponse({
-            'maDatHang': order.maDatHang,
-            'ngayDatHang': timezone.localtime(order.ngayDatHang).strftime('%d/%m/%Y %H:%M') if order.ngayDatHang else '',
-            'ngayDatHangRaw': timezone.localtime(order.ngayDatHang).strftime('%Y-%m-%dT%H:%M') if order.ngayDatHang else '',
-            'maNCC': order.nhaCungCap.maNCC,
-            'tenNCC': order.nhaCungCap.tenNCC,
-            'ghichu': order.ghiChu,
-            'trangThai': status_reverse_map.get(order.trangThai, 'Chờ xác nhận'),
-            'trangThaiClass': status_class_map.get(order.trangThai, 'status-warning'),
-            'items': items
-        })
+        logger.info(f"[AJAX] Fetching order detail for maDatHang: {maDatHang}")
+        logger.info(f"[AJAX] X-Requested-With header: {request.headers.get('X-Requested-With')}")
+
+        try:
+            order = get_object_or_404(DonDatHang, maDatHang=maDatHang)
+            items = []
+            for ct in order.dondathang_ct_set.all():
+                items.append({
+                    'maSP': ct.sanPham.maSP,
+                    'tenSP': ct.sanPham.tenSP,
+                    'danhMuc': ct.sanPham.danhMuc.tenDanhMuc,
+                    'qty': ct.soluongDat,
+                    'price': float(ct.giaNhap),
+                    'amount': float(ct.thanhTien)
+                })
+
+            status_reverse_map = {
+                0: 'Chờ xác nhận',
+                1: 'Hoàn thành',
+                2: 'Đang giao',
+                3: 'Đã hủy'
+            }
+            status_class_map = {
+                0: 'status-warning',
+                1: 'status-success',
+                2: 'status-info',
+                3: 'status-danger'
+            }
+
+            response_data = {
+                'maDatHang': order.maDatHang,
+                'ngayDatHang': timezone.localtime(order.ngayDatHang).strftime('%d/%m/%Y %H:%M') if order.ngayDatHang else '',
+                'ngayDatHangRaw': timezone.localtime(order.ngayDatHang).strftime('%Y-%m-%dT%H:%M') if order.ngayDatHang else '',
+                'maNCC': order.nhaCungCap.maNCC,
+                'tenNCC': order.nhaCungCap.tenNCC,
+                'ghichu': order.ghiChu,
+                'trangThai': status_reverse_map.get(order.trangThai, 'Chờ xác nhận'),
+                'trangThaiClass': status_class_map.get(order.trangThai, 'status-warning'),
+                'items': items
+            }
+            logger.info(f"[AJAX] Response: {len(items)} items found")
+            return JsonResponse(response_data)
+        except DonDatHang.DoesNotExist:
+            logger.error(f"[AJAX] Order not found: {maDatHang}")
+            return JsonResponse({'status': 'error', 'message': f'Đơn hàng {maDatHang} không tìm thấy'}, status=404)
+        except Exception as e:
+            logger.error(f"[AJAX] Error: {str(e)}")
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
     return render(request, 'dathang/orders/order_list.html', {
         'purchase_orders': purchase_orders,

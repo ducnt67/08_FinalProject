@@ -4,10 +4,11 @@ from decimal import Decimal
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
+from django.db.models import F
 
 from sanpham.models import SanPham, DanhMuc
 from nhacungcap.models import NhaCungCap
-from dathang.models import DonDatHang
+from dathang.models import DonDatHang, DonDatHang_CT
 from khohang.models import (
     KiemKe,
     KiemKe_CT,
@@ -19,6 +20,62 @@ from khohang.models import (
     TraHangNCC_CT,
     XuatKho,
 )
+
+def auto_create_order(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            maSP = data.get('maSP')
+            san_pham = get_object_or_404(SanPham, maSP=maSP)
+            nha_cung_cap = san_pham.nhaCungCap
+            
+            if not nha_cung_cap:
+                return JsonResponse({'status': 'error', 'message': 'Sản phẩm này chưa có nhà cung cấp.'}, status=400)
+
+            SO_LUONG_DAT_MAC_DINH = 50
+
+            def generate_auto_order_code():
+                year = timezone.now().year
+                prefix = f"PO-AUTO-{year}-"
+                last_order = DonDatHang.objects.filter(maDatHang__startswith=prefix).order_by('-maDatHang').first()
+                if last_order:
+                    last_num = int(last_order.maDatHang.split('-')[-1])
+                    return f"{prefix}{str(last_num + 1).zfill(3)}"
+                return f"{prefix}001"
+
+            don_dat_hang, created = DonDatHang.objects.get_or_create(
+                nhaCungCap=nha_cung_cap,
+                trangThai=0,
+                ghiChu__contains='[Tự động tạo]',
+                defaults={
+                    'maDatHang': generate_auto_order_code(),
+                    'ghiChu': f"[Tự động tạo] Đơn hàng được tạo tự động ngày {timezone.now().strftime('%d/%m/%Y')}",
+                }
+            )
+
+            last_order_item = DonDatHang_CT.objects.filter(sanPham=san_pham).order_by('-donDatHang__ngayDatHang').first()
+            gia_nhap = last_order_item.giaNhap if last_order_item else Decimal(0)
+
+            ct_don_hang, ct_created = DonDatHang_CT.objects.get_or_create(
+                donDatHang=don_dat_hang,
+                sanPham=san_pham,
+                defaults={
+                    'soluongDat': SO_LUONG_DAT_MAC_DINH,
+                    'giaNhap': gia_nhap,
+                    'thanhTien': SO_LUONG_DAT_MAC_DINH * gia_nhap
+                }
+            )
+
+            if not ct_created:
+                ct_don_hang.soluongDat = F('soluongDat') + SO_LUONG_DAT_MAC_DINH
+                ct_don_hang.thanhTien = F('soluongDat') * ct_don_hang.giaNhap
+                ct_don_hang.save()
+            
+            return JsonResponse({'status': 'success', 'message': f'Đã thêm {san_pham.tenSP} vào đơn hàng tự động {don_dat_hang.maDatHang}.'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
+
 
 def tonkho(request):
     inventory_items = TonKho.objects.select_related('sanPham').all()
@@ -144,7 +201,7 @@ def nhapkho(request):
                 # Rollback inventory
                 for ct in import_record.phieunhap_ct_set.all():
                     tk, _ = TonKho.objects.get_or_create(sanPham=ct.sanPham)
-                    tk.soluongTon -= ct.soluongThucNhan
+                    tk.soluongTon -= old_ct.soluongThucNhan
                     tk.save()
                 
                 # Chuyển trạng thái thành Đã hủy (-1)

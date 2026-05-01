@@ -10,4 +10,5 @@ urlpatterns = [
     path('xuatkho/', stock_views.xuatkho, name='xuatkho'),
     path('kiemke/', stock_views.kiemke, name='kiemke'),
     path('baocao/', report_views.baocao, name='baocao'),
+    path('auto-create-order/', stock_views.auto_create_order, name='auto_create_order'),
 ]

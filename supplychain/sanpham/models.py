@@ -14,11 +14,11 @@ class DanhMuc(models.Model):
         db_table = 'inventory_danhmuc'
         constraints = [
             models.CheckConstraint(
-                condition=Q(trangThai__in=[0, 1]),
+                check=Q(trangThai__in=[0, 1]),
                 name='dm_trangThai_valid_new'
             ),
             models.CheckConstraint(
-                condition=~Q(maDanhMuc=F('maDanhMucCha')),
+                check=~Q(maDanhMuc=F('maDanhMucCha')),
                 name='dm_not_self_parent_new'
             ),
         ]
@@ -47,15 +47,15 @@ class SanPham(models.Model):
         db_table = 'inventory_sanpham'
         constraints = [
             models.CheckConstraint(
-                condition=Q(giaBan__gte=0),
+                check=Q(giaBan__gte=0),
                 name='sp_giaBan_gte_0_new'
             ),
             models.CheckConstraint(
-                condition=Q(tonKhoToiThieu__gte=0),
+                check=Q(tonKhoToiThieu__gte=0),
                 name='sp_tonKhoToiThieu_gte_0_new'
             ),
             models.CheckConstraint(
-                condition=Q(trangThai__in=[0, 1]),
+                check=Q(trangThai__in=[0, 1]),
                 name='sp_trangThai_valid_new'
             ),
         ]
@@ -107,7 +107,7 @@ class ChiTiet_Sach(models.Model):
         db_table = 'inventory_chitiet_sach'
         constraints = [
             models.CheckConstraint(
-                condition=Q(namXuatBan__gte=0),
+                check=Q(namXuatBan__gte=0),
                 name='cts_namXuatBan_gte_0_new'
             ),
         ]

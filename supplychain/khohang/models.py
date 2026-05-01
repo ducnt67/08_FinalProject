@@ -13,11 +13,11 @@ class TonKho(models.Model):
         db_table = 'inventory_tonkho'
         constraints = [
             models.CheckConstraint(
-                condition=Q(soluongTon__gte=0),
+                check=Q(soluongTon__gte=0),
                 name='tk_soLuongTon_gte_0_new'
             ),
             models.CheckConstraint(
-                condition=Q(trangthaiCanhBao__in=[0, 1, 2]),
+                check=Q(trangthaiCanhBao__in=[0, 1, 2]),
                 name='tk_trangthaiCanhBao_valid_new'
             ),
         ]
@@ -46,11 +46,11 @@ class NhapKho(models.Model):
         db_table = 'inventory_nhapkho'
         constraints = [
             models.CheckConstraint(
-                condition=Q(trangthaiNhap__gte=-1),
+                check=Q(trangthaiNhap__gte=-1),
                 name='nk_trangthaiNhap_gte_minus_1_new'
             ),
             models.CheckConstraint(
-                condition=Q(tongtienNhap__gte=0),
+                check=Q(tongtienNhap__gte=0),
                 name='nk_tongtienNhap_gte_0_new'
             ),
         ]
@@ -72,19 +72,19 @@ class PhieuNhap_CT(models.Model):
                 name='pnct_unique_phieuNhap_sanPham_new'
             ),
             models.CheckConstraint(
-                condition=Q(soluongDat__gt=0),
+                check=Q(soluongDat__gt=0),
                 name='pnct_soluongDat_gt_0_new'
             ),
             models.CheckConstraint(
-                condition=Q(dongiaNhap__gte=0),
+                check=Q(dongiaNhap__gte=0),
                 name='pnct_dongiaNhap_gte_0_new'
             ),
             models.CheckConstraint(
-                condition=Q(thanhTien__gte=0),
+                check=Q(thanhTien__gte=0),
                 name='pnct_thanhTien_gte_0_new'
             ),
             models.CheckConstraint(
-                condition=Q(soluongThucNhan__gte=0),
+                check=Q(soluongThucNhan__gte=0),
                 name='pnct_soluongThucNhan_gte_0_new'
             ),
         ]
@@ -109,7 +109,7 @@ class XuatKho(models.Model):
         db_table = 'inventory_xuatkho'
         constraints = [
             models.CheckConstraint(
-                condition=Q(trangThai__gte=-1),
+                check=Q(trangThai__gte=-1),
                 name='xk_trangThai_gte_minus_1_new'
             ),
         ]
@@ -128,7 +128,7 @@ class PhieuXuat_CT(models.Model):
                 name='pxct_unique_phieuXuat_sanPham_new'
             ),
             models.CheckConstraint(
-                condition=Q(soluongXuat__gt=0),
+                check=Q(soluongXuat__gt=0),
                 name='pxct_soluongXuat_gt_0_new'
             ),
         ]
@@ -145,7 +145,7 @@ class KiemKe(models.Model):
         db_table = 'inventory_kiemke'
         constraints = [
             models.CheckConstraint(
-                condition=Q(trangThai__gte=0),
+                check=Q(trangThai__gte=0),
                 name='kk_trangThai_gte_0_new'
             ),
         ]
@@ -165,11 +165,11 @@ class KiemKe_CT(models.Model):
                 name='kkct_unique_kiemKe_sanPham_new'
             ),
             models.CheckConstraint(
-                condition=Q(slTonKho__gte=0),
+                check=Q(slTonKho__gte=0),
                 name='kkct_slTonKho_gte_0_new'
             ),
             models.CheckConstraint(
-                condition=Q(slThucTe__gte=0),
+                check=Q(slThucTe__gte=0),
                 name='kkct_slThucTe_gte_0_new'
             ),
         ]
@@ -188,11 +188,11 @@ class TraHangNCC(models.Model):
         db_table = 'inventory_trahangncc'
         constraints = [
             models.CheckConstraint(
-                condition=Q(trangThai__gte=-1),
+                check=Q(trangThai__gte=-1),
                 name='thncc_trangThai_gte_minus_1_new'
             ),
             models.CheckConstraint(
-                condition=Q(tongtienTra__gte=0),
+                check=Q(tongtienTra__gte=0),
                 name='thncc_tongtienTra_gte_0_new'
             ),
         ]
@@ -214,15 +214,15 @@ class TraHangNCC_CT(models.Model):
                 name='thnccct_unique_phieuTra_sanPham_new'
             ),
             models.CheckConstraint(
-                condition=Q(soluongTra__gt=0),
+                check=Q(soluongTra__gt=0),
                 name='thnccct_soluongTra_gt_0_new'
             ),
             models.CheckConstraint(
-                condition=Q(dongiaTra__gte=0),
+                check=Q(dongiaTra__gte=0),
                 name='thnccct_dongiaTra_gte_0_new'
             ),
             models.CheckConstraint(
-                condition=Q(thanhTien__gte=0),
+                check=Q(thanhTien__gte=0),
                 name='thnccct_thanhTien_gte_0_new'
             ),
         ]

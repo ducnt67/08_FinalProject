@@ -15,14 +15,14 @@ class DonDatHang(models.Model):
         db_table = 'inventory_dondathang'
         constraints = [
             models.CheckConstraint(
-                condition=Q(trangThai__gte=0),
+                check=Q(trangThai__gte=0),
                 name='ddh_trangThai_gte_0_new'
             ),
         ]
 
 
 class DonDatHang_CT(models.Model):
-    donDatHang = models.ForeignKey(DonDatHang, on_delete=models.CASCADE)
+    donDatHang = models.ForeignKey(DonDatHang, on_delete=models.CASCADE, related_name='dondathang_ct_set')
     sanPham = models.ForeignKey('sanpham.SanPham', on_delete=models.CASCADE)
     soluongDat = models.IntegerField(validators=[MinValueValidator(1)])
     giaNhap = models.DecimalField(max_digits=15, decimal_places=2, validators=[MinValueValidator(0)])
@@ -36,15 +36,15 @@ class DonDatHang_CT(models.Model):
                 name='ddhct_unique_donDatHang_sanPham_new'
             ),
             models.CheckConstraint(
-                condition=Q(soluongDat__gt=0),
+                check=Q(soluongDat__gt=0),
                 name='ddhct_soluongDat_gt_0_new'
             ),
             models.CheckConstraint(
-                condition=Q(giaNhap__gte=0),
+                check=Q(giaNhap__gte=0),
                 name='ddhct_giaNhap_gte_0_new'
             ),
             models.CheckConstraint(
-                condition=Q(thanhTien__gte=0),
+                check=Q(thanhTien__gte=0),
                 name='ddhct_thanhTien_gte_0_new'
             ),
         ]

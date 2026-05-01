@@ -177,6 +177,86 @@
             overflow-y: auto;
             border: 1px solid #f3f4f6;
         }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .detail-modal {
+            background: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+            color: white;
+            padding: 24px 32px;
+            border-radius: 16px 16px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-shrink: 0;
+        }
+
+        .detail-modal-header {
+            background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+        }
+
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            background: #f9fafb;
+            padding: 24px 32px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            border-radius: 0 0 16px 16px;
+        }
+
+        .modal-overlay::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal-overlay::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        .modal-overlay::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .modal-overlay::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
     </style>
 </head>
 
@@ -413,8 +493,8 @@
     </main>
     
     <!-- MODAL CHI TIẾT ĐƠN ĐẶT HÀNG -->
-    <div id="orderDetailModal" class="modal-overlay">
-        <div class="detail-modal">
+    <div id="orderDetailModal" class="modal-overlay" onclick="if(event.target === this) closeDetailModal('orderDetailModal')">
+        <div class="detail-modal" onclick="event.stopPropagation()">
             <div id="orderDetailModalContent">
                 <!-- Nội dung được đổ vào bằng JS -->
             </div>
@@ -450,17 +530,37 @@
 
         // --- Detail Modal ---
         function openOrderDetail(code) {
-            fetch(`?maDatHang=${code}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                .then(res => res.json())
+            console.log('Opening order detail for:', code);
+
+            fetch(`?maDatHang=${encodeURIComponent(code)}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(res => {
+                    console.log('Response status:', res.status);
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+                    return res.json();
+                })
                 .then(data => {
+                    console.log('Order data received:', data);
+
+                    if (!data || !data.items) {
+                        alert('Lỗi: Dữ liệu không hợp lệ');
+                        console.error('Invalid data:', data);
+                        return;
+                    }
+
                     const content = document.getElementById('orderDetailModalContent');
                     
                     // Tính toán tổng số lượng và tổng tiền
                     let totalQty = 0;
                     let totalAmount = 0;
                     const itemsHtml = data.items.map((it, idx) => {
-                        totalQty += it.qty;
-                        totalAmount += (it.qty * it.price);
+                        const itemQty = parseInt(it.qty) || 0;
+                        const itemPrice = parseFloat(it.price) || 0;
+                        totalQty += itemQty;
+                        totalAmount += (itemQty * itemPrice);
                         return `
                             <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
                                 <td class="p-4 text-center text-gray-400 font-bold text-xs">${idx + 1}</td>
@@ -471,9 +571,9 @@
                                     <div class="font-bold text-gray-800">${it.tenSP}</div>
                                     <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">${it.danhMuc}</div>
                                 </td>
-                                <td class="p-4 text-center font-bold text-gray-700">${it.qty}</td>
-                                <td class="p-4 text-right font-bold text-gray-700">${it.price.toLocaleString('vi-VN')} ₫</td>
-                                <td class="p-4 text-right font-black text-primary">${(it.qty * it.price).toLocaleString('vi-VN')} ₫</td>
+                                <td class="p-4 text-center font-bold text-gray-700">${itemQty}</td>
+                                <td class="p-4 text-right font-bold text-gray-700">${itemPrice.toLocaleString('vi-VN')} ₫</td>
+                                <td class="p-4 text-right font-black text-primary">${(itemQty * itemPrice).toLocaleString('vi-VN')} ₫</td>
                             </tr>
                         `;
                     }).join('');
@@ -516,7 +616,7 @@
                                     <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Trạng thái</span>
                                     <div class="px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-gray-800 flex items-center">
                                         <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest 
-                                            ${data.trangThai === 'Hoàn thành' ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'}">
+                                            ${data.trangThai === 'Hoàn thành' ? 'bg-green-100 text-green-600' : data.trangThai === 'Chờ xác nhận' ? 'bg-yellow-100 text-yellow-700' : data.trangThai === 'Đang giao' ? 'bg-blue-100 text-blue-600' : 'bg-red-100 text-red-600'}">
                                             ${data.trangThai}
                                         </span>
                                     </div>
@@ -576,14 +676,23 @@
                             </div>
                         </div>
                     `;
-                    document.getElementById('orderDetailModal').classList.add('active');
+                    const modal = document.getElementById('orderDetailModal');
+                    modal.classList.add('active');
+                    console.log('Modal opened successfully');
+                })
+                .catch(err => {
+                    console.error('Lỗi tải dữ liệu:', err);
+                    alert('Lỗi tải chi tiết đơn hàng: ' + err.message);
                 });
         }
 
 
 
         function closeDetailModal(id) {
-            document.getElementById(id).classList.remove('active');
+            const modal = document.getElementById(id);
+            if (modal) {
+                modal.classList.remove('active');
+            }
         }
 
         // --- Form Interaction ---
@@ -692,7 +801,7 @@
                 mode: currentMode,
                 maDatHang: code,
                 ngayDatHang: date,
-                maNCC: supplier,
+                nhaCungCap: supplier,
                 ghichu: note,
                 trangThai: status, // 0: Lưu tạm, 1: Xác nhận
                 items: items

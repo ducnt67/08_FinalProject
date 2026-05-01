@@ -161,9 +161,16 @@
                                     {% endif %}
                                 </td>
                                 <td class="py-5 px-5 text-center">
-                                    <button type="button" onclick="showDetail('{{ item.sanPham.maSP }}')" class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-white border border-gray-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Chi tiết">
-                                        <i class="fa-solid fa-eye text-[14px]"></i>
-                                    </button>
+                                    <div class="flex items-center justify-center gap-2">
+                                        <button type="button" onclick="showDetail('{{ item.sanPham.maSP }}')" class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-white border border-gray-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Chi tiết">
+                                            <i class="fa-solid fa-eye text-[14px]"></i>
+                                        </button>
+                                        {% if current_qty <= min_qty and item.sanPham.trangThai == 1 %}
+                                        <button type="button" onclick="createAutoOrder('{{ item.sanPham.maSP }}', this)" class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-orange-100 border border-orange-200 text-orange-500 hover:bg-orange-500 hover:text-white transition-all shadow-sm" title="Tạo đơn đặt hàng tự động">
+                                            <i class="fa-solid fa-truck-fast text-[14px]"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
                                 </td>
                             </tr>
                             {% endwith %}
@@ -199,6 +206,8 @@
   </div>
 
   <script>
+    const csrftoken = '{{ csrf_token }}';
+
     function updateCounts() {
         const rows = document.querySelectorAll('.inv-row');
         let safe = 0, warning = 0, empty = 0;
@@ -237,7 +246,6 @@
         document.getElementById('detailModal').style.display = 'flex';
         document.getElementById('detailBody').innerHTML = '<div class="text-center py-10"><i class="fas fa-spinner fa-spin text-3xl text-primary"></i></div>';
 
-        // Sử dụng URL tag để tránh sai lệch đường dẫn
         const url = "{% url 'sanpham:sanpham' %}?maSP=" + maSP;
 
         fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
@@ -312,6 +320,44 @@
         .catch(err => {
             console.error(err);
             document.getElementById('detailBody').innerHTML = '<p class="text-red-500 text-center font-bold py-10">Lỗi tải dữ liệu! Vui lòng kiểm tra lại kết nối.</p>';
+        });
+    }
+
+    function createAutoOrder(maSP, button) {
+        if (!confirm(`Bạn có chắc chắn muốn tạo đơn đặt hàng tự động cho sản phẩm ${maSP} không?`)) {
+            return;
+        }
+
+        const originalIcon = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        fetch("{% url 'khohang:auto_create_order' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({ maSP: maSP })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert(data.message);
+                // Optional: Change button state to success
+                button.innerHTML = '<i class="fas fa-check"></i>';
+                button.classList.remove('bg-orange-100', 'text-orange-500', 'hover:bg-orange-500');
+                button.classList.add('bg-green-100', 'text-green-500', 'cursor-not-allowed');
+            } else {
+                alert('Lỗi: ' + data.message);
+                button.disabled = false;
+                button.innerHTML = originalIcon;
+            }
+        })
+        .catch(err => {
+            alert('Lỗi hệ thống: ' + err.message);
+            button.disabled = false;
+            button.innerHTML = originalIcon;
         });
     }
 
