@@ -12,16 +12,16 @@ class DanhMuc(models.Model):
 
     class Meta:
         db_table = 'inventory_danhmuc'
-        constraints = [
-            models.CheckConstraint(
-                check=Q(trangThai__in=[0, 1]),
-                name='dm_trangThai_valid_new'
-            ),
-            models.CheckConstraint(
-                check=~Q(maDanhMuc=F('maDanhMucCha')),
-                name='dm_not_self_parent_new'
-            ),
-        ]
+        # constraints = [
+        #     models.CheckConstraint(
+        #         check=Q(trangThai__in=[0, 1]),
+        #         name='dm_trangThai_valid_new'
+        #     ),
+        #     models.CheckConstraint(
+        #         check=~Q(maDanhMuc=F('maDanhMucCha')),
+        #         name='dm_not_self_parent_new'
+        #     ),
+        # ]
 
     def clean(self):
         if self.maDanhMucCha_id and self.maDanhMucCha_id == self.maDanhMuc:
@@ -45,20 +45,20 @@ class SanPham(models.Model):
 
     class Meta:
         db_table = 'inventory_sanpham'
-        constraints = [
-            models.CheckConstraint(
-                check=Q(giaBan__gte=0),
-                name='sp_giaBan_gte_0_new'
-            ),
-            models.CheckConstraint(
-                check=Q(tonKhoToiThieu__gte=0),
-                name='sp_tonKhoToiThieu_gte_0_new'
-            ),
-            models.CheckConstraint(
-                check=Q(trangThai__in=[0, 1]),
-                name='sp_trangThai_valid_new'
-            ),
-        ]
+        # constraints = [
+        #     models.CheckConstraint(
+        #         check=Q(giaBan__gte=0),
+        #         name='sp_giaBan_gte_0_new'
+        #     ),
+        #     models.CheckConstraint(
+        #         check=Q(tonKhoToiThieu__gte=0),
+        #         name='sp_tonKhoToiThieu_gte_0_new'
+        #     ),
+        #     models.CheckConstraint(
+        #         check=Q(trangThai__in=[0, 1]),
+        #         name='sp_trangThai_valid_new'
+        #     ),
+        # ]
 
     def clean(self):
         errors = {}
@@ -105,9 +105,9 @@ class ChiTiet_Sach(models.Model):
 
     class Meta:
         db_table = 'inventory_chitiet_sach'
-        constraints = [
-            models.CheckConstraint(
-                check=Q(namXuatBan__gte=0),
-                name='cts_namXuatBan_gte_0_new'
-            ),
-        ]
+        # constraints = [
+        #     models.CheckConstraint(
+        #         check=Q(namXuatBan__gte=0),
+        #         name='cts_namXuatBan_gte_0_new'
+        #     ),
+        # ]
