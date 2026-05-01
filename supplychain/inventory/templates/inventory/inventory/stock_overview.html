@@ -124,8 +124,7 @@
                         <thead>
                             <tr class="bg-gray-50/80">
                                 <th width="60" class="py-3.5 px-5 font-bold text-[13px] text-primary border-b border-gray-100 text-center">STT</th>
-                                <th class="py-3.5 px-5 font-bold text-[13px] text-primary border-b border-gray-100">Mã SP</th>
-                                <th class="py-3.5 px-5 font-bold text-[13px] text-primary border-b border-gray-100">Tên sản phẩm</th>
+                                <th class="py-3.5 px-5 font-bold text-[13px] text-primary border-b border-gray-100">Thông tin Sản phẩm</th>
                                 <th class="py-3.5 px-5 font-bold text-[13px] text-primary border-b border-gray-100 text-center">Tồn tối thiểu</th>
                                 <th class="py-3.5 px-5 font-bold text-[13px] text-primary border-b border-gray-100 text-center">Hiện có</th>
                                 <th class="py-3.5 px-5 font-bold text-[13px] text-primary border-b border-gray-100">Trạng thái</th>
@@ -139,8 +138,12 @@
                                 data-status="{% if current_qty == 0 %}empty{% elif current_qty <= min_qty %}warning{% else %}safe{% endif %}"
                                 data-search="{{ item.sanPham.maSP }} {{ item.sanPham.tenSP }}">
                                 <td class="py-5 px-5 text-gray-500 text-center font-bold row-index">{{ forloop.counter }}</td>
-                                <td class="py-5 px-5 text-gray-500">{{ item.sanPham.maSP }}</td>
-                                <td class="py-5 px-5 font-semibold text-gray-800">{{ item.sanPham.tenSP }}</td>
+                                <td class="py-5 px-5">
+                                    <div class="flex flex-col text-left">
+                                        <span class="text-[10px] text-primary font-bold uppercase tracking-tight mb-0.5">{{ item.sanPham.maSP }}</span>
+                                        <span class="font-bold text-gray-800 text-sm">{{ item.sanPham.tenSP }}</span>
+                                    </div>
+                                </td>
                                 <td class="py-5 px-5 text-center text-gray-600 font-bold">{{ min_qty }}</td>
                                 <td class="py-5 px-5 text-center font-black {% if current_qty == 0 %}text-red-600{% elif current_qty <= min_qty %}text-orange-600{% else %}text-gray-900{% endif %}">
                                     {{ current_qty }}

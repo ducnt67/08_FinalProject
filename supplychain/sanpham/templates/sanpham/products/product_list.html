@@ -250,9 +250,10 @@
                                 <label class="block text-[13px] font-bold text-gray-700 mb-1">Giá bán (VNĐ) <span
                                         class="text-red-500">*</span></label>
                                 <div class="relative flex items-center">
-                                    <input type="number" id="modalProductPrice"
+                                    <input type="text" id="modalProductPrice"
                                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[14px] focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none pr-8 text-right"
-                                           placeholder="0">
+                                           placeholder="0"
+                                           oninput="this.value = this.value.replace(/[^0-9.,]/g, ''); formatPriceInput(this)">
                                     <span class="absolute right-3 text-gray-500 text-[14px]">₫</span>
                                 </div>
                             </div>
@@ -348,6 +349,17 @@
         return cookieValue;
     }
     const csrftoken = getCookie('csrftoken');
+
+    function formatPriceInput(input) {
+        // Lấy giá trị chỉ giữ lại số
+        let value = input.value.replace(/\D/g, "");
+        if (value === "") {
+            input.value = "";
+            return;
+        }
+        // Định dạng có dấu chấm phân cách hàng nghìn
+        input.value = parseInt(value).toLocaleString('vi-VN');
+    }
 
     const searchInput = document.getElementById('searchInput');
     const catFilter = document.getElementById('categoryFilter');
@@ -636,7 +648,7 @@ function toggleBookInfoSection(clearWhenHidden = false) {
                 providerInput.value = data.nhaCungCap;
             }
 
-            priceInput.value = data.giaBan;
+            priceInput.value = parseInt(data.giaBan).toLocaleString('vi-VN');
             minStockInput.value = data.tonKhoToiThieu;
             descInput.value = data.moTa;
 
@@ -703,7 +715,8 @@ function toggleBookInfoSection(clearWhenHidden = false) {
             tenSP: document.getElementById('modalProductName').value.trim(),
             danhMuc: document.getElementById('modalProductCategory').value,
             donViTinh: document.getElementById('modalProductUnit').value,
-            giaBan: document.getElementById('modalProductPrice').value || 0,
+            // Loại bỏ dấu phân cách trước khi gửi về server
+            giaBan: document.getElementById('modalProductPrice').value.replace(/\D/g, '') || 0,
             tonKhoToiThieu: document.getElementById('modalProductMinStock').value || 0,
             nhaCungCap: document.getElementById('modalProductProvider').value,
             moTa: document.getElementById('modalProductDesc').value.trim(),
@@ -713,10 +726,11 @@ function toggleBookInfoSection(clearWhenHidden = false) {
             namXuatBan: document.getElementById('modalPublishYear').value || 0
         };
 
-        if(!data.tenSP || !data.danhMuc || !data.donViTinh || !data.nhaCungCap || !data.giaBan) {
-            alert("Vui lòng nhập đầy đủ thông tin bắt buộc (*)");
-            return;
-        }
+        if(!data.tenSP) { alert("Vui lòng nhập tên sản phẩm"); return; }
+        if(!data.danhMuc) { alert("Vui lòng chọn danh mục"); return; }
+        if(!data.donViTinh) { alert("Vui lòng chọn đơn vị tính"); return; }
+        if(!data.nhaCungCap) { alert("Vui lòng chọn nhà cung cấp"); return; }
+        if(!data.giaBan || data.giaBan <= 0) { alert("Giá bán phải là số dương và không để trống"); return; }
 
         const formData = new FormData();
         Object.keys(data).forEach((key) => {

@@ -183,7 +183,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             <div>
                                 <label class="block text-sm text-gray-600 mb-2 font-bold">Mã phiếu nhập</label>
-                                <input id="create_maphieu" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary outline-none" placeholder="Để trống hệ thống sẽ tự sinh (VD: PNK-2023...)">
+                                <input id="create_maphieu" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary outline-none bg-gray-50 text-gray-500 cursor-not-allowed" placeholder="Hệ thống tự tạo" disabled>
                             </div>
                             <div>
                                 <label class="block text-sm text-gray-600 mb-2 font-bold">Ngày nhập</label>
@@ -194,7 +194,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 transition-all" id="create_row_2">
                             <div>
                                 <label class="block text-sm text-gray-600 mb-2 font-bold">Người nhập kho</label>
-                                <input id="create_nguoinhap" type="text" class="w-full px-4 py-2 border border-gray-200 bg-gray-50 rounded-lg text-gray-700" value="Admin" readonly>
+                                <input id="create_nguoinhap" type="text" class="w-full px-4 py-2 border border-gray-200 bg-gray-50 rounded-lg text-gray-700" value="{{ request.user.get_full_name|default:request.user.username }}" readonly>
                             </div>
                             <div id="create_po_container">
                                 <label class="block text-sm text-gray-600 mb-2 font-bold">Chọn Đơn hàng (PO) <span class="text-primary">*</span></label>
@@ -217,7 +217,7 @@
                             <label class="block text-sm text-gray-600 mb-2 font-bold">Tìm kiếm sản phẩm</label>
                             <div class="autocomplete-wrapper">
                                 <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                                <input type="text" id="create_goods_search" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary outline-none" placeholder="Nhập tên hoặc mã sách để thêm...">
+                                <input type="text" id="create_goods_search" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary outline-none" placeholder="Nhập tên hoặc mã sản phẩm để thêm...">
                             </div>
                         </div>
 
@@ -226,10 +226,11 @@
                                 <thead class="bg-gray-50 border-y border-gray-100" style="background-color: #f9fafb !important;">
                                     <tr>
                                         <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-20 uppercase" style="background: transparent !important; color: #dc2626 !important;">STT</th>
-                                        <th class="py-4 px-4 font-bold text-red-600 text-sm text-left uppercase" style="background: transparent !important; color: #dc2626 !important;">SÁCH</th>
-                                        <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">ĐƠN GIÁ NHẬP</th>
+                                        <th class="py-4 px-4 font-bold text-red-600 text-sm !text-left uppercase" style="background: transparent !important; color: #dc2626 !important;">SẢN PHẨM</th>
+                                        <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">ĐƠN GIÁ</th>
                                         <th id="create_th_po_qty" class="py-4 px-4 font-bold text-red-600 text-sm text-center w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">SL ĐẶT</th>
-                                        <th id="create_th_real_qty" class="py-4 px-4 font-bold text-red-600 text-sm text-center w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">SL THỰC NHẬN</th>
+                                        <th id="create_th_real_qty" class="py-4 px-4 font-bold text-red-600 text-sm text-center w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">SL NHẬN</th>
+                                        <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-40 uppercase" style="background: transparent !important; color: #dc2626 !important;">VỊ TRÍ KHO</th>
                                         <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">THÀNH TIỀN</th>
                                         <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-24 uppercase" style="background: transparent !important; color: #dc2626 !important;">THAO TÁC</th>
                                     </tr>
@@ -401,7 +402,7 @@
                                     <thead class="bg-gray-50 border-y border-gray-100" style="background-color: #f9fafb !important;">
                                         <tr>
                                             <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-20 uppercase" style="background: transparent !important; color: #dc2626 !important;">STT</th>
-                                            <th class="py-4 px-4 font-bold text-red-600 text-sm text-left uppercase" style="background: transparent !important; color: #dc2626 !important;">SÁCH</th>
+                                            <th class="py-4 px-4 font-bold text-red-600 text-sm text-left uppercase" style="background: transparent !important; color: #dc2626 !important;">SẢN PHẨM</th>
                                             <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">ĐƠN GIÁ</th>
                                             <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">ĐÃ NHẬP</th>
                                             <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">SL TRẢ</th>
@@ -486,8 +487,8 @@
         function openCreateImport(type = 'DIRECT') {
             document.getElementById('createImportDropdown').classList.add('hidden');
             document.getElementById('create_maphieu').value = '';
-            document.getElementById('create_maphieu').readOnly = false;
             document.getElementById('create_ngaynhap').value = new Date().toISOString().slice(0, 16);
+            document.getElementById('create_nguoinhap').value = "{{ request.user.get_full_name|default:request.user.username }}";
             document.getElementById('create_nhacungcap').value = '';
             document.getElementById('create_ghichu').value = '';
             document.getElementById('create_goods_body').innerHTML = '';
@@ -534,6 +535,7 @@
                 document.getElementById('create_maphieu').readOnly = true;
                 document.getElementById('create_ngaynhap').value = data.ngayNhap;
                 document.getElementById('create_nhacungcap').value = data.nhaCungCap;
+                document.getElementById('create_nguoinhap').value = data.user;
                 document.getElementById('create_ghichu').value = data.ghichu;
 
                 const poContainer = document.getElementById('create_po_container');
@@ -557,7 +559,7 @@
                 const tbody = document.getElementById('create_goods_body');
                 tbody.innerHTML = '';
                 data.items.forEach((item, idx) => {
-                    addProdToTable(item.maSP, item.tenSP, item.price, item.orderedQty, item.qty, type);
+                    addProdToTable(item.maSP, item.tenSP, item.price, item.orderedQty, item.qty, type, item.maLo, item.maViTri, item.nsx, item.hsd);
                 });
 
                 updateCreateTotals();
@@ -565,21 +567,31 @@
             });
         }
 
-        function addProdToTable(code, name, price, orderedQty = 0, realQty = 1, type = 'DIRECT') {
+        function addProdToTable(code, name, price, orderedQty = 0, realQty = 1, type = 'DIRECT', batch = '', loc = '', nsx = '', hsd = '') {
             const tbody = document.getElementById('create_goods_body');
             const tr = document.createElement('tr');
             tr.className = "hover:bg-gray-50 border-b border-gray-100";
             tr.dataset.maSP = code;
             tr.innerHTML = `
                 <td class="py-4 px-4 text-center text-gray-600 font-bold">${tbody.rows.length + 1}</td>
-                <td class="py-4 px-4 text-left">
-                    <div class="font-bold text-gray-800 text-sm">${name}</div>
-                    <div class="text-[11px] text-gray-500 font-medium">${code}</div>
+                <td class="py-4 px-4 !text-left">
+                    <div class="flex flex-col items-start text-left">
+                        <span class="text-[10px] text-primary font-bold uppercase tracking-tight mb-0.5 leading-none">${code}</span>
+                        <span class="font-bold text-gray-800 text-sm leading-tight">${name}</span>
+                    </div>
                 </td>
-                <td class="py-4 px-4 text-center"><input type="number" class="item-price w-full border rounded px-2 py-1 text-center font-bold" value="${price}" oninput="updateCreateTotals()"></td>
-                ${type === 'PO' ? `<td class="py-4 px-4 text-center font-bold text-gray-700 item-ordered-qty">${orderedQty}</td>` : ''}
-                <td class="py-4 px-4 text-center"><input type="number" class="item-qty w-full border rounded px-2 py-1 text-center font-bold" value="${realQty}" min="0" oninput="updateCreateTotals()"></td>
-                <td class="py-4 px-4 text-center font-black text-primary item-amount">0</td>
+                <td class="py-4 px-4 text-center"><input type="number" class="item-price w-full border rounded px-1 py-1 text-center font-bold text-sm" value="${price}" oninput="updateCreateTotals()"></td>
+                ${type === 'PO' ? `<td class="py-4 px-4 text-center font-bold text-gray-700 item-ordered-qty text-sm">${orderedQty}</td>` : ''}
+                <td class="py-4 px-4 text-center"><input type="number" class="item-qty w-full border rounded px-1 py-1 text-center font-bold text-sm" value="${realQty}" min="0" oninput="updateCreateTotals()"></td>
+                <td class="py-4 px-4 text-center">
+                    <select class="item-location w-full border rounded px-1 py-1 text-[11px] font-bold">
+                        <option value="">-- Vị trí --</option>
+                        {% for v in vitris %}
+                        <option value="{{ v.maViTri }}" ${loc === '{{ v.maViTri }}' ? 'selected' : ''}>{{ v.maViTri }} ({{ v.khuVuc }})</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td class="py-4 px-4 text-center font-bold text-primary item-amount text-sm">0</td>
                 <td class="py-4 px-4 text-center"><button class="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-all" onclick="this.closest('tr').remove(); updateCreateTotals()"><i class="fa-solid fa-trash-can"></i></button></td>
             `;
             tbody.appendChild(tr);
@@ -606,7 +618,8 @@
                     maSP: tr.dataset.maSP,
                     price: tr.querySelector('.item-price').value,
                     qty: tr.querySelector('.item-qty').value,
-                    orderedQty: tr.querySelector('.item-ordered-qty')?.textContent || tr.querySelector('.item-qty').value
+                    orderedQty: tr.querySelector('.item-ordered-qty')?.textContent || tr.querySelector('.item-qty').value,
+                    maViTri: tr.querySelector('.item-location').value,
                 });
             });
             if (items.length === 0) return alert('Vui lòng chọn sản phẩm');
@@ -642,12 +655,17 @@
                 const itemsHtml = data.items.map((item, idx) => `
                     <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors text-sm">
                         <td class="p-4 text-center text-gray-400 font-bold">${idx + 1}</td>
-                        <td class="p-4 font-bold text-gray-800">${item.maSP}</td>
-                        <td class="p-4 text-gray-700">${item.tenSP}</td>
-                        <td class="p-4 text-center font-bold text-gray-700">${item.donViTinh || 'Cuốn'}</td>
+                        <td class="p-4 !text-left">
+                            <div class="flex flex-col items-start text-left">
+                                <span class="text-[10px] text-primary font-bold uppercase tracking-tight mb-0.5 leading-none">${item.maSP}</span>
+                                <span class="font-bold text-gray-800 text-sm leading-tight">${item.tenSP}</span>
+                            </div>
+                        </td>
+                        <td class="p-4 text-center">
+                            <span class="px-2 py-0.5 rounded bg-gray-100 font-bold text-[10px] border border-gray-200">${item.maViTri || '-'}</span>
+                        </td>
                         <td class="p-4 text-center font-bold text-gray-700">${item.qty}</td>
-                        <td class="p-4 text-right text-gray-500">${parseFloat(item.price).toLocaleString('vi-VN')}</td>
-                        <td class="p-4 text-right font-black text-primary text-base">${parseFloat(item.amount).toLocaleString('vi-VN')} đ</td>
+                        <td class="p-4 text-right font-black text-primary text-sm">${parseFloat(item.amount).toLocaleString('vi-VN')} đ</td>
                     </tr>
                 `).join('');
 
@@ -702,11 +720,9 @@
                                     <thead class="bg-gray-50 text-red-600 font-bold text-[10px] uppercase tracking-widest">
                                         <tr>
                                             <th class="p-4 text-center">STT</th>
-                                            <th class="p-4 text-left">Mã SP</th>
-                                            <th class="p-4 text-left">Tên sản phẩm</th>
-                                            <th class="p-4 text-center">ĐVT</th>
-                                            <th class="p-4 text-center">Số lượng</th>
-                                            <th class="p-4 text-right">Đơn giá</th>
+                                            <th class="p-4 text-left">Sản phẩm</th>
+                                            <th class="p-4 text-center">Vị trí</th>
+                                            <th class="p-4 text-center">SL Nhập</th>
                                             <th class="p-4 text-right">Thành tiền</th>
                                         </tr>
                                     </thead>

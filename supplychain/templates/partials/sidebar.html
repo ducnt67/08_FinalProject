@@ -49,6 +49,16 @@
     </div>
 
     <div class="menu-group">
+        <div class="menu-title">Quản lý WMS</div>
+        <a href="{% url 'khohang:vitri_list' %}"
+           class="menu-link {% if request.resolver_match.url_name == 'vitri_list' %}active{% endif %}">
+            <i class="fa-solid fa-map-location-dot"></i> Vị trí kho
+        </a>
+
+
+    </div>
+
+    <div class="menu-group">
         <div class="menu-title">Kinh doanh</div>
         <a href="{% url 'dathang:dathang' %}"
            class="menu-link {% if request.resolver_match.url_name == 'dathang' %}active{% endif %}">

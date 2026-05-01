@@ -320,8 +320,10 @@
         tr.innerHTML = `
             <td class="py-4 px-4 text-center text-gray-400 font-bold stt-col"></td>
             <td class="py-4 px-4">
-                <div class="font-bold text-gray-800">${maSP}</div>
-                <div class="text-xs text-gray-500">${product.name}</div>
+                <div class="flex flex-col">
+                    <span class="text-[10px] text-primary font-bold uppercase tracking-tight mb-0.5">${maSP}</span>
+                    <span class="font-bold text-gray-800 text-sm">${product.name}</span>
+                </div>
             </td>
             <td class="py-4 px-4 text-center font-bold text-gray-500">${stock}</td>
             <td class="py-4 px-4 text-center">
@@ -428,8 +430,12 @@
                 return `
                     <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors text-sm">
                         <td class="p-4 text-center text-gray-400 font-bold">${idx + 1}</td>
-                        <td class="p-4 font-bold text-gray-800">${item.maSP}</td>
-                        <td class="p-4 text-gray-700">${item.tenSP}</td>
+                        <td class="p-4">
+                            <div class="flex flex-col">
+                                <span class="text-[10px] text-primary font-bold uppercase tracking-tight mb-0.5">${item.maSP}</span>
+                                <span class="font-bold text-gray-800">${item.tenSP}</span>
+                            </div>
+                        </td>
                         <td class="p-4 text-center font-bold text-gray-700">${item.donViTinh}</td>
                         <td class="p-4 text-center font-bold text-gray-500">${item.slTonKho}</td>
                         <td class="p-4 text-center font-black text-gray-800 text-base">${item.slThucTe}</td>
@@ -482,8 +488,7 @@
                                 <thead class="bg-gray-50 text-red-600 font-bold text-[10px] uppercase tracking-widest">
                                     <tr>
                                         <th class="p-4 text-center">STT</th>
-                                        <th class="p-4 text-left">Mã SP</th>
-                                        <th class="p-4 text-left">Tên sản phẩm</th>
+                                        <th class="p-4 text-left">Thông tin Sách</th>
                                         <th class="p-4 text-center">ĐVT</th>
                                         <th class="p-4 text-center">Tồn hệ thống</th>
                                         <th class="p-4 text-center">Thực tế</th>

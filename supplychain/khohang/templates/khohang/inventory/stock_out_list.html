@@ -336,8 +336,10 @@
                 <tr class="hover:bg-gray-50 border-b border-gray-50">
                     <td class="py-4 px-4 text-center text-gray-600 font-bold">${idx + 1}</td>
                     <td class="py-4 px-4 text-left">
-                        <div class="font-bold text-gray-800">${p.tenSP}</div>
-                        <div class="text-[11px] text-gray-500 font-medium">${p.maSP}</div>
+                        <div class="flex flex-col">
+                            <span class="text-[10px] text-primary font-bold uppercase tracking-tight mb-0.5">${p.maSP}</span>
+                            <span class="font-bold text-gray-800">${p.tenSP}</span>
+                        </div>
                     </td>
                     <td class="py-4 px-4 text-center text-gray-600 font-medium">${p.donViTinh}</td>
                     <td class="py-4 px-4 text-center">
@@ -417,10 +419,16 @@
                 return `
                     <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors text-sm">
                         <td class="p-4 text-center text-gray-400 font-bold">${idx + 1}</td>
-                        <td class="p-4 font-bold text-gray-800">${item.maSP}</td>
-                        <td class="p-4 text-gray-700">${item.tenSP}</td>
-                        <td class="p-4 text-center font-bold text-gray-700">${item.donViTinh || 'Cuốn'}</td>
-                        <td class="p-4 text-center font-bold text-gray-800 text-base">${item.qty}</td>
+                        <td class="p-4">
+                            <div class="flex flex-col">
+                                <span class="text-[10px] text-primary font-bold uppercase tracking-tight mb-0.5">${item.maSP}</span>
+                                <span class="font-bold text-gray-800">${item.tenSP}</span>
+                            </div>
+                        </td>
+                        <td class="p-4 text-center">
+                            <span class="px-2 py-0.5 rounded bg-gray-100 font-bold text-[10px] border border-gray-200">${item.maViTri || 'N/A'}</span>
+                        </td>
+                        <td class="p-4 text-center font-bold text-gray-800 text-sm">${item.qty}</td>
                     </tr>
                 `;
             }).join('');
@@ -473,9 +481,8 @@
                                 <thead class="bg-gray-50 text-red-600 font-bold text-[10px] uppercase tracking-widest">
                                     <tr>
                                         <th class="p-4 text-center">STT</th>
-                                        <th class="p-4 text-left">Mã SP</th>
-                                        <th class="p-4 text-left">Tên sản phẩm</th>
-                                        <th class="p-4 text-center">ĐVT</th>
+                                        <th class="p-4 text-left">Sản phẩm</th>
+                                        <th class="p-4 text-center">Vị trí</th>
                                         <th class="p-4 text-center">Số lượng</th>
                                     </tr>
                                 </thead>

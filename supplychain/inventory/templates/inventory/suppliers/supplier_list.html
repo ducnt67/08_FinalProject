@@ -376,6 +376,21 @@
                 return;
             }
 
+            // Frontend Validation
+            const phoneRegex = /^\+?[\d\s.-]{9,20}$/;
+            if (!phoneRegex.test(data.soDienThoai)) {
+                alert('Số điện thoại không hợp lệ (phải từ 9-15 chữ số).');
+                return;
+            }
+
+            if (data.email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(data.email)) {
+                    alert('Định dạng email không hợp lệ.');
+                    return;
+                }
+            }
+
             fetch(window.location.href, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
