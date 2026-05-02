@@ -311,7 +311,7 @@
                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[14px] focus:ring-1 focus:ring-red-500 focus:border-red-500 outline-none">
                                         <option value="" disabled selected>Chọn danh mục...</option>
                                         {% for cat in categories %}
-                                        <option value="{{ cat.maDanhMuc }}">{{ cat.tenDanhMuc }}</option>
+                                        <option value="{{ cat.maDanhMuc }}" data-parent-name="{{ cat.maDanhMucCha.tenDanhMuc|default:'' }}">{{ cat.tenDanhMuc }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
@@ -626,11 +626,17 @@
             if (!selectedOption) return false;
 
             const selectedText = selectedOption.text.trim().toLowerCase();
+            const parentText = (selectedOption.getAttribute('data-parent-name') || '').trim().toLowerCase();
             const selectedValue = categorySelect.value.trim().toLowerCase();
 
-            return selectedText.includes('sách') ||
-                selectedText.includes('sach') ||
-                selectedValue.includes('sach');
+            // Các từ khóa xác định đây là một loại sách
+            const keywords = ['sách', 'sach', 'truyện', 'truyen', 'tiểu thuyết', 'tieu thuyet', 'tạp chí', 'tap chi'];
+
+            const matchesKeyword = keywords.some(kw => 
+                selectedText.includes(kw) || parentText.includes(kw)
+            );
+
+            return matchesKeyword || selectedValue.includes('sach');
         }
 
         function toggleBookInfoSection(clearWhenHidden = false) {
