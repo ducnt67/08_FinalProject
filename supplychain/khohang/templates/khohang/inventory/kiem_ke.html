@@ -299,7 +299,12 @@
             maSP: "{{ sp.maSP }}", 
             tenSP: "{{ sp.tenSP }}", 
             dmId: "{{ sp.danhMuc.maDanhMuc }}",
-            slTon: stockMap["{{ sp.maSP }}"] || 0
+            slTon: stockMap["{{ sp.maSP }}"] || 0,
+            locations: [
+                {% for tkct in sp.tonkhochitiet_set.all %}
+                { maViTri: "{{ tkct.viTri.maViTri }}", khuVuc: "{{ tkct.viTri.khuVuc }}", sl: {{ tkct.soluong }} },
+                {% endfor %}
+            ]
         },
         {% endfor %}
     ];
@@ -551,7 +556,7 @@
             <td class="py-4 px-4 text-left">
                 <div class="font-bold text-gray-800">${p.tenSP}</div>
             </td>
-            <td class="py-4 px-4 text-center font-bold text-gray-500">${p.slTon}</td>
+            <td class="py-4 px-4 text-center font-bold text-gray-500 system-stock">${p.slTon}</td>
             <td class="py-4 px-4 text-center">
                 <input type="number" class="w-24 px-3 py-2 border border-gray-200 rounded-lg focus:ring-1 focus:ring-primary outline-none text-center font-bold text-gray-800 sl-thuc-te" value="${p.slTon}"
                     oninput="calculateDiff(this)" data-stock="${p.slTon}">
@@ -589,6 +594,24 @@
         } else {
             diffCell.className = 'py-4 px-4 text-center font-bold diff-val text-gray-600';
         }
+    }
+
+    function updateSystemStock(select, maSP) {
+        const tr = select.closest('tr');
+        const p = productCatalog.find(prod => prod.maSP === maSP);
+        const stockCell = tr.querySelector('.system-stock');
+        const inputActual = tr.querySelector('.sl-thuc-te');
+        
+        let newStock = p.slTon;
+        if (select.value) {
+            const loc = p.locations.find(l => l.maViTri === select.value);
+            newStock = loc ? loc.sl : 0;
+        }
+        
+        stockCell.innerText = newStock;
+        inputActual.dataset.stock = newStock;
+        inputActual.value = newStock;
+        calculateDiff(inputActual);
     }
 
     function saveCheck(trangThai) {
@@ -631,6 +654,7 @@
         .then(data => {
             if (data.status === 'success') {
                 alert(data.message);
+                window.location.hash = '';
                 location.reload();
             } else {
                 alert(data.message);
@@ -655,13 +679,9 @@
                 return `
                     <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors text-sm">
                         <td class="p-4 text-center text-gray-400 font-bold">${idx + 1}</td>
-                        <td class="p-4">
-                            <div class="flex flex-col">
-                                <span class="text-[10px] text-primary font-bold uppercase tracking-tight mb-0.5">${item.maSP}</span>
-                                <span class="font-bold text-gray-800">${item.tenSP}</span>
-                            </div>
-                        </td>
-                        <td class="p-4 text-center font-bold text-gray-700">${item.donViTinh}</td>
+                        <td class="p-4 font-bold text-gray-800">${item.maSP}</td>
+                        <td class="p-4 text-gray-700 font-medium">${item.tenSP}</td>
+                        <td class="p-4 text-center font-bold text-gray-700">${item.donViTinh || 'Cuốn'}</td>
                         <td class="p-4 text-center font-bold text-gray-500">${item.slTonKho}</td>
                         <td class="p-4 text-center font-black text-gray-800 text-base">${item.slThucTe}</td>
                         <td class="p-4 text-center font-black ${diffClass} text-base">
@@ -713,7 +733,8 @@
                                 <thead class="bg-gray-50 text-red-600 font-bold text-[10px] uppercase tracking-widest" style="background-color: #f9fafb !important;">
                                     <tr>
                                         <th class="p-4 text-center" style="background: transparent !important; color: #dc2626 !important;">STT</th>
-                                        <th class="p-4 text-left" style="text-align: left !important; background: transparent !important; color: #dc2626 !important;">Thông tin Sách</th>
+                                        <th class="p-4 text-left" style="background: transparent !important; color: #dc2626 !important;">MÃ SP</th>
+                                        <th class="p-4 text-left" style="background: transparent !important; color: #dc2626 !important;">TÊN SẢN PHẨM</th>
                                         <th class="p-4 text-center" style="background: transparent !important; color: #dc2626 !important;">ĐVT</th>
                                         <th class="p-4 text-center" style="background: transparent !important; color: #dc2626 !important;">Tồn hệ thống</th>
                                         <th class="p-4 text-center" style="background: transparent !important; color: #dc2626 !important;">Thực tế</th>
@@ -780,7 +801,7 @@
                     <td class="py-4 px-4 text-left">
                         <div class="font-bold text-gray-800">${item.tenSP}</div>
                     </td>
-                    <td class="py-4 px-4 text-center font-bold text-gray-500">${item.slTonKho}</td>
+                    <td class="py-4 px-4 text-center font-bold text-gray-500 system-stock">${item.slTonKho}</td>
                     <td class="py-4 px-4 text-center">
                         <input type="number" class="w-24 px-3 py-2 border border-gray-200 rounded-lg focus:ring-1 focus:ring-primary outline-none text-center font-bold text-gray-800 sl-thuc-te" value="${item.slThucTe}"
                             oninput="calculateDiff(this)" data-stock="${item.slTonKho}">

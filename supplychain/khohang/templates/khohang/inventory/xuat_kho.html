@@ -226,6 +226,7 @@
                                         <th class="py-4 px-4 text-left uppercase tracking-wider" style="text-align: left !important; background: transparent !important; color: #dc2626 !important;">Tên Sản phẩm</th>
                                         <th class="py-4 px-4 text-center w-24 uppercase tracking-wider" style="background: transparent !important; color: #dc2626 !important;">ĐVT</th>
                                         <th class="py-4 px-4 text-center w-32 uppercase tracking-wider" style="background: transparent !important; color: #dc2626 !important;">Tồn kho</th>
+                                        <th class="py-4 px-4 text-center w-40 uppercase tracking-wider" style="background: transparent !important; color: #dc2626 !important;">Vị trí xuất</th>
                                         <th class="py-4 px-4 text-center w-40 uppercase tracking-wider" style="background: transparent !important; color: #dc2626 !important;">Số lượng xuất</th>
                                         <th class="py-4 px-4 text-center w-24" style="background: transparent !important; color: #dc2626 !important;"></th>
                                     </tr>
@@ -363,7 +364,12 @@
             donViTinh: "{{ p.donViTinh }}",
             tonKho: {{ p.tonkho.soluongTon|default:0 }},
             dmId: "{{ p.danhMuc.maDanhMuc }}",
-            dmChaId: "{{ p.danhMuc.maDanhMucCha_id|default:'' }}"
+            dmChaId: "{{ p.danhMuc.maDanhMucCha_id|default:'' }}",
+            locations: [
+                {% for tkct in p.tonkhochitiet_set.all %}
+                { maViTri: "{{ tkct.viTri.maViTri }}", khuVuc: "{{ tkct.viTri.khuVuc }}", sl: {{ tkct.soluong }} },
+                {% endfor %}
+            ]
         },
         {% endfor %}
     ];
@@ -428,7 +434,16 @@
 
     function addProductToExport(code, name, unit, stock) {
         if (selectedProducts.find(p => p.maSP === code)) return;
-        selectedProducts.push({ maSP: code, tenSP: name, donViTinh: unit, tonKho: stock, qty: 1 });
+        const prod = productCatalog.find(p => p.maSP === code);
+        selectedProducts.push({ 
+            maSP: code, 
+            tenSP: name, 
+            donViTinh: unit, 
+            tonKho: stock, 
+            qty: 1, 
+            maViTri: '',
+            locations: prod ? prod.locations : []
+        });
         renderSelectedProducts();
     }
 
@@ -553,7 +568,15 @@
         modalSelectedProds.forEach(maSP => {
             const p = productCatalog.find(prod => prod.maSP === maSP);
             if (p && !selectedProducts.find(sp => sp.maSP === maSP)) {
-                selectedProducts.push({ maSP: p.maSP, tenSP: p.tenSP, donViTinh: p.donViTinh, tonKho: p.tonKho, qty: 1 });
+                selectedProducts.push({ 
+                    maSP: p.maSP, 
+                    tenSP: p.tenSP, 
+                    donViTinh: p.donViTinh, 
+                    tonKho: p.tonKho, 
+                    qty: 1,
+                    maViTri: '',
+                    locations: p.locations
+                });
                 added++;
             }
         });
@@ -577,11 +600,23 @@
             let newVal = parseInt(val) || 1;
             if (newVal > p.tonKho) {
                 alert(`Số lượng xuất (${newVal}) vượt quá tồn kho (${p.tonKho})!`);
-                // document.getElementById(`qty_input_${code}`).value = p.tonKho;
             }
             p.qty = newVal;
+            p.maViTri = document.getElementById(`vitri_input_${code}`).value;
         }
         document.getElementById('totalItemCount').innerText = selectedProducts.reduce((sum, p) => sum + p.qty, 0);
+    }
+
+    function updateViTri(code, val) {
+        let p = selectedProducts.find(p => p.maSP === code);
+        if (p) {
+            p.maViTri = val;
+            // Neu chon vi tri, co the cap nhat ton kho hien tai cua vi tri do de canh bao
+            const loc = p.locations.find(l => l.maViTri === val);
+            if (loc && p.qty > loc.sl) {
+                alert(`Lưu ý: Số lượng xuất (${p.qty}) vượt quá tồn kho tại vị trí này (${loc.sl})!`);
+            }
+        }
     }
 
     function applyBulkQty() {
@@ -631,6 +666,12 @@
                     <td class="py-4 px-4 text-center text-gray-600 font-medium">${p.donViTinh}</td>
                     <td class="py-4 px-4 text-center">
                         <span class="inline-flex px-2 py-1 rounded-md bg-blue-50 text-blue-700 font-bold text-xs border border-blue-100">${p.tonKho}</span>
+                    </td>
+                    <td class="py-4 px-4 text-center">
+                        <select id="vitri_input_${p.maSP}" onchange="updateViTri('${p.maSP}', this.value)" class="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-700 focus:ring-1 focus:ring-primary outline-none">
+                            <option value="">-- Chọn vị trí --</option>
+                            ${p.locations.map(l => `<option value="${l.maViTri}" ${p.maViTri === l.maViTri ? 'selected' : ''}>${l.maViTri} (${l.sl})</option>`).join('')}
+                        </select>
                     </td>
                     <td class="py-4 px-4 text-center">
                         <div class="flex items-center justify-center gap-2">
@@ -687,6 +728,8 @@
         .then(data => {
             if (data.status === 'success') {
                 alert(data.message);
+                // Xóa hash trên URL để khi reload sẽ quay về view mặc định (danh sách)
+                window.location.hash = ''; 
                 location.reload();
             } else {
                 alert('Lỗi: ' + data.message);
