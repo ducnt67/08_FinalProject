@@ -249,25 +249,7 @@ def nhapkho(request):
                 return JsonResponse({'status': 'success', 'message': 'Đã xóa phiếu nhập tạm thành công!'})
             
             elif import_record.trangthaiNhap == 1:
-                # Rollback inventory
-                for ct in import_record.phieunhap_ct_set.all():
-                    tk, _ = TonKho.objects.get_or_create(sanPham=ct.sanPham)
-                    tk.soluongTon -= old_ct.soluongThucNhan
-                    tk.save()
-                    
-                    # Rollback chi tiet
-                    # Rollback chi tiet
-                    if ct.viTri:
-                        tkct = TonKhoChiTiet.objects.filter(sanPham=ct.sanPham, viTri=ct.viTri).first()
-                        if tkct:
-                            tkct.soluong -= ct.soluongThucNhan
-                            if tkct.soluong < 0: tkct.soluong = 0
-                            tkct.save()
-                
-                # Chuyển trạng thái thành Đã hủy (-1)
-                import_record.trangthaiNhap = -1
-                import_record.save()
-                return JsonResponse({'status': 'success', 'message': 'Đã hủy phiếu nhập hoàn thành và hoàn tác tồn kho!'})
+                return JsonResponse({'status': 'error', 'message': 'Không thể xóa phiếu đã hoàn thành.'}, status=400)
                 
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
@@ -516,33 +498,15 @@ def trahang(request):
             maPhieuTra = data.get('maPhieuTra')
             tra_hang = get_object_or_404(TraHangNCC, maPhieuTra=maPhieuTra)
             
-            if tra_hang.trangThai == 1:
-                # Rollback inventory
-                for ct in tra_hang.trahangncc_ct_set.all():
-                    # Summary
-                    tonkho_obj, _ = TonKho.objects.get_or_create(sanPham=ct.sanPham)
-                    tonkho_obj.soluongTon += ct.soluongTra
-                    tonkho_obj.save()
-
-                    # Detail (from original stock in)
-                    if tra_hang.phieuNhap:
-                        try:
-                            pnct = tra_hang.phieuNhap.phieunhap_ct_set.get(sanPham=ct.sanPham)
-                            if pnct.viTri:
-                                tkct = TonKhoChiTiet.objects.filter(sanPham=ct.sanPham, viTri=pnct.viTri).first()
-                                if tkct:
-                                    tkct.soluong += ct.soluongTra
-                                    tkct.save()
-                        except:
-                            pass
-            
             if tra_hang.trangThai == -1:
                 return JsonResponse({'status': 'error', 'message': 'Phiếu đã được hủy trước đó.'}, status=400)
+                
+            elif tra_hang.trangThai == 0:
+                tra_hang.delete()
+                return JsonResponse({'status': 'success', 'message': 'Đã xóa phiếu trả hàng tạm thành công!'})
             
-            # Chuyển trạng thái sang Đã hủy (-1)
-            tra_hang.trangThai = -1
-            tra_hang.save()
-            return JsonResponse({'status': 'success', 'message': 'Đã hủy phiếu trả hàng và hoàn tác tồn kho thành công!'})
+            elif tra_hang.trangThai == 1:
+                return JsonResponse({'status': 'error', 'message': 'Không thể xóa phiếu trả hàng đã hoàn thành.'}, status=400)
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
@@ -722,25 +686,7 @@ def xuatkho(request):
                 return JsonResponse({'status': 'success', 'message': 'Đã xóa phiếu xuất tạm!'})
                 
             elif export_record.trangThai == 1:
-                # Rollback TonKho
-                for ct in export_record.phieuxuat_ct_set.all():
-                    try:
-                        tonkho_obj = TonKho.objects.get(sanPham=ct.sanPham)
-                        tonkho_obj.soluongTon += ct.soluongXuat
-                        tonkho_obj.save()
-                        
-                        # Rollback chi tiet
-                        # Rollback chi tiet
-                        if ct.viTri:
-                            tkct, _ = TonKhoChiTiet.objects.get_or_create(sanPham=ct.sanPham, viTri=ct.viTri)
-                            tkct.soluong += ct.soluongXuat
-                            tkct.save()
-                    except TonKho.DoesNotExist:
-                        pass
-                
-                export_record.trangThai = -1
-                export_record.save()
-                return JsonResponse({'status': 'success', 'message': 'Đã hủy phiếu xuất hoàn thành và hoàn tác tồn kho!'})
+                return JsonResponse({'status': 'error', 'message': 'Không thể xóa phiếu xuất đã hoàn thành.'}, status=400)
                 
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
@@ -776,12 +722,14 @@ def xuatkho(request):
             'items': items
         })
 
-    products = SanPham.objects.select_related('danhMuc', 'tonkho').all()
+    products = SanPham.objects.select_related('danhMuc', 'tonkho').prefetch_related('tonkhochitiet_set__viTri').all()
     categories = DanhMuc.objects.all()
+    vitris = ViTriKho.objects.all().order_by('khuVuc', 'keKho', 'oChua')
     return render(request, 'khohang/inventory/xuat_kho.html', {
         'outbound_records': outbound_records,
         'products': products,
-        'categories': categories
+        'categories': categories,
+        'vitris': vitris
     })
 
 def kiemke(request):
@@ -877,23 +825,45 @@ def kiemke(request):
                 return JsonResponse({'status': 'success', 'message': 'Đã xóa phiếu kiểm kê tạm!'})
                 
             elif check_record.trangThai == 1:
-                # Rollback TonKho to slTonKho (original quantity before check)
-                for ct in check_record.kiemke_ct_set.all():
-                    tonkho_obj, _ = TonKho.objects.get_or_create(sanPham=ct.sanPham)
-                    tonkho_obj.soluongTon = ct.slTonKho
-                    tonkho_obj.save()
-                    
-                check_record.trangThai = -1
-                check_record.save()
-                return JsonResponse({'status': 'success', 'message': 'Đã hủy phiếu kiểm kê và hoàn tác tồn kho!'})
+                return JsonResponse({'status': 'error', 'message': 'Không thể xóa phiếu kiểm kê đã cân bằng.'}, status=400)
                 
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' and 'maKiemKe' in request.GET:
+        maKiemKe = request.GET.get('maKiemKe')
+        record = get_object_or_404(KiemKe, maKiemKe=maKiemKe)
+        
+        items = []
+        for ct in record.kiemke_ct_set.all():
+            items.append({
+                'maSP': ct.sanPham.maSP,
+                'tenSP': ct.sanPham.tenSP,
+                'donViTinh': ct.sanPham.donViTinh,
+                'slTonKho': ct.slTonKho,
+                'slThucTe': ct.slThucTe,
+                'chenhLech': ct.slThucTe - ct.slTonKho,
+                'maViTri': ct.viTri.maViTri if ct.viTri else 'Kho chung'
+            })
+            
+        status_map = {0: 'Phiếu tạm', 1: 'Đã cân bằng', -1: 'Đã hủy'}
+        status_class_map = { 0: 'bg-yellow-100 text-yellow-700', 1: 'bg-green-100 text-green-700', -1: 'bg-red-100 text-red-700' }
+        
+        return JsonResponse({
+            'maKiemKe': record.maKiemKe,
+            'ngayKiemDisplay': record.ngayKiem.strftime('%d/%m/%Y %H:%M'),
+            'nguoiKiem': record.nguoiKiem,
+            'trangThai': record.trangThai,
+            'trangThaiDisplay': status_map.get(record.trangThai, 'Unknown'),
+            'trangThaiClass': status_class_map.get(record.trangThai, ''),
+            'items': items
+        })
+
     # Lay danh sach phieu kiem ke
     inventory_checks = KiemKe.objects.prefetch_related('kiemke_ct_set__sanPham').order_by('-ngayKiem')
-    products = SanPham.objects.all()
+    products = SanPham.objects.prefetch_related('tonkhochitiet_set__viTri').all()
     categories = DanhMuc.objects.all()
+    vitris = ViTriKho.objects.all().order_by('khuVuc', 'keKho', 'oChua')
     
     # Lay thong tin ton kho hien tai cho tung san pham
     stock_data = {}
@@ -904,7 +874,8 @@ def kiemke(request):
         'inventory_checks': inventory_checks,
         'products': products,
         'categories': categories,
-        'stock_data_json': json.dumps(stock_data)
+        'stock_data_json': json.dumps(stock_data),
+        'vitris': vitris
     })
 
 def vitri_list(request):
