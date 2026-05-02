@@ -24,12 +24,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', lambda request: redirect('hethong:login'), name='home'),
     
-    # Map everything back to /inventory/ to keep URLs unchanged
-    path('inventory/', include('hethong.urls')),
-    path('inventory/', include('sanpham.urls')),
-    path('inventory/', include('nhacungcap.urls')),
-    path('inventory/', include('dathang.urls')),
-    path('inventory/', include('khohang.urls')),
+    path('', include('hethong.urls')),
+    path('', include('sanpham.urls')),
+    path('', include('nhacungcap.urls')),
+    path('', include('dathang.urls')),
+    path('', include('khohang.urls')),
 ]
 
 if settings.DEBUG:

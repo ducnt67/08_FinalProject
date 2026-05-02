@@ -175,7 +175,7 @@
                         </div>
                         <div class="form-group">
                             <label>Người thực hiện</label>
-                            <input type="text" id="nguoiKiem" class="form-control" value="Admin">
+                            <input type="text" id="nguoiKiem" class="form-control bg-gray-50" value="{{ user.get_full_name|default:user.username }}" readonly>
                         </div>
                     </div>
 

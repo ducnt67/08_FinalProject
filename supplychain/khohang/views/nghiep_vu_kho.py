@@ -817,7 +817,7 @@ def kiemke(request):
                 maKiemKe=maKiemKe,
                 defaults={
                     'ngayKiem': parsed_date,
-                    'nguoiKiem': nguoiKiem,
+                    'nguoiKiem': request.user.get_full_name() or request.user.username,
                     'trangThai': trangThai
                 }
             )
