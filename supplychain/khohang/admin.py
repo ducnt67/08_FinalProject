@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (
-    ViTriKho, LoHang, TonKho, NhapKho, PhieuNhap_CT, 
+    ViTriKho, TonKho, NhapKho, PhieuNhap_CT, 
     XuatKho, PhieuXuat_CT, KiemKe, KiemKe_CT, 
     TraHangNCC, TraHangNCC_CT, TonKhoChiTiet
 )
@@ -10,10 +10,7 @@ class ViTriKhoAdmin(admin.ModelAdmin):
     list_display = ('maViTri', 'khuVuc', 'keKho', 'oChua')
     search_fields = ('maViTri', 'khuVuc')
 
-@admin.register(LoHang)
-class LoHangAdmin(admin.ModelAdmin):
-    list_display = ('maLo', 'sanPham', 'ngaySanXuat', 'hanSuDung', 'ngayNhapVao')
-    search_fields = ('maLo', 'sanPham__tenSP')
+
 
 @admin.register(TonKho)
 class TonKhoAdmin(admin.ModelAdmin):

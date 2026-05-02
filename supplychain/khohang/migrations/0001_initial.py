@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'inventory_kiemke',
-                'constraints': [models.CheckConstraint(check=models.Q(('trangThai__gte', 0)), name='kk_trangThai_gte_0_new')],
+                'constraints': [models.CheckConstraint(condition=models.Q(('trangThai__gte', 0)), name='kk_trangThai_gte_0_new')],
             },
         ),
         migrations.CreateModel(
@@ -68,7 +68,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'inventory_tonkho',
-                'constraints': [models.CheckConstraint(check=models.Q(('soluongTon__gte', 0)), name='tk_soLuongTon_gte_0_new'), models.CheckConstraint(check=models.Q(('trangthaiCanhBao__in', [0, 1, 2])), name='tk_trangthaiCanhBao_valid_new')],
+                'constraints': [models.CheckConstraint(condition=models.Q(('soluongTon__gte', 0)), name='tk_soLuongTon_gte_0_new'), models.CheckConstraint(condition=models.Q(('trangthaiCanhBao__in', [0, 1, 2])), name='tk_trangthaiCanhBao_valid_new')],
             },
         ),
         migrations.CreateModel(
@@ -110,7 +110,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'inventory_xuatkho',
-                'constraints': [models.CheckConstraint(check=models.Q(('trangThai__gte', -1)), name='xk_trangThai_gte_minus_1_new')],
+                'constraints': [models.CheckConstraint(condition=models.Q(('trangThai__gte', -1)), name='xk_trangThai_gte_minus_1_new')],
             },
         ),
         migrations.CreateModel(
@@ -136,16 +136,16 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'inventory_kiemke_ct',
-                'constraints': [models.UniqueConstraint(fields=('kiemKe', 'sanPham'), name='kkct_unique_kiemKe_sanPham_new'), models.CheckConstraint(check=models.Q(('slTonKho__gte', 0)), name='kkct_slTonKho_gte_0_new'), models.CheckConstraint(check=models.Q(('slThucTe__gte', 0)), name='kkct_slThucTe_gte_0_new')],
+                'constraints': [models.UniqueConstraint(fields=('kiemKe', 'sanPham'), name='kkct_unique_kiemKe_sanPham_new'), models.CheckConstraint(condition=models.Q(('slTonKho__gte', 0)), name='kkct_slTonKho_gte_0_new'), models.CheckConstraint(condition=models.Q(('slThucTe__gte', 0)), name='kkct_slThucTe_gte_0_new')],
             },
         ),
         migrations.AddConstraint(
             model_name='nhapkho',
-            constraint=models.CheckConstraint(check=models.Q(('trangthaiNhap__gte', -1)), name='nk_trangthaiNhap_gte_minus_1_new'),
+            constraint=models.CheckConstraint(condition=models.Q(('trangthaiNhap__gte', -1)), name='nk_trangthaiNhap_gte_minus_1_new'),
         ),
         migrations.AddConstraint(
             model_name='nhapkho',
-            constraint=models.CheckConstraint(check=models.Q(('tongtienNhap__gte', 0)), name='nk_tongtienNhap_gte_0_new'),
+            constraint=models.CheckConstraint(condition=models.Q(('tongtienNhap__gte', 0)), name='nk_tongtienNhap_gte_0_new'),
         ),
         migrations.AddConstraint(
             model_name='phieunhap_ct',
@@ -153,27 +153,27 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name='phieunhap_ct',
-            constraint=models.CheckConstraint(check=models.Q(('soluongDat__gt', 0)), name='pnct_soluongDat_gt_0_new'),
+            constraint=models.CheckConstraint(condition=models.Q(('soluongDat__gt', 0)), name='pnct_soluongDat_gt_0_new'),
         ),
         migrations.AddConstraint(
             model_name='phieunhap_ct',
-            constraint=models.CheckConstraint(check=models.Q(('dongiaNhap__gte', 0)), name='pnct_dongiaNhap_gte_0_new'),
+            constraint=models.CheckConstraint(condition=models.Q(('dongiaNhap__gte', 0)), name='pnct_dongiaNhap_gte_0_new'),
         ),
         migrations.AddConstraint(
             model_name='phieunhap_ct',
-            constraint=models.CheckConstraint(check=models.Q(('thanhTien__gte', 0)), name='pnct_thanhTien_gte_0_new'),
+            constraint=models.CheckConstraint(condition=models.Q(('thanhTien__gte', 0)), name='pnct_thanhTien_gte_0_new'),
         ),
         migrations.AddConstraint(
             model_name='phieunhap_ct',
-            constraint=models.CheckConstraint(check=models.Q(('soluongThucNhan__gte', 0)), name='pnct_soluongThucNhan_gte_0_new'),
+            constraint=models.CheckConstraint(condition=models.Q(('soluongThucNhan__gte', 0)), name='pnct_soluongThucNhan_gte_0_new'),
         ),
         migrations.AddConstraint(
             model_name='trahangncc',
-            constraint=models.CheckConstraint(check=models.Q(('trangThai__gte', -1)), name='thncc_trangThai_gte_minus_1_new'),
+            constraint=models.CheckConstraint(condition=models.Q(('trangThai__gte', -1)), name='thncc_trangThai_gte_minus_1_new'),
         ),
         migrations.AddConstraint(
             model_name='trahangncc',
-            constraint=models.CheckConstraint(check=models.Q(('tongtienTra__gte', 0)), name='thncc_tongtienTra_gte_0_new'),
+            constraint=models.CheckConstraint(condition=models.Q(('tongtienTra__gte', 0)), name='thncc_tongtienTra_gte_0_new'),
         ),
         migrations.AddConstraint(
             model_name='trahangncc_ct',
@@ -181,15 +181,15 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name='trahangncc_ct',
-            constraint=models.CheckConstraint(check=models.Q(('soluongTra__gt', 0)), name='thnccct_soluongTra_gt_0_new'),
+            constraint=models.CheckConstraint(condition=models.Q(('soluongTra__gt', 0)), name='thnccct_soluongTra_gt_0_new'),
         ),
         migrations.AddConstraint(
             model_name='trahangncc_ct',
-            constraint=models.CheckConstraint(check=models.Q(('dongiaTra__gte', 0)), name='thnccct_dongiaTra_gte_0_new'),
+            constraint=models.CheckConstraint(condition=models.Q(('dongiaTra__gte', 0)), name='thnccct_dongiaTra_gte_0_new'),
         ),
         migrations.AddConstraint(
             model_name='trahangncc_ct',
-            constraint=models.CheckConstraint(check=models.Q(('thanhTien__gte', 0)), name='thnccct_thanhTien_gte_0_new'),
+            constraint=models.CheckConstraint(condition=models.Q(('thanhTien__gte', 0)), name='thnccct_thanhTien_gte_0_new'),
         ),
         migrations.AddConstraint(
             model_name='phieuxuat_ct',
@@ -197,6 +197,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name='phieuxuat_ct',
-            constraint=models.CheckConstraint(check=models.Q(('soluongXuat__gt', 0)), name='pxct_soluongXuat_gt_0_new'),
+            constraint=models.CheckConstraint(condition=models.Q(('soluongXuat__gt', 0)), name='pxct_soluongXuat_gt_0_new'),
         ),
     ]

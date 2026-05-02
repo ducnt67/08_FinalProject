@@ -1,9 +1,10 @@
 from django.urls import path
-from .views import category_views, product_views
+from .views import danh_muc, san_pham
 
 app_name = 'sanpham'
 
 urlpatterns = [
-    path('danhmuc/', category_views.danhmuc, name='danhmuc'),
-    path('sanpham/', product_views.sanpham, name='sanpham'),
+    path('danhmuc/', danh_muc.danhmuc, name='danhmuc'),
+    path('sanpham/', san_pham.sanpham, name='sanpham'),
 ]
+
