@@ -126,7 +126,21 @@ def sanpham(request):
             tacGia = ''
             nhaXuatBan = ''
             namXuatBan = ''
-            
+        # Lấy chi tiết phân bổ vị trí tồn kho
+        chi_tiet_vi_tri = []
+        try:
+            # Lọc các vị trí có số lượng > 0
+            for tkct in product.tonkhochitiet_set.select_related('viTri').filter(soluong__gt=0):
+                chi_tiet_vi_tri.append({
+                    'maViTri': tkct.viTri.maViTri,
+                    'khuVuc': tkct.viTri.khuVuc,
+                    'keKho': tkct.viTri.keKho,
+                    'oChua': tkct.viTri.oChua,
+                    'soluong': tkct.soluong
+                })
+        except Exception:
+            pass
+
         return JsonResponse({
             'maSP': product.maSP,
             'tenSP': product.tenSP,
@@ -143,7 +157,8 @@ def sanpham(request):
             'tacGia': tacGia,
             'nhaXuatBan': nhaXuatBan,
             'namXuatBan': namXuatBan,
-            'anhSP': product.anhSP.url if product.anhSP else ''
+            'anhSP': product.anhSP.url if product.anhSP else '',
+            'chiTietViTri': chi_tiet_vi_tri
         })
 
     return render(request, 'sanpham/products/san_pham.html', {

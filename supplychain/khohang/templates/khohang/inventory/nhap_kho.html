@@ -188,29 +188,26 @@
         body {
             width: 100%;
             max-width: 100%;
-            overflow-x: hidden;
         }
 
         body {
             min-height: 100vh;
+            overflow: visible !important;
         }
 
         .main-content {
             width: calc(100% - var(--sidebar-width));
             max-width: calc(100% - var(--sidebar-width));
             min-width: 0;
-            overflow-x: hidden;
+            overflow: visible !important;
             background-color: #F4F6F8;
             min-height: 100vh;
+            display: block !important;
         }
 
-        .content-header,
         .content-body {
-            width: 100%;
-            max-width: 100%;
-            min-width: 0;
-            overflow-x: hidden;
-            box-sizing: border-box;
+            overflow: visible !important;
+            height: auto !important;
         }
 
         #importListView,
@@ -220,12 +217,16 @@
             width: 100%;
             max-width: 100%;
             min-width: 0;
-            overflow-x: hidden;
+            overflow: visible !important;
         }
 
-        #importListView > .bg-white,
-        #returnListView > .bg-white,
-        #importCreateView .bg-white,
+        #importListView > div,
+        #returnListView > div,
+        #importCreateView > div,
+        #importReturnCreateView > div {
+            overflow: visible !important;
+        }
+
         #importReturnCreateView .bg-white {
             width: 100%;
             max-width: 100%;
@@ -410,18 +411,20 @@
         .detail-modal .table-wrapper table {
             width: 100%;
             max-width: 100%;
-            table-layout: fixed;
+            table-layout: auto;
         }
 
         #importCreateView .table-wrapper th,
-        #importCreateView .table-wrapper td,
         #importReturnCreateView .table-wrapper th,
+        .detail-modal .table-wrapper th {
+            white-space: nowrap !important;
+        }
+
+        #importCreateView .table-wrapper td,
         #importReturnCreateView .table-wrapper td,
-        .detail-modal .table-wrapper th,
         .detail-modal .table-wrapper td {
             white-space: normal !important;
             word-break: break-word;
-            overflow-wrap: anywhere;
         }
 
         @media (max-width: 1366px) {
@@ -581,8 +584,8 @@
                             <thead>
                                 <tr class="bg-gray-50 border-y border-gray-200">
                                     <th class="w-stt">STT</th>
-                                    <th class="w-code">Mã phiếu</th>
-                                    <th>Nhà cung cấp</th>
+                                    <th style="color: #ffffff !important; opacity: 1 !important; visibility: visible !important; display: table-cell !important; text-align: center; font-weight: bold;">MÃ PHIẾU NHẬP</th>
+                                    <th class="text-center">Nhà cung cấp</th>
                                     <th class="w-date">Ngày nhập</th>
                                     <th class="w-price">Tổng tiền</th>
                                     <th class="w-status">Trạng thái</th>
@@ -655,7 +658,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             <div>
                                 <label class="block text-sm text-gray-600 mb-2 font-bold">Mã phiếu nhập</label>
-                                <input id="create_maphieu" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary outline-none" placeholder="Để trống hệ thống sẽ tự sinh (VD: PNK-2023...)">
+                                <input id="create_maphieu" type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary outline-none readonly-input" placeholder="Hệ thống tự động sinh mã" readonly>
                             </div>
                             <div>
                                 <label class="block text-sm text-gray-600 mb-2 font-bold">Ngày nhập</label>
@@ -665,8 +668,8 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 transition-all" id="create_row_2">
                             <div>
-                                <label class="block text-sm text-gray-600 mb-2 font-bold">Người nhập kho</label>
-                                <input id="create_nguoinhap" type="text" class="w-full px-4 py-2 border border-gray-200 bg-gray-50 rounded-lg text-gray-700" value="Admin" readonly>
+                                <label class="block text-sm text-gray-600 mb-2 font-bold">Người lập phiếu</label>
+                                <input id="create_nguoinhap" type="text" class="w-full px-4 py-2 border border-gray-200 bg-gray-50 rounded-lg text-gray-700 font-bold" value="{% if user.get_full_name %}{{ user.get_full_name }}{% else %}{{ user.username }}{% endif %}" readonly>
                             </div>
                             <div id="create_po_container">
                                 <label class="block text-sm text-gray-600 mb-2 font-bold">Chọn Đơn hàng (PO) <span class="text-primary">*</span></label>
@@ -698,7 +701,8 @@
                                 <thead class="bg-gray-50 border-y border-gray-100" style="background-color: #f9fafb !important;">
                                     <tr>
                                         <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-20 uppercase" style="background: transparent !important; color: #dc2626 !important;">STT</th>
-                                        <th class="py-4 px-4 font-bold text-red-600 text-sm !text-left uppercase" style="background: transparent !important; color: #dc2626 !important;">SẢN PHẨM</th>
+                                        <th class="py-4 px-4 font-bold text-red-600 text-sm !text-left w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">MÃ SẢN PHẨM</th>
+                                        <th class="py-4 px-4 font-bold text-red-600 text-sm !text-left uppercase" style="background: transparent !important; color: #dc2626 !important;">TÊN SẢN PHẨM</th>
                                         <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">ĐƠN GIÁ NHẬP</th>
                                         <th id="create_th_po_qty" class="py-4 px-4 font-bold text-red-600 text-sm text-center w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">SL ĐẶT</th>
                                         <th id="create_th_real_qty" class="py-4 px-4 font-bold text-red-600 text-sm text-center w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">SL THỰC NHẬN</th>
@@ -873,7 +877,8 @@
                                     <thead class="bg-gray-50 border-y border-gray-100" style="background-color: #f9fafb !important;">
                                         <tr>
                                             <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-20 uppercase" style="background: transparent !important; color: #dc2626 !important;">STT</th>
-                                            <th class="py-4 px-4 font-bold text-red-600 text-sm text-left uppercase" style="background: transparent !important; color: #dc2626 !important;">SẢN PHẨM</th>
+                                            <th class="py-4 px-4 font-bold text-red-600 text-sm text-left w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">MÃ SẢN PHẨM</th>
+                                            <th class="py-4 px-4 font-bold text-red-600 text-sm text-left uppercase" style="background: transparent !important; color: #dc2626 !important;">TÊN SẢN PHẨM</th>
                                             <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">ĐƠN GIÁ</th>
                                             <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">ĐÃ NHẬP</th>
                                             <th class="py-4 px-4 font-bold text-red-600 text-sm text-center w-32 uppercase" style="background: transparent !important; color: #dc2626 !important;">SL TRẢ</th>
@@ -958,7 +963,7 @@
         function openCreateImport(type = 'DIRECT') {
             document.getElementById('createImportDropdown').classList.add('hidden');
             document.getElementById('create_maphieu').value = '';
-            document.getElementById('create_maphieu').readOnly = false;
+            // document.getElementById('create_maphieu').readOnly = false; // Luôn để readonly vì mã tự sinh
             document.getElementById('create_ngaynhap').value = new Date().toISOString().slice(0, 16);
             document.getElementById('create_nhacungcap').value = '';
             document.getElementById('create_ghichu').value = '';
@@ -1044,11 +1049,11 @@
             tr.dataset.maSP = code;
             tr.innerHTML = `
                 <td class="py-4 px-4 text-center text-gray-600 font-bold">${tbody.rows.length + 1}</td>
-                <td class="py-4 px-4 !text-left">
-                    <div class="flex flex-col items-start text-left">
-                        <span class="text-[10px] text-primary font-bold uppercase tracking-tight mb-0.5 leading-none">${code}</span>
-                        <span class="font-bold text-gray-800 text-sm leading-tight">${name}</span>
-                    </div>
+                <td class="py-4 px-4 text-left">
+                    <span class="text-[11px] text-primary font-bold uppercase tracking-tight">${code}</span>
+                </td>
+                <td class="py-4 px-4 text-left">
+                    <span class="font-bold text-gray-800 text-sm">${name}</span>
                 </td>
                 <td class="py-4 px-4 text-center"><input type="number" class="item-price w-full border rounded px-2 py-1 text-center font-bold" value="${price}" oninput="updateCreateTotals()"></td>
                 ${type === 'PO' ? `<td class="py-4 px-4 text-center font-bold text-gray-700 item-ordered-qty">${orderedQty}</td>` : ''}
@@ -1233,12 +1238,21 @@
 
         function loadImportForReturn(code) {
             fetch(`?maPhieuNhap=${code}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error('Không tìm thấy thông tin phiếu nhập.');
+                return res.json();
+            })
             .then(data => {
                 document.getElementById('return_origin_code').value = data.maPhieuNhap;
                 document.getElementById('return_supplier_name').value = data.nhaCungCap;
                 const tbody = document.getElementById('return_goods_body');
                 tbody.innerHTML = '';
+                
+                if (!data.items || data.items.length === 0) {
+                    alert('Phiếu nhập này không có sản phẩm nào để trả.');
+                    return;
+                }
+
                 data.items.forEach((item, idx) => {
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-gray-50 border-b border-gray-100";
@@ -1246,26 +1260,31 @@
                     tr.innerHTML = `
                         <td class="py-4 px-4 text-center text-gray-600 font-bold">${idx+1}</td>
                         <td class="py-4 px-4 text-left">
-                            <div class="flex flex-col">
-                                <span class="text-[10px] text-primary font-bold uppercase tracking-tight mb-0.5">${item.maSP}</span>
-                                <span class="font-bold text-gray-800 text-sm">${item.tenSP}</span>
-                            </div>
+                            <span class="text-[11px] text-primary font-bold uppercase tracking-tight">${item.maSP}</span>
+                        </td>
+                        <td class="py-4 px-4 text-left">
+                            <span class="font-bold text-gray-800 text-sm">${item.tenSP}</span>
                         </td>
                         <td class="py-4 px-4 text-center font-bold text-gray-700 item-price">${parseFloat(item.price).toLocaleString('vi-VN')}</td>
                         <td class="py-4 px-4 text-center font-bold text-gray-500">${item.qty}</td>
                         <td class="py-4 px-4 text-center">
                             <div class="relative">
-                                <input type="number" class="item-return-qty w-full border border-gray-200 rounded-lg px-2 py-1.5 text-center font-bold focus:ring-1 focus:ring-primary outline-none" value="0" min="0" max="${item.qty}" data-max="${item.qty}" oninput="validateReturnQty(this); updateReturnTotals()">
-                                <span class="item-qty-error text-red-500 text-[10px] mt-1 hidden block text-left">Vượt số lượng (tối đa: ${item.qty})</span>
+                                <input type="number" class="item-return-qty w-full border border-gray-200 rounded-lg px-2 py-1.5 text-center font-bold focus:ring-1 focus:ring-blue-500 outline-none" value="0" min="0" max="${item.qty}" data-max="${item.qty}" oninput="validateReturnQty(this); updateReturnTotals()">
+                                <span class="item-qty-error text-red-500 text-[10px] mt-1 hidden text-left">Vượt số lượng (tối đa: ${item.qty})</span>
                             </div>
                         </td>
-                        <td class="py-4 px-4"><select class="item-reason w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-primary"><option value="Hàng lỗi">Hàng lỗi</option><option value="Sai mẫu mã">Sai mẫu mã</option><option value="Hết hạn">Hết hạn</option></select></td>
+                        <td class="py-4 px-4"><select class="item-reason w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-blue-500"><option value="Hàng lỗi">Hàng lỗi</option><option value="Sai mẫu mã">Sai mẫu mã</option><option value="Hết hạn">Hết hạn</option></select></td>
                         <td class="py-4 px-4 text-center font-black text-primary item-return-amount">0 ₫</td>
                     `;
                     tbody.appendChild(tr);
                 });
                 document.getElementById('return_form_area').classList.remove('hidden');
                 updateReturnTotals();
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Lỗi: ' + err.message);
+                document.getElementById('return_form_area').classList.add('hidden');
             });
         }
 

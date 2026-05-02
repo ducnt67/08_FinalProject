@@ -269,9 +269,43 @@
                 stockBadge = '<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold bg-green-100 text-green-700 border border-green-200"><i class="fa-solid fa-circle-check"></i> AN TOÀN</span>';
             }
 
+            let locationHtml = '';
+            if (data.chiTietViTri && data.chiTietViTri.length > 0) {
+                locationHtml = `
+                    <div class="pt-2">
+                        <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2"><i class="fa-solid fa-map-location-dot text-blue-500"></i> Phân bổ vị trí lưu trữ</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            ${data.chiTietViTri.map(vt => `
+                                <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col gap-2 hover:border-blue-300 hover:shadow-md transition-all">
+                                    <div class="flex items-center justify-between border-b border-gray-50 pb-2">
+                                        <span class="text-[11px] font-bold text-gray-400 uppercase">Mã Vị Trí</span>
+                                        <span class="text-sm font-black text-gray-800 bg-gray-100 px-2 py-0.5 rounded-md">${vt.maViTri}</span>
+                                    </div>
+                                    <div class="text-[12px] text-gray-600 flex items-center gap-2 font-medium">
+                                        <i class="fa-solid fa-warehouse text-gray-400 w-4"></i> ${vt.khuVuc} 
+                                        <i class="fa-solid fa-chevron-right text-[10px] text-gray-300"></i> ${vt.keKho} 
+                                        <i class="fa-solid fa-chevron-right text-[10px] text-gray-300"></i> ${vt.oChua}
+                                    </div>
+                                    <div class="mt-2 flex items-center justify-between bg-blue-50/50 p-2 rounded-lg border border-blue-100/50">
+                                        <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Số lượng:</span>
+                                        <span class="text-lg font-black text-blue-600">${vt.soluong}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                locationHtml = `
+                    <div class="pt-2 flex items-center justify-center p-6 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                        <span class="text-sm text-gray-500 font-medium italic flex items-center gap-2"><i class="fa-solid fa-circle-info text-gray-400"></i> Sản phẩm chưa được phân bổ vị trí lưu trữ trong kho.</span>
+                    </div>
+                `;
+            }
+
             document.getElementById('detailBody').innerHTML = `
-                <div class="flex flex-col gap-8">
-                    <div class="flex gap-8 pb-8 border-b border-gray-100">
+                <div class="flex flex-col gap-6">
+                    <div class="flex gap-8 pb-6 border-b border-gray-100">
                         <div class="w-36 flex flex-col items-center gap-4">
                             <div class="w-36 h-36 border-2 border-gray-100 rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center shadow-sm">
                                 ${data.anhSP ? `<img src="${data.anhSP}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-image text-gray-200 text-5xl"></i>`}
@@ -291,14 +325,16 @@
                         </div>
                     </div>
 
-                    <div class="bg-[#f8fafc] border border-gray-100 rounded-2xl p-6">
+                    ${locationHtml}
+
+                    <div class="bg-[#f8fafc] border border-gray-100 rounded-2xl p-6 shadow-inner">
                         <div class="flex items-center gap-2 mb-6">
-                            <i class="fa-solid fa-chart-line text-gray-400"></i>
-                            <span class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">TÌNH TRẠNG KHO HÀNG</span>
+                            <i class="fa-solid fa-chart-pie text-gray-400"></i>
+                            <span class="text-[12px] font-bold text-gray-500 uppercase tracking-widest">TÌNH TRẠNG KHO HÀNG</span>
                         </div>
                         <div class="flex justify-center">
                             <div class="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm flex flex-col items-center gap-4 min-w-[240px]">
-                                <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">Tồn kho hiện tại</span>
+                                <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">Tồn kho tổng hiện tại</span>
                                 <span class="text-6xl font-black" style="color: ${stockColor}">${data.soluongTon}</span>
                                 ${stockBadge}
                             </div>

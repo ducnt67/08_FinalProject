@@ -407,7 +407,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <div class="space-y-2">
                             <label class="block text-xs font-bold text-gray-500 uppercase">Mã đơn hàng</label>
-                            <input type="text" id="order_code" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary outline-none font-bold" placeholder="Tự động tạo...">
+                            <input type="text" id="order_code" class="w-full px-4 py-2.5 border border-gray-200 bg-gray-50 rounded-lg text-gray-500 font-bold" placeholder="Tự động tạo..." readonly>
                         </div>
                         <div class="space-y-2">
                             <label class="block text-xs font-bold text-gray-500 uppercase">Ngày đặt hàng <span class="text-primary">*</span></label>
@@ -424,7 +424,7 @@
                         </div>
                         <div class="space-y-2">
                             <label class="block text-xs font-bold text-gray-500 uppercase">Người lập</label>
-                            <input type="text" value="Admin" class="w-full px-4 py-2.5 border border-gray-200 bg-gray-50 rounded-lg text-gray-500 font-medium" readonly>
+                            <input type="text" value="{{ user.get_full_name|default:user.username }}" class="w-full px-4 py-2.5 border border-gray-200 bg-gray-50 rounded-lg text-gray-500 font-medium" readonly>
                         </div>
                     </div>
                 </div>
@@ -440,7 +440,7 @@
                     <div class="mb-6 relative" id="product_search_container">
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Tìm kiếm & Thêm sản phẩm</label>
                         <div class="suggestion-container">
-                            <i class="fas fa-search absolute left-4 top-[45px] text-gray-400"></i>
+                            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
                             <input type="text" id="order_product_search" class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-1 focus:ring-primary outline-none" placeholder="Nhập tên hoặc mã sách để thêm...">
                         </div>
                     </div>
@@ -450,7 +450,8 @@
                             <thead class="bg-gray-50 border-y border-gray-100">
                                 <tr>
                                     <th class="py-4 px-4 font-bold text-red-600 text-[10px] uppercase tracking-widest w-16 text-center">STT</th>
-                                    <th class="py-4 px-4 font-bold text-red-600 text-[10px] uppercase tracking-widest">SÁCH / SẢN PHẨM</th>
+                                    <th class="py-4 px-4 font-bold text-red-600 text-[10px] uppercase tracking-widest w-32">MÃ SẢN PHẨM</th>
+                                    <th class="py-4 px-4 font-bold text-red-600 text-[10px] uppercase tracking-widest">TÊN SẢN PHẨM</th>
                                     <th class="py-4 px-4 font-bold text-red-600 text-[10px] uppercase tracking-widest text-center w-32">GIÁ ĐẶT</th>
                                     <th class="py-4 px-4 font-bold text-red-600 text-[10px] uppercase tracking-widest text-center w-32">SỐ LƯỢNG</th>
                                     <th class="py-4 px-4 font-bold text-red-600 text-[10px] uppercase tracking-widest text-right w-40">THÀNH TIỀN</th>
@@ -506,15 +507,15 @@
     <script>
         const productsCatalog = [
             {% for p in products %}
-        {
-            maSP: '{{ p.maSP }}',
+            {
+                maSP: '{{ p.maSP }}',
                 tenSP: '{{ p.tenSP|escapejs }}',
-                    danhMuc: '{{ p.danhMuc.tenDanhMuc|escapejs }}',
-                    giaNhap: {{ p.giaNhap|default:0 }},
-                    giaBan: {{ p.giaBan|default:0 }}
-                },
-                {% endfor %}
-            ];
+                danhMuc: '{{ p.danhMuc.tenDanhMuc|escapejs }}',
+                giaNhap: {{ p.giaBan|floatformat:0|default:0 }}, // SanPham doesn't have giaNhap, using giaBan as default
+                giaBan: {{ p.giaBan|floatformat:0|default:0 }}
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
 
         // Core Functions
         const csrftoken = '{{ csrf_token }}';
@@ -703,7 +704,7 @@
             document.getElementById('order_note').value = '';
             document.getElementById('order_date').value = new Date().toISOString().slice(0, 16);
             document.getElementById('order_code').value = '';
-            document.getElementById('order_code').readOnly = false;
+            document.getElementById('order_code').readOnly = true;
             document.getElementById('order_supplier').value = '';
 
             if (mode === 'create') {
@@ -743,8 +744,10 @@
             tr.innerHTML = `
                 <td class="py-4 px-4 text-center text-gray-400 font-bold text-xs">${tbody.rows.length + 1}</td>
                 <td class="py-4 px-4 text-left">
+                    <div class="text-[11px] text-primary font-bold uppercase tracking-widest">${code}</div>
+                </td>
+                <td class="py-4 px-4 text-left">
                     <div class="font-bold text-gray-800 text-sm">${name}</div>
-                    <div class="text-[11px] text-gray-500 font-medium">${code}</div>
                 </td>
                 <td class="py-4 px-4"><input type="number" class="item-price w-full border rounded px-2 py-1 text-center font-bold focus:ring-1 focus:ring-primary outline-none" value="${price}" oninput="updateOrderTotals()"></td>
                 <td class="py-4 px-4"><input type="number" class="item-qty w-full border rounded px-2 py-1 text-center font-bold focus:ring-1 focus:ring-primary outline-none" value="${qty}" min="1" oninput="updateOrderTotals()"></td>
@@ -909,9 +912,6 @@
                             <div class="font-bold text-gray-800 text-sm mt-0.5">${item.tenSP}</div>
                             <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">${item.danhMuc}</div>
                         </div>
-                        <div class="text-right">
-                            <div class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-0.5">Giá nhập</div>
-                            <div class="font-black text-gray-900">${item.giaNhap.toLocaleString('vi-VN')} ₫</div>
                         </div>
                     </div>
                 `,

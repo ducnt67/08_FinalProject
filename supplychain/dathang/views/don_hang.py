@@ -51,7 +51,8 @@ def dathang(request):
                 defaults={
                     'nhaCungCap': nhaCungCap,
                     'trangThai': trangThai,
-                    'ghiChu': ghiChu
+                    'ghiChu': ghiChu,
+                    'nguoiLap': request.user.get_full_name() or request.user.username
                 }
             )
             
