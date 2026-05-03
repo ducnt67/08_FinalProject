@@ -1296,7 +1296,7 @@
                     tr.innerHTML = `
                         <td class="py-4 px-4 text-center text-gray-600 font-bold">${idx+1}</td>
                         <td class="py-4 px-4 text-left">
-                            <span class="text-[11px] text-primary font-bold uppercase tracking-tight">${item.maSP}</span>
+                            <span class="text-[11px] text-primary uppercase tracking-tight">${item.maSP}</span>
                         </td>
                         <td class="py-4 px-4 text-left">
                             <span class="font-bold text-gray-800 text-sm">${item.tenSP}</span>
@@ -1414,7 +1414,12 @@
                     tr.dataset.maSP = item.maSP;
                     tr.innerHTML = `
                         <td class="py-4 px-4 text-center text-gray-600">${idx+1}</td>
-                        <td class="py-4 px-4"><div class="font-semibold text-gray-800 text-sm">${item.maSP}</div><div class="text-xs text-gray-500">${item.tenSP}</div></td>
+                        <td class="py-4 px-4 text-left">
+                            <span class="text-[11px] text-primary uppercase tracking-tight">${item.maSP}</span>
+                        </td>
+                        <td class="py-4 px-4 text-left">
+                            <span class="font-bold text-gray-800 text-sm">${item.tenSP}</span>
+                        </td>
                         <td class="py-4 px-4 text-center font-bold item-price">${parseFloat(item.price).toLocaleString('vi-VN')}</td>
                         <td class="py-4 px-4 text-center font-semibold">${item.originalQty}</td>
                         <td class="py-4 px-4 text-center">
@@ -1453,8 +1458,10 @@
                 const itemsHtml = data.items.map((item, idx) => `
                     <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors text-sm">
                         <td class="p-4 text-center text-gray-400 font-bold">${idx + 1}</td>
-                        <td class="p-4 font-bold text-gray-800">${item.maSP}</td>
-                        <td class="p-4 text-gray-700">${item.tenSP}</td>
+                        <td class="p-4 text-left">
+                            <div class="font-bold text-gray-800 text-sm">${item.tenSP}</div>
+                            <div class="text-[11px] text-gray-400 font-medium uppercase tracking-tight">${item.maSP}</div>
+                        </td>
                         <td class="p-4 text-center font-bold text-gray-700">${item.donViTinh || 'Cuốn'}</td>
                         <td class="p-4 text-center font-bold text-gray-700">${item.qty}</td>
                         <td class="p-4 text-right text-gray-500">${parseFloat(item.price).toLocaleString('vi-VN')}</td>
