@@ -76,6 +76,21 @@
             min-width: 110px;
         }
 
+        .static-status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-weight: 800;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-width: 1px;
+            height: 28px;
+            min-width: 110px;
+        }
+
         .status-badge-wrapper {
             position: relative;
             display: inline-flex;
@@ -342,25 +357,30 @@
                                                 class="text-[10px] ml-0.5 text-gray-400 italic">₫</span></div>
                                     </td>
                                     <td class="w-status text-center">
+                                        {% if order.trangThai == 0 %}
                                         <div class="status-badge-wrapper">
-                                            <select class="create-status-badge outline-none cursor-pointer
-                                                {% if order.trangThai == 0 %}status-warning
-                                                {% elif order.trangThai == 1 %}status-success
-                                                {% elif order.trangThai == 2 %}status-info
-                                                {% else %}status-danger{% endif %} border border-current scale-90 {% if order.trangThai == 1 or order.trangThai == 3 %}opacity-70 cursor-not-allowed{% endif %}"
-                                                onchange="changeOrderStatus('{{ order.maDatHang }}', this.options[this.selectedIndex].text)"
-                                                {% if order.trangThai == 1 or order.trangThai == 3 %}disabled{% endif %}>
-                                                <option {% if order.trangThai == 1 %}selected{% endif %}
-                                                    class="bg-white text-green-700">Hoàn thành</option>
-                                                <option {% if order.trangThai == 0 %}selected{% endif %}
-                                                    class="bg-white text-yellow-700">Chờ xác nhận</option>
-                                                <option {% if order.trangThai == 2 %}selected{% endif %}
-                                                    class="bg-white text-blue-700">Đang giao</option>
-                                                <option {% if order.trangThai == 3 %}selected{% endif %}
-                                                    class="bg-white text-red-700">Đã hủy</option>
+                                            <select class="create-status-badge outline-none cursor-pointer status-warning border border-current scale-90"
+                                                onchange="changeOrderStatus('{{ order.maDatHang }}', this.options[this.selectedIndex].text)">
+                                                <option selected class="bg-white text-yellow-700">Chờ xác nhận</option>
+                                                <option class="bg-white text-blue-700">Đang giao</option>
+                                                <option class="bg-white text-red-700">Đã hủy</option>
                                             </select>
                                             <i class="fa-solid fa-chevron-down"></i>
                                         </div>
+                                        {% elif order.trangThai == 2 %}
+                                        <div class="status-badge-wrapper">
+                                            <select class="create-status-badge outline-none cursor-pointer status-info border border-current scale-90"
+                                                onchange="changeOrderStatus('{{ order.maDatHang }}', this.options[this.selectedIndex].text)">
+                                                <option selected class="bg-white text-blue-700">Đang giao</option>
+                                                <option class="bg-white text-red-700">Đã hủy</option>
+                                            </select>
+                                            <i class="fa-solid fa-chevron-down"></i>
+                                        </div>
+                                        {% elif order.trangThai == 1 %}
+                                            <span class="static-status-badge status-success scale-90">Hoàn thành</span>
+                                        {% elif order.trangThai == 3 %}
+                                            <span class="static-status-badge status-danger scale-90">Đã hủy</span>
+                                        {% endif %}
                                     </td>
                                     <td class="w-action">
                                         <div class="flex items-center justify-center gap-2">
@@ -372,8 +392,8 @@
                                                 class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-green-500 hover:bg-green-500 hover:text-white transition-all shadow-sm {% if order.trangThai != 0 %}opacity-50 grayscale cursor-not-allowed{% endif %}" title="Chỉnh sửa">
                                                 <i class="fas fa-edit text-xs"></i>
                                             </button>
-                                            <button onclick="{% if order.trangThai == 0 %}deleteOrder('{{ order.maDatHang }}'){% else %}alert('Không thể xóa đơn hàng đã được xử lý hoặc hủy!'){% endif %}"
-                                                class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-red-500 hover:bg-primary hover:text-white transition-all shadow-sm {% if order.trangThai != 0 %}opacity-50 grayscale cursor-not-allowed{% endif %}" title="Xóa">
+                                            <button onclick="{% if order.trangThai == 0 or order.trangThai == 2 %}deleteOrder('{{ order.maDatHang }}'){% else %}alert('Không thể xóa đơn hàng đã được xử lý hoặc hủy!'){% endif %}"
+                                                class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-red-500 hover:bg-primary hover:text-white transition-all shadow-sm {% if order.trangThai != 0 and order.trangThai != 2 %}opacity-50 grayscale cursor-not-allowed{% endif %}" title="Xóa">
                                                 <i class="fas fa-trash-alt text-xs"></i>
                                             </button>
                                         </div>
@@ -480,7 +500,6 @@
                         </div>
                         <div class="flex gap-3">
                             <button onclick="switchView('orderListView')" class="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold rounded-lg transition-colors">Hủy bỏ</button>
-                            <button id="btnLuuTam" onclick="saveOrder(0)" class="px-6 py-2.5 bg-orange-100 hover:bg-orange-200 text-orange-700 font-semibold rounded-lg transition-colors">Lưu tạm</button>
                             <button id="btnHoanThanh" onclick="saveOrder(1)" class="px-6 py-2.5 bg-primary hover:bg-red-700 text-white font-bold rounded-lg shadow-md transition-all flex items-center gap-2">
                                 <i class="fa-solid fa-check-circle"></i> Xác nhận đặt hàng
                             </button>
@@ -810,7 +829,7 @@
                 items: items
             };
 
-            const btn = status === 1 ? document.getElementById('btnHoanThanh') : document.getElementById('btnLuuTam');
+            const btn = document.getElementById('btnHoanThanh');
             const originalContent = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ĐANG LƯU...';
@@ -926,4 +945,3 @@
 </body>
 
 </html>
-
