@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="{% static 'css/0.0.style.css' %}">
+    <script src="{% static 'js/0.0.app.js' %}"></script>
 
     <script>
         tailwind.config = {
@@ -88,20 +89,22 @@
                             <thead>
                                 <tr class="border-y border-gray-200">
                                     <th class="w-stt">STT</th>
-                                    <th style="width: 20%;">Mã Phiếu</th>
-                                    <th style="width: 20%;">Ngày Kiểm</th>
-                                    <th style="width: 20%;">Sản phẩm</th>
-                                    <th style="width: 20%;">Trạng Thái</th>
+                                    <th style="width: 15%;">Mã Phiếu</th>
+                                    <th style="width: 15%;">Ngày Kiểm</th>
+                                    <th style="width: 20%;">Người thực hiện</th>
+                                    <th style="width: 15%;">Sản phẩm</th>
+                                    <th style="width: 15%;">Trạng Thái</th>
                                     <th style="width: 20%;">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody id="checkTableBody" class="text-sm">
                                 {% for check in inventory_checks %}
-                                <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors" data-id="{{ check.maKiemKe }}">
+                                <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors" data-id="{{ check.maKiemKe }}" data-status="{{ check.trangThai }}">
                                     <td class="font-bold text-gray-700 text-center">{{ forloop.counter }}</td>
                                     <td class="font-bold text-gray-800 text-center">{{ check.maKiemKe }}</td>
                                     <td class="text-gray-600 text-center">{{ check.ngayKiem|date:"d/m/Y H:i" }}</td>
-                                    <td class="text-gray-800 font-medium text-center">{{ check.kiemke_ct_set.count }} mặt hàng</td>
+                                    <td class="text-gray-800 font-medium text-center">{{ check.nguoiKiem|default:"Admin" }}</td>
+                                    <td class="text-gray-800 font-medium text-center">{{ check.kiemke_ct_set.count }} sản phẩm</td>
                                     <td class="text-center">
                                         {% if check.trangThai == 1 %}
                                         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-green-100 text-green-700 border border-green-200">
@@ -179,40 +182,73 @@
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                            <i class="fas fa-list-ul text-primary"></i> DANH SÁCH SẢN PHẨM KIỂM KÊ
-                        </h3>
-
-                        <div class="w-full md:w-auto flex flex-col md:flex-row gap-4 items-center mb-6">
-                            <button type="button" onclick="openCategoryModal()" class="w-full md:w-64 px-4 py-2.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl hover:bg-blue-100 transition-all font-bold flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-layer-group"></i> CHỌN THEO DANH MỤC
-                            </button>
-                            <div class="w-full md:w-80">
-                                <div class="autocomplete-wrapper relative">
-                                    <i class="fas fa-barcode absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                                    <input type="text" id="productSearchInput" class="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-1 focus:ring-primary outline-none shadow-sm font-medium" placeholder="Tìm sản phẩm lẻ...">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                            <h3 class="font-bold text-gray-800 flex items-center gap-2">
+                                <i class="fa-solid fa-list-check text-primary"></i> DANH SÁCH SẢN PHẨM KIỂM KÊ
+                            </h3>
+                            
+                            <div class="w-full md:w-auto flex flex-wrap gap-4 items-center">
+                                <button type="button" onclick="addAllProductsToCheck()" class="w-full md:w-auto px-5 py-2.5 bg-green-50 text-green-700 border border-green-200 rounded-xl hover:bg-green-100 transition-all font-bold flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-list-check text-xs"></i> KIỂM KÊ TOÀN BỘ
+                                </button>
+                                <button type="button" onclick="openCategoryModal()" class="w-full md:w-auto px-5 py-2.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl hover:bg-blue-100 transition-all font-bold flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-layer-group text-xs"></i> CHỌN THEO DANH MỤC
+                                </button>
+                                
+                                <div class="w-full md:w-64">
+                                    <div class="autocomplete-wrapper relative">
+                                        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                        <input type="text" id="productSearchInput" class="w-full pl-11 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-1 focus:ring-primary outline-none shadow-sm font-medium" placeholder="Tìm sản phẩm lẻ...">
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="table-wrapper data-table-wrapper border border-gray-100 rounded-xl overflow-hidden mb-6">
+                        <div class="border border-gray-100 rounded-xl overflow-hidden mb-6">
                             <table class="w-full text-sm">
                                 <thead>
                                     <tr class="bg-gray-50 text-red-600 font-bold border-b" style="background-color: #f9fafb !important;">
                                         <th class="py-4 px-4 text-center w-16 uppercase tracking-wider" style="background: transparent !important; color: #dc2626 !important;">STT</th>
-                                        <th class="py-4 px-4 text-left w-32 uppercase tracking-wider" style="background: transparent !important; color: #dc2626 !important;">Mã SP</th>
-                                        <th class="py-4 px-4 text-left uppercase tracking-wider" style="background: transparent !important; color: #dc2626 !important;">Tên Sản phẩm</th>
+                                        <th class="py-4 px-4 text-left w-32 uppercase tracking-wider" style="text-align: left !important; background: transparent !important; color: #dc2626 !important;">Mã SP</th>
+                                        <th class="py-4 px-4 text-left uppercase tracking-wider" style="text-align: left !important; background: transparent !important; color: #dc2626 !important;">Tên Sản phẩm</th>
+                                        <th class="py-4 px-4 text-center w-40 uppercase tracking-wider" style="background: transparent !important; color: #dc2626 !important;">Vị trí kiểm</th>
                                         <th class="py-4 px-4 text-center w-32 uppercase tracking-wider" style="background: transparent !important; color: #dc2626 !important;">Tồn hệ thống</th>
                                         <th class="py-4 px-4 text-center w-32 uppercase tracking-wider" style="background: transparent !important; color: #dc2626 !important;">Thực tế</th>
                                         <th class="py-4 px-4 text-center w-32 uppercase tracking-wider" style="background: transparent !important; color: #dc2626 !important;">Chênh lệch</th>
                                         <th class="py-4 px-4 text-center w-16 uppercase tracking-wider" style="background: transparent !important; color: #dc2626 !important;"></th>
                                     </tr>
                                 </thead>
-                                <tbody id="checkItemsBody">
+                                <tbody id="checkItemsBody" class="divide-y divide-gray-50">
                                     <!-- Items will be added here -->
                                 </tbody>
                             </table>
+                            <div id="noProductsMsg" class="p-16 text-center text-gray-400 italic">
+                                Chưa có sản phẩm nào được chọn
+                            </div>
+                        </div>
+
+                        <!-- Bảng tổng hợp theo sản phẩm -->
+                        <div id="productSummarySection" class="mb-6 bg-gray-50 rounded-xl p-4 border border-gray-200 hidden">
+                            <h4 class="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-list-check"></i> TỔNG HỢP THEO SẢN PHẨM
+                            </h4>
+                            <div id="productSummaryBox" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-2">
+                                <!-- Summary items rendered via JS -->
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row justify-between items-center gap-6 pt-6 border-t border-gray-100">
+                            <div class="bg-gray-50 rounded-lg px-6 py-3 border border-gray-100 flex items-center gap-4">
+                                <div class="flex items-center gap-4">
+                                    <div class="text-gray-500 text-sm">Sản phẩm: <strong id="totalUniqueItems" class="text-gray-900 text-xl font-black">0</strong></div>
+                                    <div class="h-4 w-px bg-gray-300"></div>
+                                    <div class="text-gray-500 text-sm">Tổng thực tế: <strong id="totalActualQty" class="text-gray-900 text-xl font-black text-primary">0</strong></div>
+                                </div>
+                                <div class="h-4 w-px bg-gray-300 ml-4"></div>
+                                <button type="button" onclick="document.getElementById('checkItemsBody').innerHTML=''; updateSTT();" class="text-red-500 text-xs font-bold hover:text-red-700 transition-colors">
+                                    <i class="fa-solid fa-trash-can mr-1"></i> XÓA TẤT CẢ
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -302,7 +338,7 @@
             slTon: stockMap["{{ sp.maSP }}"] || 0,
             locations: [
                 {% for tkct in sp.tonkhochitiet_set.all %}
-                { maViTri: "{{ tkct.viTri.maViTri }}", khuVuc: "{{ tkct.viTri.khuVuc }}", sl: {{ tkct.soluong }} },
+                { maViTri: "{{ tkct.viTri.maViTri|default:'Kho chung' }}", khuVuc: "{{ tkct.viTri.khuVuc|default:'N/A' }}", sl: {{ tkct.soluong }} },
                 {% endfor %}
             ]
         },
@@ -345,46 +381,24 @@
     };
 
     function backToList() {
-        switchView('checkListView');
+        confirmNavigation(() => switchView('checkListView'));
     }
 
-    /* --- AUTOCOMPLETE SEARCH --- */
-    const searchInput = document.getElementById('productSearchInput');
-    const suggestionBox = document.createElement('div');
-    suggestionBox.className = 'search-suggestions';
-    searchInput.parentNode.appendChild(suggestionBox);
-
-    searchInput.addEventListener('input', function() {
-        const val = this.value.trim().toLowerCase();
-        if (!val) { suggestionBox.classList.remove('active'); return; }
-        
-        const matches = productCatalog.filter(p => 
-            p.maSP.toLowerCase().includes(val) || p.tenSP.toLowerCase().includes(val)
-        ).slice(0, 10);
-
-        if (matches.length > 0) {
-            suggestionBox.innerHTML = matches.map(p => `
-                <div class="suggestion-item" onclick="addProductByCode('${p.maSP}')">
-                    <div class="suggestion-title">${p.tenSP}</div>
-                    <div class="suggestion-meta">${p.maSP} - Tồn: ${p.slTon}</div>
-                </div>
-            `).join('');
-            suggestionBox.classList.add('active');
-        } else {
-            suggestionBox.classList.remove('active');
-        }
+    // Init Autocomplete
+    document.addEventListener('DOMContentLoaded', () => {
+        setupSearchAutocomplete(
+            'productSearchInput', 
+            (kw) => productCatalog.filter(p => p.tenSP.toLowerCase().includes(kw) || p.maSP.toLowerCase().includes(kw)),
+            (item, kw) => `
+                <div class="suggestion-title font-bold text-gray-800">${item.tenSP}</div>
+                <div class="suggestion-meta text-xs text-gray-500 uppercase font-medium">Mã: ${item.maSP} | Tồn tổng: <span class="text-primary font-bold">${item.slTon}</span></div>
+            `,
+            (item, input) => {
+                addProductLine(item.maSP);
+                input.value = '';
+            }
+        );
     });
-
-    document.addEventListener('click', e => {
-        if (!searchInput.contains(e.target)) suggestionBox.classList.remove('active');
-    });
-
-    function addProductByCode(code) {
-        const p = productCatalog.find(prod => prod.maSP === code);
-        if (p) addProductLine(p.maSP);
-        searchInput.value = '';
-        suggestionBox.classList.remove('active');
-    }
 
     /* --- LOGIC MODAL CHỌN THEO DANH MỤC --- */
     let currentModalDmId = null;
@@ -496,23 +510,22 @@
     function confirmCategoryAdd() {
         let added = 0;
         modalSelectedProds.forEach(maSP => {
-            if (!Array.from(document.querySelectorAll('#checkItemsBody tr')).some(tr => tr.getAttribute('data-ma') === maSP)) {
-                addProductLine(maSP);
-                added++;
-            }
+            addProductLine(maSP);
+            added++;
         });
         if (added > 0) {
             alert(`Đã thêm thành công ${added} sản phẩm.`);
             closeCategoryModal();
         } else {
-            alert('Không có sản phẩm mới nào được thêm!');
+            alert('Không có sản phẩm nào được thêm!');
         }
     }
 
     function openCreateCheck() {
         document.getElementById('formTitle').innerText = 'TẠO PHIẾU KIỂM KÊ';
         document.getElementById('maKiemKe').value = '';
-        document.getElementById('ngayKiem').value = new Date().toISOString().slice(0, 16);
+        document.getElementById('ngayKiem').value = getLocalDateTime();
+        document.getElementById('nguoiKiem').value = "{{ user.get_full_name|default:user.username|default:'Admin' }}";
         document.getElementById('checkItemsBody').innerHTML = '';
         const searchInp = document.getElementById('productSearchInput');
         if (searchInp) searchInp.value = '';
@@ -520,18 +533,28 @@
         switchView('checkFormView');
     }
 
-    function addProductsByCategory(maDM) {
-        if (!maDM) return;
-        const products = productCatalog.filter(p => p.dmId === maDM);
-        let addedCount = 0;
-        products.forEach(p => {
-            const existing = document.querySelector(`#checkItemsBody tr[data-ma="${p.maSP}"]`);
-            if (!existing) {
-                addProductLine(p.maSP);
-                addedCount++;
+    function addAllProductsToCheck() {
+        if (!confirm('Hệ thống sẽ liệt kê TẤT CẢ sản phẩm kèm theo từng vị trí kệ. Bạn có chắc chắn muốn thực hiện kiểm kê toàn bộ không?')) return;
+        
+        const body = document.getElementById('checkItemsBody');
+        body.innerHTML = ''; // Clear current
+        
+        productCatalog.forEach(p => {
+            // 1. Bung dòng cho từng vị trí thực tế của sản phẩm
+            p.locations.forEach(loc => {
+                addRowForItem(p.maSP, loc.maViTri);
+            });
+            
+            // 2. Bung dòng cho "Chưa phân kệ" (Kho chung)
+            const totalAtLocations = p.locations.reduce((sum, l) => sum + l.sl, 0);
+            const unassignedStock = p.slTon - totalAtLocations;
+            if (unassignedStock > 0 || p.locations.length === 0) {
+                addRowForItem(p.maSP, null); 
             }
         });
-        if (addedCount > 0) alert(`Đã thêm ${addedCount} sản phẩm.`);
+        
+        updateSTT();
+        alert('Đã liệt kê danh sách kiểm kê toàn bộ kho!');
     }
 
     function addProductLine(maSP) {
@@ -539,10 +562,37 @@
         const p = productCatalog.find(prod => prod.maSP === maSP);
         if (!p) return;
 
-        // Kiểm tra xem đã có trong bảng chưa
-        const existing = document.querySelector(`#checkItemsBody tr[data-ma="${maSP}"]`);
+        // Kiểm tra nếu sản phẩm này đã có trong danh sách thì không thêm nữa (để tránh bung trùng)
+        const existing = document.querySelector(`#checkItemsBody tr[data-ma="${p.maSP}"]`);
         if (existing) {
+            alert(`Sản phẩm ${maSP} đã có trong danh sách kiểm kê!`);
             return;
+        }
+
+        // 1. Bung dòng cho từng kệ thực tế
+        p.locations.forEach(loc => {
+            addRowForItem(p.maSP, loc.maViTri);
+        });
+
+        // 2. Bung dòng cho Kho chung (Nếu có tồn hoặc nếu chưa có kệ nào)
+        const totalAtLocations = p.locations.reduce((sum, l) => sum + l.sl, 0);
+        const unassignedStock = p.slTon - totalAtLocations;
+        if (unassignedStock > 0 || p.locations.length === 0) {
+            addRowForItem(p.maSP, null);
+        }
+    }
+
+    function addRowForItem(maSP, preSelectedViTri = null) {
+        const p = productCatalog.find(prod => prod.maSP === maSP);
+        if (!p) return;
+
+        const totalAtLocations = p.locations.reduce((sum, l) => sum + l.sl, 0);
+        const unassignedStock = Math.max(0, p.slTon - totalAtLocations);
+
+        let initialStock = unassignedStock;
+        if (preSelectedViTri) {
+            const loc = p.locations.find(l => l.maViTri === preSelectedViTri);
+            initialStock = loc ? loc.sl : 0;
         }
 
         const tr = document.createElement('tr');
@@ -556,10 +606,16 @@
             <td class="py-4 px-4 text-left">
                 <div class="font-bold text-gray-800">${p.tenSP}</div>
             </td>
-            <td class="py-4 px-4 text-center font-bold text-gray-500 system-stock">${p.slTon}</td>
             <td class="py-4 px-4 text-center">
-                <input type="number" class="w-24 px-3 py-2 border border-gray-200 rounded-lg focus:ring-1 focus:ring-primary outline-none text-center font-bold text-gray-800 sl-thuc-te" value="${p.slTon}"
-                    oninput="calculateDiff(this)" data-stock="${p.slTon}">
+                <select disabled class="w-full border border-gray-200 bg-gray-50 rounded-lg px-2 py-1.5 text-xs font-bold text-gray-600 outline-none vi-tri-select appearance-none">
+                    <option value="" ${!preSelectedViTri ? 'selected' : ''}>-- Chưa phân kệ (${unassignedStock}) --</option>
+                    ${p.locations.map(l => `<option value="${l.maViTri}" ${preSelectedViTri === l.maViTri ? 'selected' : ''}>${l.maViTri} (${l.sl})</option>`).join('')}
+                </select>
+            </td>
+            <td class="py-4 px-4 text-center font-bold text-gray-500 system-stock">${initialStock}</td>
+            <td class="py-4 px-4 text-center">
+                <input type="number" class="w-24 px-3 py-2 border border-gray-200 rounded-lg focus:ring-1 focus:ring-primary outline-none text-center font-bold text-gray-800 sl-thuc-te" value="${initialStock}"
+                    oninput="calculateDiff(this)" data-stock="${initialStock}">
             </td>
             <td class="py-4 px-4 text-center font-black text-gray-600 diff-val">0</td>
             <td class="py-4 px-4 text-center">
@@ -568,19 +624,65 @@
                 </button>
             </td>
         `;
+        markAsUnsaved(); // Đánh dấu có thay đổi chưa lưu
         document.getElementById('checkItemsBody').appendChild(tr);
         updateSTT();
+        document.getElementById('noProductsMsg').style.display = 'none';
+    }
+
+    function renderProductSummary() {
+        const summary = {};
+        document.querySelectorAll('#checkItemsBody tr').forEach(tr => {
+            const maSP = tr.getAttribute('data-ma');
+            const tenSP = tr.cells[2].innerText;
+            const actual = parseInt(tr.querySelector('.sl-thuc-te').value) || 0;
+            
+            if (!summary[maSP]) {
+                summary[maSP] = { tenSP: tenSP, totalActual: 0 };
+            }
+            summary[maSP].totalActual += actual;
+        });
+        
+        const summaryKeys = Object.keys(summary);
+        const section = document.getElementById('productSummarySection');
+        const box = document.getElementById('productSummaryBox');
+        
+        if (summaryKeys.length === 0) {
+            section.classList.add('hidden');
+            return;
+        }
+        
+        section.classList.remove('hidden');
+        box.innerHTML = summaryKeys.map(code => {
+            const item = summary[code];
+            return `
+                <div class="flex justify-between items-center py-1.5 border-b border-gray-200 last:border-0 md:border-b-0 md:border-r md:pr-4 last:md:border-r-0">
+                    <span class="text-[13px] text-gray-600 font-medium truncate pr-2">${item.tenSP}</span>
+                    <span class="font-bold text-primary whitespace-nowrap">${item.totalActual}</span>
+                </div>
+            `;
+        }).join('');
     }
 
     function updateSTT() {
-        document.querySelectorAll('#checkItemsBody tr').forEach((tr, idx) => {
+        const rows = document.querySelectorAll('#checkItemsBody tr');
+        rows.forEach((tr, idx) => {
             tr.querySelector('.stt-col').innerText = idx + 1;
         });
+        document.getElementById('noProductsMsg').style.display = rows.length ? 'none' : 'block';
+        document.getElementById('totalUniqueItems').innerText = rows.length;
+        
+        let totalActual = 0;
+        rows.forEach(tr => {
+            totalActual += parseInt(tr.querySelector('.sl-thuc-te').value) || 0;
+        });
+        document.getElementById('totalActualQty').innerText = totalActual;
+        renderProductSummary();
     }
 
     function calculateDiff(input) {
         const tr = input.closest('tr');
-        const stock = parseInt(input.dataset.stock);
+        const stock = parseInt(input.dataset.stock) || 0;
         const actual = parseInt(input.value) || 0;
         const diff = actual - stock;
 
@@ -594,6 +696,12 @@
         } else {
             diffCell.className = 'py-4 px-4 text-center font-bold diff-val text-gray-600';
         }
+        
+        // Cập nhật tổng
+        let totalActual = 0;
+        document.querySelectorAll('.sl-thuc-te').forEach(inp => totalActual += parseInt(inp.value) || 0);
+        document.getElementById('totalActualQty').innerText = totalActual;
+        renderProductSummary();
     }
 
     function updateSystemStock(select, maSP) {
@@ -602,10 +710,14 @@
         const stockCell = tr.querySelector('.system-stock');
         const inputActual = tr.querySelector('.sl-thuc-te');
         
-        let newStock = p.slTon;
+        let newStock = 0;
         if (select.value) {
             const loc = p.locations.find(l => l.maViTri === select.value);
             newStock = loc ? loc.sl : 0;
+        } else {
+            // Tính lại tồn kho chung
+            const totalAtLocations = p.locations.reduce((sum, l) => sum + l.sl, 0);
+            newStock = Math.max(0, p.slTon - totalAtLocations);
         }
         
         stockCell.innerText = newStock;
@@ -620,20 +732,29 @@
         const nguoiKiem = document.getElementById('nguoiKiem').value;
 
         const items = [];
+        let valid = true;
         document.querySelectorAll('#checkItemsBody tr').forEach(tr => {
             const maSP = tr.dataset.ma;
-            const stock = parseInt(tr.querySelector('.sl-thuc-te').dataset.stock);
-            const actual = parseInt(tr.querySelector('.sl-thuc-te').value) || 0;
+            const maViTri = tr.querySelector('.vi-tri-select').value;
+            // Cho phép vị trí rỗng (Kho chung)
             items.push({
                 maSP: maSP,
-                slTonKho: stock,
-                slThucTe: actual
+                maViTri: maViTri || null,
+                slTonKho: parseInt(tr.querySelector('.sl-thuc-te').dataset.stock),
+                slThucTe: parseInt(tr.querySelector('.sl-thuc-te').value) || 0
             });
         });
 
+        if (!valid) return;
         if (items.length === 0) {
             alert('Vui lòng chọn ít nhất 1 sản phẩm để kiểm kê!');
             return;
+        }
+
+        if (trangThai == 1) {
+            if (!confirm("Bạn có chắc chắn muốn HOÀN THÀNH và CÂN BẰNG kho? Dữ liệu tồn kho thực tế sẽ được cập nhật lại theo phiếu này.")) {
+                return;
+            }
         }
 
         fetch(window.location.href, {
@@ -653,6 +774,7 @@
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
+                markAsSaved(); // Xóa đánh dấu chưa lưu
                 alert(data.message);
                 window.location.hash = '';
                 location.reload();
@@ -681,6 +803,9 @@
                         <td class="p-4 text-center text-gray-400 font-bold">${idx + 1}</td>
                         <td class="p-4 font-bold text-gray-800">${item.maSP}</td>
                         <td class="p-4 text-gray-700 font-medium">${item.tenSP}</td>
+                        <td class="p-4 text-center">
+                            <span class="px-2 py-0.5 rounded bg-gray-100 font-bold text-[10px] border border-gray-200">${item.maViTri || 'Kho chung'}</span>
+                        </td>
                         <td class="p-4 text-center font-bold text-gray-700">${item.donViTinh || 'Cuốn'}</td>
                         <td class="p-4 text-center font-bold text-gray-500">${item.slTonKho}</td>
                         <td class="p-4 text-center font-black text-gray-800 text-base">${item.slThucTe}</td>
@@ -726,7 +851,7 @@
                     <div>
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="font-bold text-gray-800 text-lg">Danh sách hàng hóa kiểm kê</h3>
-                            <span class="text-primary font-bold text-sm">Tổng ${data.items.length} mặt hàng</span>
+                            <span class="text-primary font-bold text-sm">Tổng ${data.items.length} sản phẩm</span>
                         </div>
                         <div class="table-wrapper data-table-wrapper border border-gray-100 rounded-xl overflow-hidden shadow-sm">
                             <table class="w-full">
@@ -735,6 +860,7 @@
                                         <th class="p-4 text-center" style="background: transparent !important; color: #dc2626 !important;">STT</th>
                                         <th class="p-4 text-left" style="background: transparent !important; color: #dc2626 !important;">MÃ SP</th>
                                         <th class="p-4 text-left" style="background: transparent !important; color: #dc2626 !important;">TÊN SẢN PHẨM</th>
+                                        <th class="p-4 text-center" style="background: transparent !important; color: #dc2626 !important;">VỊ TRÍ</th>
                                         <th class="p-4 text-center" style="background: transparent !important; color: #dc2626 !important;">ĐVT</th>
                                         <th class="p-4 text-center" style="background: transparent !important; color: #dc2626 !important;">Tồn hệ thống</th>
                                         <th class="p-4 text-center" style="background: transparent !important; color: #dc2626 !important;">Thực tế</th>
@@ -790,6 +916,7 @@
             const body = document.getElementById('checkItemsBody');
             body.innerHTML = '';
             data.items.forEach(item => {
+                const p = productCatalog.find(prod => prod.maSP === item.maSP);
                 const tr = document.createElement('tr');
                 tr.className = 'border-b border-gray-50 hover:bg-gray-50/50 transition-colors';
                 tr.setAttribute('data-ma', item.maSP);
@@ -801,14 +928,18 @@
                     <td class="py-4 px-4 text-left">
                         <div class="font-bold text-gray-800">${item.tenSP}</div>
                     </td>
+                    <td class="py-4 px-4 text-center">
+                        <select onchange="updateSystemStock(this, '${item.maSP}')" class="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-700 focus:ring-1 focus:ring-primary outline-none vi-tri-select">
+                            <option value="">-- Chọn vị trí --</option>
+                            ${p ? p.locations.map(l => `<option value="${l.maViTri}" ${l.maViTri === item.maViTri ? 'selected' : ''}>${l.maViTri} (${l.sl})</option>`).join('') : ''}
+                        </select>
+                    </td>
                     <td class="py-4 px-4 text-center font-bold text-gray-500 system-stock">${item.slTonKho}</td>
                     <td class="py-4 px-4 text-center">
                         <input type="number" class="w-24 px-3 py-2 border border-gray-200 rounded-lg focus:ring-1 focus:ring-primary outline-none text-center font-bold text-gray-800 sl-thuc-te" value="${item.slThucTe}"
                             oninput="calculateDiff(this)" data-stock="${item.slTonKho}">
                     </td>
-                    <td class="py-4 px-4 text-center font-black diff-val ${item.chenhLech > 0 ? 'text-green-600' : (item.chenhLech < 0 ? 'text-red-600' : 'text-gray-600')}">
-                        ${item.chenhLech > 0 ? '+' : ''}${item.chenhLech}
-                    </td>
+                    <td class="py-4 px-4 text-center font-black text-gray-600 diff-val">0</td>
                     <td class="py-4 px-4 text-center">
                         <button onclick="this.closest('tr').remove(); updateSTT();" class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm">
                             <i class="fas fa-trash-alt text-xs"></i>
@@ -816,6 +947,7 @@
                     </td>
                 `;
                 body.appendChild(tr);
+                calculateDiff(tr.querySelector('.sl-thuc-te'));
             });
             updateSTT();
             switchView('checkFormView');
@@ -838,6 +970,23 @@
             alert(data.message);
             location.reload();
         });
+    }
+
+    function filterTable() {
+        const search = document.getElementById('checkSearchInput').value.toLowerCase();
+        const status = document.getElementById('checkStatusFilter').value;
+        document.querySelectorAll('#checkTableBody tr').forEach(row => {
+            if (row.cells.length < 2) return;
+            const matchesSearch = row.cells[1].innerText.toLowerCase().includes(search);
+            const matchesStatus = status === 'all' || row.dataset.status === status;
+            row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
+        });
+    }
+
+    function resetFilters() {
+        document.getElementById('checkSearchInput').value = '';
+        document.getElementById('checkStatusFilter').value = 'all';
+        filterTable();
     }
 
     function showBalanceConfirm() {

@@ -3,13 +3,17 @@ let hasUnsavedChanges = false;
 
 document.addEventListener("DOMContentLoaded", function () {
     // 1. Sidebar is now included via Django template, no need to fetch
-    // Find the active menu item
+    // 1. Lấy địa chỉ trang hiện tại người dùng đang xem
     let currentPage = window.location.pathname;
-    if (currentPage === "/") currentPage = "/tongquan/";  // Default to overview if root
-
+    if (currentPage === "/") currentPage = "/tongquan/";  // // Mặc định về tổng quan nếu là trang chủ
+    // 2. Tìm tất cả các nút trên thanh Menu (có class là .menu-link)
     let links = document.querySelectorAll(".menu-link");
+    // 3. Chạy vòng lặp kiểm tra từng nút
     links.forEach(link => {
+
+        // Nếu địa chỉ của nút KHỚP với địa chỉ trang đang xem
         if (link.getAttribute("href") === currentPage) {
+            // Thì thêm cho class "active" (để nó hiện màu đỏ lên)
             link.classList.add("active");
         }
 
@@ -37,13 +41,40 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
+
+    // 4. Chặn nút Back/F5 của trình duyệt nếu có dữ liệu chưa lưu
+    window.addEventListener('beforeunload', function (e) {
+        if (hasUnsavedChanges) {
+            e.preventDefault();
+            e.returnValue = ''; // Hiển thị thông báo chuẩn của trình duyệt
+        }
+    });
 });
 
-// Hàm gọi khi bắt đầu gõ vào form
+// Hàm kiểm tra trước khi chuyển View hoặc Quay lại trong giao diện
+function confirmNavigation(targetAction) {
+    if (hasUnsavedChanges) {
+        if (confirm("⚠️ Bạn có dữ liệu chưa lưu! Nếu quay lại, các thông tin này sẽ bị mất. Bạn vẫn muốn tiếp tục?")) {
+            markAsSaved(); // Reset lại trạng thái để cho phép đi
+            targetAction();
+        }
+    } else {
+        targetAction();
+    }
+}
+
+// Hàm gọi khi gõ vào form
 function markAsUnsaved() { hasUnsavedChanges = true; }
 
 // Hàm gọi khi đã lưu thành công
 function markAsSaved() { hasUnsavedChanges = false; }
+
+// Hàm lấy thời gian hiện tại theo giờ địa phương (định dạng YYYY-MM-DDTHH:mm)
+function getLocalDateTime() {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+}
 
 // ==========================================
 // HÀM HIỂN THỊ MODAL XÓA DÙNG CHUNG CỦA HỆ THỐNG

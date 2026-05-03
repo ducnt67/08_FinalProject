@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="{% static 'css/0.0.style.css' %}">
+    <script src="{% static 'js/0.0.app.js' %}"></script>
 
     <script>
         tailwind.config = {
@@ -46,6 +47,7 @@
 <body class="bg-gray-50">
   {% csrf_token %}
   <nav class="sidebar" id="sidebar-container">
+    <!-- FILE LIÊN QUAN: Lấy toàn bộ giao diện thanh menu từ file supplychain/hethong/templates/partials/thanh_ben.html -->
     {% include 'partials/thanh_ben.html' %}
   </nav>
 
@@ -54,20 +56,34 @@
             <h1>Quản lý xuất kho</h1>
         </div>
 
+        <!-- PHẦN THÂN CHÍNH: CHỨA NỘI DUNG CỦA TRANG -->
         <div class="content-body p-8">
-            <!-- View 1: Danh sách phiếu xuất -->
+            
+            <!-- VIEW 1: DANH SÁCH PHIẾU XUẤT (MÀN HÌNH MẶC ĐỊNH) -->
+            <!-- Dùng id "exportListView" để JavaScript (hàm switchView ở cuối file này) có thể ẩn/hiện màn hình này -->
             <div id="exportListView" class="view-section active">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    
+                    <!-- KHỐI CÔNG CỤ: TÌM KIẾM, LỌC TRẠNG THÁI VÀ NÚT TẠO PHIẾU -->
                     <div class="mb-6 bg-gray-50 p-6 rounded-xl border border-gray-100">
                         <div class="flex flex-col md:flex-row gap-6 items-end justify-between">
+                            
+                            <!-- NHÓM BỘ LỌC BÊN TRÁI -->
                             <div class="flex flex-col md:flex-row gap-4 flex-1 items-end">
+                                <!-- Ô Tìm kiếm: Gõ tới đâu, bảng lọc tới đó (onkeyup) -->
                                 <div class="w-auto">
                                     <label class="block text-sm font-bold text-gray-700 mb-2">Tìm kiếm phiếu xuất</label>
                                     <div class="frm-search-box" style="width: 550px; max-width: none;">
+                                        
+                                        <!-- i class="fas fa-search": Biểu tượng cái kính lúp lấy từ thư viện FontAwesome -->
                                         <i class="fas fa-search"></i>
+                                        <!-- ID "exportSearchInput": Tên riêng để hàm filterTable() có thể tìm đúng ô này để lấy dữ liệu. -->
+                                        <!-- onkeyup="filterTable()": Sự kiện kích hoạt hàm filterTable() chạy mỗi khi bạn buông phím. -->
                                         <input type="text" id="exportSearchInput" placeholder="Tìm mã phiếu, khách hàng..." onkeyup="filterTable()" class="w-full">
                                     </div>
                                 </div>
+                                
+                                <!-- Dropdown Lọc Trạng thái: Hoàn thành, Phiếu tạm hoặc Hủy -->
                                 <div class="w-full md:w-48">
                                     <label class="block text-sm font-bold text-gray-700 mb-2">Trạng thái</label>
                                     <select id="exportStatusFilter" class="frm-select w-full" onchange="filterTable()">
@@ -77,16 +93,21 @@
                                         <option value="-1">Hủy</option>
                                     </select>
                                 </div>
+                                
+                                <!-- Nút Làm mới: Xóa các ô lọc về trạng thái ban đầu -->
                                 <button type="button" onclick="resetFilters()" class="bg-white hover:bg-gray-50 text-gray-700 h-[42px] px-4 whitespace-nowrap rounded-lg text-[13px] font-semibold transition-colors flex items-center gap-2 shadow-sm border border-gray-200">
                                     <i class="fa-solid fa-rotate"></i> Làm mới
                                 </button>
                             </div>
+                            
+                            <!-- NÚT TẠO PHIẾU MỚI: Gọi hàm openCreateExport để chuyển sang Màn hình tạo phiếu -->
                             <button type="button" onclick="openCreateExport()" class="bg-primary hover:bg-red-700 text-white h-[42px] px-6 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shadow-md">
                                 <i class="fa-solid fa-plus text-xs"></i> Tạo phiếu xuất kho
                             </button>
                         </div>
                     </div>
 
+                    <!-- BẢNG DỮ LIỆU CHÍNH -->
                     <div class="table-wrapper data-table-wrapper border border-gray-200 rounded-lg">
                         <table class="w-full border-collapse min-w-[900px]">
                             <thead>
@@ -101,13 +122,19 @@
                                 </tr>
                             </thead>
                             <tbody id="exportTableBody" class="text-sm">
+                                <!-- NGUỒN DỮ LIỆU: "outbound_records" được gửi từ hàm XuatKhoView trong file supplychain/khohang/views/nghiep_vu_kho.py -->
+                                <!-- Vòng lặp Django: Lấy từng bản ghi từ Database đổ vào bảng -->
                                 {% for record in outbound_records %}
                                 <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors" data-status="{{ record.trangThai }}">
                                     <td class="w-stt font-bold">{{ forloop.counter }}</td>
                                     <td class="w-code font-semibold text-gray-800">{{ record.maPhieuXuat }}</td>
+                                    <!-- Định dạng ngày tháng kiểu Việt Nam (Ngày/Tháng/Năm). Hàm |date này là của Django Template -->
                                     <td class="w-date text-gray-600">{{ record.ngayXuat|date:"d/m/Y H:i" }}</td>
+                                    <!-- NGUỒN DỮ LIỆU: "user" là biến hệ thống của Django chứa thông tin người đang đăng nhập -->
                                     <td class="py-4 px-4 text-gray-600 font-medium">{{ user.get_full_name|default:user.username|default:"Admin" }}</td>
                                     <td class="py-4 px-4 text-gray-600">{{ record.noiXuat }}</td>
+                                    
+                                    <!-- Cột Trạng thái: Dùng màu sắc để phân biệt (Xanh: OK, Vàng: Chờ, Đỏ: Hủy) -->
                                     <td class="w-status text-center">
                                         {% if record.trangThai == 1 %}
                                         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-green-100 text-green-700 border border-green-200">
@@ -123,15 +150,19 @@
                                         </span>
                                         {% endif %}
                                     </td>
+                                    
+                                    <!-- Cột Thao tác: Xem chi tiết, Sửa hoặc Xóa (Có kiểm tra điều kiện trạng thái) -->
                                     <td class="w-action" onclick="event.stopPropagation()">
                                         <div class="flex items-center justify-center gap-2">
                                             <button onclick="viewExportDetail('{{ record.maPhieuXuat }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Xem chi tiết">
                                                 <i class="fas fa-eye text-xs"></i>
                                             </button>
+                                            <!-- Chỉ cho sửa nếu là Phiếu tạm (trangThai == 0) -->
                                             <button onclick="{% if record.trangThai == 0 %}editExport('{{ record.maPhieuXuat }}'){% else %}alert('Không thể chỉnh sửa phiếu đã hoàn thành hoặc đã hủy.'){% endif %}" 
                                                 class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-green-500 hover:bg-green-500 hover:text-white transition-all shadow-sm {% if record.trangThai != 0 %}opacity-50 grayscale cursor-not-allowed{% endif %}" title="Chỉnh sửa">
                                                 <i class="fas fa-edit text-xs"></i>
                                             </button>
+                                            <!-- Chỉ cho xóa nếu là Phiếu tạm (trangThai == 0) -->
                                             <button onclick="{% if record.trangThai == 0 %}deleteExport('{{ record.maPhieuXuat }}'){% else %}alert('Không thể xóa phiếu đã hoàn thành hoặc đã hủy.'){% endif %}" 
                                                 class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-red-500 hover:bg-primary hover:text-white transition-all shadow-sm {% if record.trangThai != 0 %}opacity-50 grayscale cursor-not-allowed{% endif %}" title="Xóa">
                                                 <i class="fas fa-trash-alt text-xs"></i>
@@ -140,6 +171,7 @@
                                     </td>
                                 </tr>
                                 {% empty %}
+                                <!-- Trường hợp danh sách rỗng -->
                                 <tr>
                                     <td colspan="7" class="text-center py-10 text-gray-500">Không có phiếu xuất kho nào</td>
                                 </tr>
@@ -157,7 +189,7 @@
                         <h2 id="createViewTitle" class="text-2xl font-bold text-gray-800 uppercase tracking-tight">TẠO PHIẾU XUẤT KHO</h2>
                         <p id="createViewSubtitle" class="text-sm text-gray-500 mt-1">Xuất kho hàng hóa đến các chi nhánh, đại lý hoặc khách hàng</p>
                     </div>
-                    <button onclick="switchView('exportListView')" class="px-5 py-2.5 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-bold transition-all flex items-center gap-2 shadow-sm">
+                    <button onclick="confirmNavigation(() => switchView('exportListView'))" class="px-5 py-2.5 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-bold transition-all flex items-center gap-2 shadow-sm">
                         <i class="fa-solid fa-arrow-left text-xs"></i> QUAY LẠI
                     </button>
                 </div>
@@ -240,10 +272,24 @@
                             </div>
                         </div>
 
+                        <!-- Bảng tổng hợp theo sản phẩm (Mới bổ sung) -->
+                        <div id="productSummarySection" class="mb-6 bg-gray-50 rounded-xl p-4 border border-gray-200 hidden">
+                            <h4 class="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-list-check"></i> TỔNG HỢP THEO SẢN PHẨM
+                            </h4>
+                            <div id="productSummaryBox" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-2">
+                                <!-- Summary items rendered via JS -->
+                            </div>
+                        </div>
+
                         <div class="flex flex-col md:flex-row justify-between items-center gap-6 pt-6 border-t border-gray-100">
                             <div class="bg-gray-50 rounded-lg px-6 py-3 border border-gray-100 flex items-center gap-4">
-                                <div class="text-gray-500 text-sm">Tổng cộng: <strong id="totalItemCount" class="text-gray-900 text-xl font-black">0</strong> <span class="text-xs uppercase font-bold">sản phẩm</span></div>
-                                <div class="h-4 w-px bg-gray-300"></div>
+                                <div class="flex items-center gap-4">
+                                    <div class="text-gray-500 text-sm">Sản phẩm: <strong id="totalUniqueItems" class="text-gray-900 text-xl font-black">0</strong></div>
+                                    <div class="h-4 w-px bg-gray-300"></div>
+                                    <div class="text-gray-500 text-sm">Tổng số lượng: <strong id="totalAllQty" class="text-gray-900 text-xl font-black text-primary">0</strong></div>
+                                </div>
+                                <div class="h-4 w-px bg-gray-300 ml-4"></div>
                                 <button type="button" onclick="selectedProducts = []; renderSelectedProducts();" class="text-red-500 text-xs font-bold hover:text-red-700 transition-colors">
                                     <i class="fa-solid fa-trash-can mr-1"></i> XÓA TẤT CẢ
                                 </button>
@@ -423,7 +469,7 @@
         document.getElementById('createViewTitle').innerText = 'TẠO PHIẾU XUẤT KHO';
         document.getElementById('createViewSubtitle').innerText = 'Xuất kho hàng hóa đến các chi nhánh, đại lý hoặc khách hàng';
         document.getElementById('modalMaPhieu').value = '';
-        document.getElementById('modalNgayXuat').value = new Date().toISOString().slice(0, 16);
+        document.getElementById('modalNgayXuat').value = getLocalDateTime();
         document.getElementById('modalNoiXuat').value = '';
         document.getElementById('modalTrangThai').value = '0';
         document.getElementById('btnHuyPhieu').classList.add('hidden');
@@ -433,7 +479,7 @@
     }
 
     function addProductToExport(code, name, unit, stock) {
-        if (selectedProducts.find(p => p.maSP === code)) return;
+        markAsUnsaved();
         const prod = productCatalog.find(p => p.maSP === code);
         selectedProducts.push({ 
             maSP: code, 
@@ -567,7 +613,7 @@
         let added = 0;
         modalSelectedProds.forEach(maSP => {
             const p = productCatalog.find(prod => prod.maSP === maSP);
-            if (p && !selectedProducts.find(sp => sp.maSP === maSP)) {
+            if (p) {
                 selectedProducts.push({ 
                     maSP: p.maSP, 
                     tenSP: p.tenSP, 
@@ -585,36 +631,45 @@
             alert(`Đã thêm thành công ${added} sản phẩm.`);
             closeCategoryModal();
         } else {
-            alert('Không có sản phẩm mới nào được thêm!');
+            alert('Không có sản phẩm nào được thêm!');
         }
     }
 
-    function removeProduct(code) {
-        selectedProducts = selectedProducts.filter(p => p.maSP !== code);
+    function removeProduct(index) {
+        selectedProducts.splice(index, 1);
         renderSelectedProducts();
     }
 
-    function updateQty(code, val) {
-        let p = selectedProducts.find(p => p.maSP === code);
+    function updateQty(index, val) {
+        let p = selectedProducts[index];
         if (p) {
             let newVal = parseInt(val) || 1;
-            if (newVal > p.tonKho) {
-                alert(`Số lượng xuất (${newVal}) vượt quá tồn kho (${p.tonKho})!`);
-            }
             p.qty = newVal;
-            p.maViTri = document.getElementById(`vitri_input_${code}`).value;
+            
+            // Kiểm tra tồn kho tại vị trí nếu đã chọn vị trí
+            if (p.maViTri) {
+                const loc = p.locations.find(l => l.maViTri === p.maViTri);
+                if (loc && newVal > loc.sl) {
+                    alert(`Cảnh báo: Số lượng xuất (${newVal}) vượt quá tồn kho tại vị trí ${p.maViTri} (${loc.sl})!`);
+                }
+            }
         }
-        document.getElementById('totalItemCount').innerText = selectedProducts.reduce((sum, p) => sum + p.qty, 0);
+        
+        // Cập nhật các con số tổng
+        const totalQty = selectedProducts.reduce((sum, p) => sum + p.qty, 0);
+        document.getElementById('totalAllQty').innerText = totalQty;
+        
+        // Cập nhật lại bảng tổng hợp theo sản phẩm ngay lập tức
+        renderProductSummary();
     }
 
-    function updateViTri(code, val) {
-        let p = selectedProducts.find(p => p.maSP === code);
+    function updateViTri(index, val) {
+        let p = selectedProducts[index];
         if (p) {
             p.maViTri = val;
-            // Neu chon vi tri, co the cap nhat ton kho hien tai cua vi tri do de canh bao
             const loc = p.locations.find(l => l.maViTri === val);
             if (loc && p.qty > loc.sl) {
-                alert(`Lưu ý: Số lượng xuất (${p.qty}) vượt quá tồn kho tại vị trí này (${loc.sl})!`);
+                alert(`Cảnh báo: Số lượng xuất (${p.qty}) vượt quá tồn kho tại vị trí này (${loc.sl})!`);
             }
         }
     }
@@ -668,18 +723,18 @@
                         <span class="inline-flex px-2 py-1 rounded-md bg-blue-50 text-blue-700 font-bold text-xs border border-blue-100">${p.tonKho}</span>
                     </td>
                     <td class="py-4 px-4 text-center">
-                        <select id="vitri_input_${p.maSP}" onchange="updateViTri('${p.maSP}', this.value)" class="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-700 focus:ring-1 focus:ring-primary outline-none">
+                        <select onchange="updateViTri(${idx}, this.value)" class="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-700 focus:ring-1 focus:ring-primary outline-none">
                             <option value="">-- Chọn vị trí --</option>
                             ${p.locations.map(l => `<option value="${l.maViTri}" ${p.maViTri === l.maViTri ? 'selected' : ''}>${l.maViTri} (${l.sl})</option>`).join('')}
                         </select>
                     </td>
                     <td class="py-4 px-4 text-center">
                         <div class="flex items-center justify-center gap-2">
-                             <input type="number" id="qty_input_${p.maSP}" value="${p.qty}" min="1" onchange="updateQty('${p.maSP}', this.value)" class="w-24 border border-gray-200 rounded-lg px-3 py-1.5 text-center font-bold text-gray-800 focus:ring-1 focus:ring-primary outline-none">
+                             <input type="number" value="${p.qty}" min="1" onchange="updateQty(${idx}, this.value)" class="w-24 border border-gray-200 rounded-lg px-3 py-1.5 text-center font-bold text-gray-800 focus:ring-1 focus:ring-primary outline-none">
                         </div>
                     </td>
                     <td class="py-4 px-4 text-center">
-                        <button type="button" onclick="removeProduct('${p.maSP}')" class="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-all">
+                        <button type="button" onclick="removeProduct(${idx})" class="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-all">
                             <i class="fa-solid fa-trash-can"></i>
                         </button>
                     </td>
@@ -687,7 +742,44 @@
         });
         document.getElementById('modalProductBody').innerHTML = html;
         document.getElementById('noProductsMsg').style.display = html ? 'none' : 'block';
-        document.getElementById('totalItemCount').innerText = selectedProducts.reduce((sum, p) => sum + p.qty, 0);
+        
+        // Cập nhật các con số tổng
+        const totalQty = selectedProducts.reduce((sum, p) => sum + p.qty, 0);
+        document.getElementById('totalUniqueItems').innerText = selectedProducts.length;
+        document.getElementById('totalAllQty').innerText = totalQty;
+        
+        // Cập nhật bảng tổng hợp
+        renderProductSummary();
+    }
+
+    function renderProductSummary() {
+        const summary = {};
+        selectedProducts.forEach(p => {
+            if (!summary[p.maSP]) {
+                summary[p.maSP] = { tenSP: p.tenSP, totalQty: 0, unit: p.donViTinh };
+            }
+            summary[p.maSP].totalQty += p.qty;
+        });
+        
+        const summaryKeys = Object.keys(summary);
+        const section = document.getElementById('productSummarySection');
+        const box = document.getElementById('productSummaryBox');
+        
+        if (summaryKeys.length === 0) {
+            section.classList.add('hidden');
+            return;
+        }
+        
+        section.classList.remove('hidden');
+        box.innerHTML = summaryKeys.map(code => {
+            const item = summary[code];
+            return `
+                <div class="flex justify-between items-center py-1.5 border-b border-gray-200 last:border-0 md:border-b-0 md:border-r md:pr-4 last:md:border-r-0">
+                    <span class="text-[13px] text-gray-600 font-medium truncate pr-2">${item.tenSP}</span>
+                    <span class="font-bold text-primary whitespace-nowrap">${item.totalQty} ${item.unit}</span>
+                </div>
+            `;
+        }).join('');
     }
 
     function saveExport(forceStatus = null) {
@@ -704,6 +796,24 @@
         if (trangThai != -1 && selectedProducts.length === 0) {
             alert('Vui lòng chọn ít nhất 1 sản phẩm!');
             return;
+        }
+
+        // --- KIỂM TRA NGHIỆP VỤ ---
+        if (trangThai != -1) {
+            for (let p of selectedProducts) {
+                const loc = p.locations.find(l => l.maViTri === p.maViTri);
+                if (loc && p.qty > loc.sl) {
+                    alert(`Sản phẩm "${p.tenSP}" tại vị trí "${p.maViTri}" chỉ còn ${loc.sl}, không đủ để xuất ${p.qty}!`);
+                    return;
+                }
+            }
+        }
+
+        // --- XÁC NHẬN HOÀN THÀNH ---
+        if (trangThai == 1) {
+            if (!confirm("Bạn có chắc chắn muốn HOÀN THÀNH phiếu xuất này? Sau khi hoàn thành, bạn sẽ không thể chỉnh sửa hoặc xóa phiếu này nữa.")) {
+                return;
+            }
         }
 
         // 3. Chuẩn bị dữ liệu gửi đi
@@ -727,6 +837,7 @@
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
+                markAsSaved(); // Xóa đánh dấu
                 alert(data.message);
                 // Xóa hash trên URL để khi reload sẽ quay về view mặc định (danh sách)
                 window.location.hash = ''; 
@@ -761,6 +872,22 @@
             
             const totalQty = data.items.reduce((s,i)=>s+parseInt(i.qty),0);
 
+            // Tính toán tổng hợp theo sản phẩm cho bản xem lại
+            const summaryMap = {};
+            data.items.forEach(item => {
+                if (!summaryMap[item.maSP]) {
+                    summaryMap[item.maSP] = { tenSP: item.tenSP, totalQty: 0, unit: item.donViTinh || '' };
+                }
+                summaryMap[item.maSP].totalQty += parseInt(item.qty);
+            });
+
+            const summaryHtml = Object.values(summaryMap).map(item => `
+                <div class="flex justify-between items-center py-1.5 border-b border-dashed border-gray-200 last:border-0">
+                    <span class="text-[13px] text-gray-600">${item.tenSP}:</span>
+                    <span class="text-[13px] font-bold text-primary">${item.totalQty} ${item.unit}</span>
+                </div>
+            `).join('');
+
             document.getElementById('exportDetailContent').innerHTML = `
                 <div class="detail-modal-header">
                     <h5 class="flex items-center gap-3 font-bold uppercase tracking-wide">
@@ -788,7 +915,7 @@
                             </div>
                             <div class="detail-field-box">
                                 <span class="detail-field-label">Người thực hiện</span>
-                                <div class="detail-field-value">Admin</div>
+                                <div class="detail-field-value">{{ user.get_full_name|default:user.username|default:"Admin" }}</div>
                             </div>
                             <div class="detail-field-box">
                                 <span class="detail-field-label">Nơi nhận hàng</span>
@@ -797,10 +924,20 @@
                         </div>
                     </div>
 
+                    <!-- Bảng tổng hợp (Mới bổ sung cho bản xem lại) -->
+                    <div class="bg-gray-50 rounded-xl p-5 border border-gray-100">
+                        <h4 class="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check"></i> TỔNG HỢP THEO SẢN PHẨM
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-1">
+                            ${summaryHtml}
+                        </div>
+                    </div>
+
                     <div>
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="font-bold text-gray-800 text-lg">Danh sách hàng hóa</h3>
-                            <span class="text-primary font-bold text-sm">Tổng ${data.items.length} mặt hàng</span>
+                            <span class="text-primary font-bold text-sm">Tổng ${data.items.length} sản phẩm</span>
                         </div>
                         <div class="table-wrapper data-table-wrapper border border-gray-100 rounded-xl overflow-hidden shadow-sm">
                             <table class="w-full text-sm">
@@ -855,6 +992,7 @@
             document.getElementById('modalMaPhieu').value = data.maPhieuXuat;
             document.getElementById('modalNgayXuat').value = data.ngayXuat;
             document.getElementById('modalNoiXuat').value = data.noiXuat;
+            document.getElementById('modalNguoiXuat').value = "{{ user.get_full_name|default:user.username|default:'Admin' }}";
             document.getElementById('modalTrangThai').value = data.trangThai;
 
             document.getElementById('btnHuyPhieu').classList.remove('hidden');
@@ -864,7 +1002,8 @@
                 let catalogProd = productCatalog.find(p => p.maSP === item.maSP);
                 return {
                     ...item,
-                    tonKho: catalogProd ? catalogProd.tonKho : 0
+                    tonKho: catalogProd ? catalogProd.tonKho : 0,
+                    locations: catalogProd ? catalogProd.locations : []
                 };
             });
             
@@ -884,12 +1023,23 @@
     }
 
     function filterTable() {
+        // 1. Lấy giá trị từ ô tìm kiếm và chuyển về chữ thường
         const search = document.getElementById('exportSearchInput').value.toLowerCase();
+        // 2. Lấy giá trị trạng thái đang chọn từ dropdown
         const status = document.getElementById('exportStatusFilter').value;
+        
+        // 3. Duyệt qua từng dòng (tr) trong thân bảng danh sách
         document.querySelectorAll('#exportTableBody tr').forEach(row => {
+            // Bỏ qua nếu dòng không có dữ liệu (ví dụ dòng thông báo trống)
             if (row.cells.length < 2) return;
+            
+            // 4. Kiểm tra xem Cột 2 (Mã phiếu) có chứa từ khóa tìm kiếm không
             const matchesSearch = row.cells[1].innerText.toLowerCase().includes(search);
+            
+            // 5. Kiểm tra xem trạng thái của dòng (lấy từ data-status) có khớp với lọc không
             const matchesStatus = status === 'all' || row.dataset.status === status;
+            
+            // 6. PHÁN QUYẾT: Nếu thỏa mãn cả 2 điều kiện thì hiện dòng đó (''), ngược lại thì ẩn đi ('none')
             row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
         });
     }

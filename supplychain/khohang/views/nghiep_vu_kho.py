@@ -616,50 +616,34 @@ def xuatkho(request):
 
             for item in items:
                 sanPham = get_object_or_404(SanPham, maSP=item['maSP'])
-                qty_needed = int(item['qty'])
+                qty = int(item['qty'])
+                maViTri = item.get('maViTri')
                 
-                # --- PICK FROM LOCATION LOGIC ---
-                # Lay cac vi tri co ton kho
-                available_stocks = TonKhoChiTiet.objects.filter(sanPham=sanPham, soluong__gt=0).order_by('-soluong')
-                
-                if not available_stocks.exists():
-                    PhieuXuat_CT.objects.create(
-                        phieuXuat=export_record,
-                        sanPham=sanPham,
-                        soluongXuat=qty_needed
-                    )
-                else:
-                    remaining = qty_needed
-                    for stock in available_stocks:
-                        if remaining <= 0: break
-                        
-                        take = min(remaining, stock.soluong)
-                        PhieuXuat_CT.objects.create(
-                            phieuXuat=export_record,
-                            sanPham=sanPham,
-                            viTri=stock.viTri,
-                            soluongXuat=take
-                        )
-                        
-                        if trangThai == 1:
-                            stock.soluong -= take
-                            stock.save()
-                        
-                        remaining -= take
-                    
-                    if remaining > 0:
-                        PhieuXuat_CT.objects.create(
-                            phieuXuat=export_record,
-                            sanPham=sanPham,
-                            soluongXuat=remaining
-                        )
+                vi_obj = None
+                if maViTri and maViTri != 'N/A' and maViTri != '':
+                    vi_obj = ViTriKho.objects.filter(maViTri=maViTri).first()
 
-                # Cap nhat Summary TonKho
+                PhieuXuat_CT.objects.create(
+                    phieuXuat=export_record,
+                    sanPham=sanPham,
+                    viTri=vi_obj,
+                    soluongXuat=qty
+                )
+                
                 if trangThai == 1:
-                    tonkho_obj, _ = TonKho.objects.get_or_create(sanPham=sanPham)
-                    tonkho_obj.soluongTon -= qty_needed
-                    if tonkho_obj.soluongTon < 0: tonkho_obj.soluongTon = 0
-                    tonkho_obj.save()
+                    # Cập nhật Tồn kho tổng (Summary)
+                    tk_obj, _ = TonKho.objects.get_or_create(sanPham=sanPham)
+                    tk_obj.soluongTon -= qty
+                    if tk_obj.soluongTon < 0: tk_obj.soluongTon = 0
+                    tk_obj.save()
+                    
+                    # Cập nhật Tồn kho chi tiết (Detail)
+                    if vi_obj:
+                        tkct = TonKhoChiTiet.objects.filter(sanPham=sanPham, viTri=vi_obj).first()
+                        if tkct:
+                            tkct.soluong -= qty
+                            if tkct.soluong < 0: tkct.soluong = 0
+                            tkct.save()
 
             if trangThai == 1:
                 msg = "Đã xuất kho thành công!"
@@ -765,10 +749,14 @@ def kiemke(request):
                 maKiemKe=maKiemKe,
                 defaults={
                     'ngayKiem': parsed_date,
-                    'nguoiKiem': request.user.get_full_name() or request.user.username,
                     'trangThai': trangThai
                 }
             )
+
+            # Chỉ gán người kiểm nếu là phiếu mới tạo
+            if created or not check_record.nguoiKiem:
+                check_record.nguoiKiem = request.user.get_full_name() or request.user.username
+                check_record.save()
 
             if not created:
                 check_record.kiemke_ct_set.all().delete()
@@ -792,12 +780,14 @@ def kiemke(request):
 
                 # Cap nhat ton kho neu trang thai la Da can bang (1)
                 if trangThai == 1:
-                    # Update Summary
+                    delta = slThucTe - slTonKho
+                    # Update Summary (Cộng dồn chênh lệch vào tổng tồn)
                     tonkho_obj, _ = TonKho.objects.get_or_create(sanPham=sanPham)
-                    tonkho_obj.soluongTon = slThucTe
+                    tonkho_obj.soluongTon += delta
+                    if tonkho_obj.soluongTon < 0: tonkho_obj.soluongTon = 0
                     tonkho_obj.save()
 
-                    # Update Detail
+                    # Update Detail (Cập nhật chính xác số lượng tại vị trí đó)
                     if vi_obj:
                         tkct, _ = TonKhoChiTiet.objects.get_or_create(
                             sanPham=sanPham,
