@@ -17,244 +17,454 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { primary: '#DC2626', bglight: '#F4F6F8' },
-                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+                    colors: {
+                        primary: '#DC2626',
+                        bglight: '#F4F6F8'
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif']
+                    }
                 }
             }
         }
     </script>
 
     <style>
-        .main-content { background-color: #F4F6F8; min-height: 100vh; display: flex; flex-direction: column;}
-        
-        /* Stats Card Styles */
-        .stat-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; }
-        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .stat-info h3 { font-size: 13px; color: #6b7280; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 8px; }
-        .stat-info .value { font-size: 28px; font-weight: 800; color: #111827; line-height: 1; }
-        .stat-icon { width: 56px; height: 56px; border-radius: 16px; display: flex; justify-content: center; align-items: center; font-size: 24px; }
-        
-        .icon-green { background: #dcfce7; color: #166534; }
-        .icon-red { background: #fee2e2; color: #b91c1c; }
-        .icon-blue { background: #dbeafe; color: #1e40af; }
-        .icon-orange { background: #ffedd5; color: #c2410c; }
+        .main-content {
+            background-color: #F4F6F8;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
 
-        /* Chart Containers */
-        .chart-container { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; }
-        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .chart-title { font-size: 16px; font-weight: 700; color: #111827; }
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid #e5e7eb;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .chart-note {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 6px;
+        }
+
+        .chart-empty {
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            font-size: 14px;
+            font-style: italic;
+            border: 1px dashed #e5e7eb;
+            border-radius: 10px;
+            background: #fafafa;
+            text-align: center;
+            padding: 16px;
+        }
+
+        .filter-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            padding: 18px 20px;
+        }
     </style>
 </head>
+
 <body>
 
-  <nav class="sidebar" id="sidebar-container">
+<nav class="sidebar" id="sidebar-container">
     {% include 'partials/thanh_ben.html' %}
-  </nav>
+</nav>
 
-  <main class="main-content">
-        <div class="content-header flex-col items-start gap-1 pb-4">
-            <h1 class="text-xl font-bold text-gray-800">Báo cáo & Thống kê</h1>
-            <p class="text-[13px] text-gray-500 font-normal">Số liệu cập nhật đến {% if current_time %}{{ current_time }}{% else %}...{% endif %}</p>
+<main class="main-content">
+    <div class="content-header flex-col items-start gap-1 pb-4">
+        <h1 class="text-xl font-bold text-gray-800">Báo cáo & Thống kê</h1>
+        <p class="text-[13px] text-gray-500 font-normal">
+            Số liệu cập nhật đến {% if current_time %}{{ current_time }}{% else %}...{% endif %}
+        </p>
+    </div>
+
+    <div class="content-body p-8 flex-1 overflow-y-auto">
+
+        <!-- Bộ lọc kỳ báo cáo -->
+        <div class="filter-card mb-6">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                <div>
+                    <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fa-solid fa-filter text-primary"></i>
+                        Bộ lọc kỳ báo cáo
+                    </h2>
+                    <p class="text-[13px] text-gray-500 mt-1">
+                        Top sản phẩm và doanh thu được tính theo tháng/năm được chọn.
+                        Tồn kho là số liệu hiện tại.
+                    </p>
+                </div>
+
+                <form method="get" class="flex flex-col sm:flex-row gap-3">
+                    <div>
+                        <label class="block text-[13px] font-bold text-gray-700 mb-1">
+                            Tháng
+                        </label>
+                        <select name="month"
+                                class="text-sm border border-gray-200 rounded-lg px-3 py-2 min-w-[140px]"
+                                onchange="this.form.submit()">
+                            {% for month in available_months %}
+                                <option value="{{ month.value }}" {% if month.value == selected_month %}selected{% endif %}>
+                                    {{ month.label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[13px] font-bold text-gray-700 mb-1">
+                            Năm
+                        </label>
+                        <select name="year"
+                                class="text-sm border border-gray-200 rounded-lg px-3 py-2 min-w-[120px]"
+                                onchange="this.form.submit()">
+                            {% for year in available_years %}
+                                <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>
+                                    {{ year }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="flex items-end">
+                        <a href="{% url 'khohang:baocao' %}"
+                           class="bg-white hover:bg-gray-50 text-gray-700 h-[38px] px-4 whitespace-nowrap rounded-lg text-[13px] font-semibold transition-colors flex items-center gap-2 shadow-sm border border-gray-200">
+                            <i class="fa-solid fa-rotate"></i>
+                            Về tháng hiện tại
+                        </a>
+                    </div>
+                </form>
+            </div>
         </div>
 
-        <div class="content-body p-8 flex-1 overflow-y-auto">
-            
-            <!-- KPI Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <!-- Card 1 -->
-                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center justify-between relative overflow-hidden">
-                    <div class="absolute left-0 top-0 bottom-0 w-[5px] bg-[#10b981] rounded-l-xl"></div>
-                    <div class="flex items-center gap-4 pl-3">
-                        <div class="w-14 h-14 rounded-xl bg-[#d1fae5] text-[#10b981] flex items-center justify-center text-2xl font-black">
-                            $
-                        </div>
-                        <div>
-                            <h3 class="text-[13px] font-bold text-[#64748b] mb-1">Giá trị tồn kho</h3>
-                            <div class="text-[30px] font-extrabold text-[#111827] leading-none">
-                                {% if inventory_value %}{{ inventory_value|floatformat:1 }}{% else %}0{% endif %} <span class="text-[16px] font-medium text-gray-400">triệu</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
 
-                <!-- Card 2 -->
-                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center justify-between relative overflow-hidden">
-                    <div class="absolute left-0 top-0 bottom-0 w-[5px] bg-[#ef4444] rounded-l-xl"></div>
-                    <div class="flex items-center gap-4 pl-3">
-                        <div class="w-14 h-14 rounded-xl bg-[#fee2e2] text-[#ef4444] flex items-center justify-center text-2xl font-black">
-                            <i class="fa-solid fa-triangle-exclamation"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-[13px] font-bold text-[#64748b] mb-1">Sắp hết hàng</h3>
-                            <div class="text-[30px] font-extrabold text-[#ef4444] leading-none">
-                                {% if low_stock_count %}{{ low_stock_count }}{% else %}0{% endif %} <span class="text-[16px] font-medium text-gray-400">SP</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <!-- Card 1 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center justify-between relative overflow-hidden">
+                <div class="absolute left-0 top-0 bottom-0 w-[5px] bg-[#10b981] rounded-l-xl"></div>
 
-                <!-- Card 3 -->
-                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center justify-between relative overflow-hidden">
-                    <div class="absolute left-0 top-0 bottom-0 w-[5px] bg-[#f59e0b] rounded-l-xl"></div>
-                    <div class="flex items-center gap-4 pl-3">
-                        <div class="w-14 h-14 rounded-xl bg-[#fef3c7] text-[#f59e0b] flex items-center justify-center text-2xl font-bold">
-                            <i class="fa-solid fa-right-left"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-[13px] font-bold text-[#64748b] mb-1">Giao dịch hôm nay</h3>
-                            <div class="text-[30px] font-extrabold text-[#111827] leading-none">
-                                {% if today_transactions %}{{ today_transactions }}{% else %}0{% endif %} <span class="text-[16px] font-medium text-gray-400">GD</span>
-                            </div>
+                <div class="flex items-center gap-4 pl-3">
+                    <div class="w-14 h-14 rounded-xl bg-[#d1fae5] text-[#10b981] flex items-center justify-center text-2xl font-black">
+                        $
+                    </div>
+
+                    <div>
+                        <h3 class="text-[13px] font-bold text-[#64748b] mb-1">Giá trị tồn kho hiện tại</h3>
+                        <div class="text-[30px] font-extrabold text-[#111827] leading-none">
+                            {% if inventory_value %}
+                                {{ inventory_value|floatformat:1 }}
+                            {% else %}
+                                0
+                            {% endif %}
+                            <span class="text-[16px] font-medium text-gray-400">triệu</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Charts Row -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <!-- Chart 1 -->
-                <div class="chart-container">
-                    <div class="chart-header">
+            <!-- Card 2 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center justify-between relative overflow-hidden">
+                <div class="absolute left-0 top-0 bottom-0 w-[5px] bg-[#ef4444] rounded-l-xl"></div>
+
+                <div class="flex items-center gap-4 pl-3">
+                    <div class="w-14 h-14 rounded-xl bg-[#fee2e2] text-[#ef4444] flex items-center justify-center text-2xl font-black">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+
+                    <div>
+                        <h3 class="text-[13px] font-bold text-[#64748b] mb-1">Sắp hết hàng hiện tại</h3>
+                        <div class="text-[30px] font-extrabold text-[#ef4444] leading-none">
+                            {% if low_stock_count %}
+                                {{ low_stock_count }}
+                            {% else %}
+                                0
+                            {% endif %}
+                            <span class="text-[16px] font-medium text-gray-400">SP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex items-center justify-between relative overflow-hidden">
+                <div class="absolute left-0 top-0 bottom-0 w-[5px] bg-[#f59e0b] rounded-l-xl"></div>
+
+                <div class="flex items-center gap-4 pl-3">
+                    <div class="w-14 h-14 rounded-xl bg-[#fef3c7] text-[#f59e0b] flex items-center justify-center text-2xl font-bold">
+                        <i class="fa-solid fa-right-left"></i>
+                    </div>
+
+                    <div>
+                        <h3 class="text-[13px] font-bold text-[#64748b] mb-1">Giao dịch hôm nay</h3>
+                        <div class="text-[30px] font-extrabold text-[#111827] leading-none">
+                            {% if today_transactions %}
+                                {{ today_transactions }}
+                            {% else %}
+                                0
+                            {% endif %}
+                            <span class="text-[16px] font-medium text-gray-400">GD</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+            <!-- Chart 1 -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div>
                         <h3 class="chart-title">Xuất nhập kho theo tháng</h3>
-                        <select class="text-sm border border-gray-200 rounded-lg px-3 py-1">
-                            <option>2026</option>
-                            <option>2025</option>
-                        </select>
+                        <p class="chart-note">
+                            Năm {{ selected_year }} - chỉ tính phiếu hoàn thành
+                        </p>
                     </div>
-                    <canvas id="monthlyChart" width="400" height="200"></canvas>
                 </div>
 
-                <!-- Chart 2 -->
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h3 class="chart-title">Top sản phẩm bán chạy</h3>
-                        <select class="text-sm border border-gray-200 rounded-lg px-3 py-1">
-                            <option>Tháng này</option>
-                            <option>Tháng trước</option>
-                        </select>
-                    </div>
-                    <canvas id="topProductsChart" width="400" height="200"></canvas>
-                </div>
+                <canvas id="monthlyChart" width="400" height="200"></canvas>
             </div>
 
-            <!-- Bottom Charts -->
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <!-- Chart 3 -->
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h3 class="chart-title">Tình trạng tồn kho</h3>
+            <!-- Chart 2 -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div>
+                        <h3 class="chart-title">Top sản phẩm xuất nhiều nhất</h3>
+                        <p class="chart-note">
+                            Tháng {{ selected_month }}/{{ selected_year }} - chỉ tính phiếu xuất hoàn thành
+                        </p>
                     </div>
-                    <canvas id="inventoryStatusChart" width="300" height="200"></canvas>
                 </div>
 
-                <!-- Chart 4 -->
-                <div class="chart-container xl:col-span-2">
-                    <div class="chart-header">
-                        <h3 class="chart-title">Doanh thu theo danh mục</h3>
-                        <select class="text-sm border border-gray-200 rounded-lg px-3 py-1">
-                            <option>Tháng này</option>
-                            <option>Quý này</option>
-                        </select>
+                {% if top_products_labels %}
+                    <canvas id="topProductsChart" width="400" height="200"></canvas>
+                {% else %}
+                    <div class="chart-empty">
+                        Chưa có dữ liệu sản phẩm xuất trong tháng {{ selected_month }}/{{ selected_year }}.
                     </div>
-                    <canvas id="revenueChart" width="600" height="200"></canvas>
-                </div>
+                {% endif %}
             </div>
         </div>
-  </main>
 
-  <script src="{% static 'js/0.0.app.js' %}"></script>
+        <!-- Bottom Charts -->
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        {% if monthly_imports %}
-        // Monthly Chart
+            <!-- Chart 3 -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div>
+                        <h3 class="chart-title">Tình trạng tồn kho</h3>
+                        <p class="chart-note">Số liệu tồn kho hiện tại</p>
+                    </div>
+                </div>
+
+                <canvas id="inventoryStatusChart" width="300" height="200"></canvas>
+            </div>
+
+            <!-- Chart 4 -->
+            <div class="chart-container xl:col-span-2">
+                <div class="chart-header">
+                    <div>
+                        <h3 class="chart-title">Doanh thu tạm tính theo danh mục</h3>
+                        <p class="chart-note">
+                            Tháng {{ selected_month }}/{{ selected_year }} - tạm tính theo giá bán hiện tại
+                        </p>
+                    </div>
+                </div>
+
+                {% if revenue_labels %}
+                    <canvas id="revenueChart" width="600" height="200"></canvas>
+                {% else %}
+                    <div class="chart-empty">
+                        Chưa có dữ liệu doanh thu theo danh mục trong tháng {{ selected_month }}/{{ selected_year }}.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="{% static 'js/0.0.app.js' %}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Xuất nhập kho theo tháng
         const monthlyCtx = document.getElementById('monthlyChart');
+
         if (monthlyCtx) {
             new Chart(monthlyCtx.getContext('2d'), {
                 type: 'line',
                 data: {
-                    labels: ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7', 'Th8', 'Th9', 'Th10', 'Th11', 'Th12'],
-                    datasets: [{
-                        label: 'Nhập kho',
-                        data: {{ monthly_imports|safe }},
-                        borderColor: '#10b981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }, {
-                        label: 'Xuất kho',
-                        data: {{ monthly_exports|safe }},
-                        borderColor: '#ef4444',
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }]
+                    labels: [
+                        'Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6',
+                        'Th7', 'Th8', 'Th9', 'Th10', 'Th11', 'Th12'
+                    ],
+                    datasets: [
+                        {
+                            label: 'Nhập kho',
+                            data: {{ monthly_imports|safe }},
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Xuất kho',
+                            data: {{ monthly_exports|safe }},
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
                 },
-                options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
             });
         }
-        {% endif %}
 
+        // Top sản phẩm xuất nhiều nhất
         {% if top_products_labels %}
-        // Top Products Chart
         const topProductsCtx = document.getElementById('topProductsChart');
+
         if (topProductsCtx) {
             new Chart(topProductsCtx.getContext('2d'), {
                 type: 'bar',
                 data: {
                     labels: {{ top_products_labels|safe }},
-                    datasets: [{
-                        label: 'Số lượng bán',
-                        data: {{ top_products_data|safe }},
-                        backgroundColor: '#3b82f6',
-                        borderRadius: 4
-                    }]
+                    datasets: [
+                        {
+                            label: 'Số lượng xuất',
+                            data: {{ top_products_data|safe }},
+                            backgroundColor: '#3b82f6',
+                            borderRadius: 4
+                        }
+                    ]
                 },
-                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
             });
         }
         {% endif %}
 
-        {% if inventory_status_data %}
-        // Inventory Status Chart
+        // Tình trạng tồn kho
         const inventoryStatusCtx = document.getElementById('inventoryStatusChart');
-        if(inventoryStatusCtx) {
+
+        if (inventoryStatusCtx) {
             new Chart(inventoryStatusCtx.getContext('2d'), {
                 type: 'doughnut',
                 data: {
                     labels: ['Bình thường', 'Sắp hết', 'Hết hàng'],
-                    datasets: [{
-                        data: {{ inventory_status_data|safe }},
-                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
-                        borderWidth: 0
-                    }]
+                    datasets: [
+                        {
+                            data: {{ inventory_status_data|safe }},
+                            backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                            borderWidth: 0
+                        }
+                    ]
                 },
-                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
             });
         }
-        {% endif %}
 
+        // Doanh thu theo danh mục
         {% if revenue_labels %}
-        // Revenue Chart
         const revenueCtx = document.getElementById('revenueChart');
+
         if (revenueCtx) {
             new Chart(revenueCtx.getContext('2d'), {
                 type: 'bar',
                 data: {
                     labels: {{ revenue_labels|safe }},
-                    datasets: [{
-                        label: 'Doanh thu (triệu VNĐ)',
-                        data: {{ revenue_data|safe }},
-                        backgroundColor: '#8b5cf6',
-                        borderRadius: 4
-                    }]
+                    datasets: [
+                        {
+                            label: 'Doanh thu tạm tính (triệu VNĐ)',
+                            data: {{ revenue_data|safe }},
+                            backgroundColor: '#8b5cf6',
+                            borderRadius: 4
+                        }
+                    ]
                 },
-                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
             });
         }
         {% endif %}
     });
-    </script>
+</script>
+
 </body>
 </html>
-
