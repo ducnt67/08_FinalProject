@@ -168,21 +168,11 @@ def nhapkho(request):
             )
             
             if not created:
-                # Neu sửa phiếu đã Hoàn thành, phải hoàn tác tồn kho cũ trước
-                if old_trangthai == 1:
-                    for old_ct in import_record.phieunhap_ct_set.all():
-                        tk, _ = TonKho.objects.get_or_create(sanPham=old_ct.sanPham)
-                        tk.soluongTon -= old_ct.soluongThucNhan
-                        tk.save()
-                        
-                        # Rollback chi tiet
-                        if old_ct.viTri:
-                            tkct = TonKhoChiTiet.objects.filter(sanPham=old_ct.sanPham, viTri=old_ct.viTri).first()
-                            if tkct:
-                                tkct.soluong -= old_ct.soluongThucNhan
-                                if tkct.soluong < 0: tkct.soluong = 0
-                                tkct.save()
-
+                # Chặn tuyệt đối việc sửa phiếu đã Hoàn thành hoặc đã Hủy
+                if old_trangthai in [1, -1]:
+                    return JsonResponse({'status': 'error', 'message': 'Không thể sửa phiếu đã hoàn thành hoặc đã hủy.'}, status=400)
+                
+                # Với phiếu tạm (0), xóa chi tiết cũ để nạp lại chi tiết mới
                 import_record.phieunhap_ct_set.all().delete()
                 
             for item in items:
@@ -422,8 +412,8 @@ def trahang(request):
             
             tra_hang = get_object_or_404(TraHangNCC, maPhieuTra=maPhieuTra)
             
-            if tra_hang.trangThai == 1:
-                return JsonResponse({'status': 'error', 'message': 'Không thể sửa phiếu đã hoàn thành.'}, status=400)
+            if tra_hang.trangThai in [1, -1]:
+                return JsonResponse({'status': 'error', 'message': 'Không thể sửa phiếu đã hoàn thành hoặc đã hủy.'}, status=400)
             
             trangThai = int(data.get('trangThai', 0))
             
