@@ -36,14 +36,39 @@ document.addEventListener("DOMContentLoaded", function () {
                 window.location.href = "/dangnhap/";
             }
         });
-    }
+    // 4. Chặn nút Back/F5 của trình duyệt nếu có dữ liệu chưa lưu
+    window.addEventListener('beforeunload', function (e) {
+        if (hasUnsavedChanges) {
+            e.preventDefault();
+            e.returnValue = ''; // Hiển thị thông báo chuẩn của trình duyệt
+        }
+    });
 });
 
-// Hàm gọi khi bắt đầu gõ vào form
+// Hàm kiểm tra trước khi chuyển View hoặc Quay lại trong giao diện
+function confirmNavigation(targetAction) {
+    if (hasUnsavedChanges) {
+        if (confirm("⚠️ Bạn có dữ liệu chưa lưu! Nếu quay lại, các thông tin này sẽ bị mất. Bạn vẫn muốn tiếp tục?")) {
+            markAsSaved(); // Reset lại trạng thái để cho phép đi
+            targetAction();
+        }
+    } else {
+        targetAction();
+    }
+}
+
+// Hàm gọi khi gõ vào form
 function markAsUnsaved() { hasUnsavedChanges = true; }
 
 // Hàm gọi khi đã lưu thành công
 function markAsSaved() { hasUnsavedChanges = false; }
+
+// Hàm lấy thời gian hiện tại theo giờ địa phương (định dạng YYYY-MM-DDTHH:mm)
+function getLocalDateTime() {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+}
 
 // ==========================================
 // HÀM HIỂN THỊ MODAL XÓA DÙNG CHUNG CỦA HỆ THỐNG
