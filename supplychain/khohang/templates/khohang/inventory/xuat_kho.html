@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="{% static 'css/0.0.style.css' %}">
+    <script src="{% static 'js/0.0.app.js' %}"></script>
 
     <script>
         tailwind.config = {
@@ -46,6 +47,7 @@
 <body class="bg-gray-50">
   {% csrf_token %}
   <nav class="sidebar" id="sidebar-container">
+    <!-- FILE LIÊN QUAN: Lấy toàn bộ giao diện thanh menu từ file supplychain/hethong/templates/partials/thanh_ben.html -->
     {% include 'partials/thanh_ben.html' %}
   </nav>
 
@@ -54,20 +56,34 @@
             <h1>Quản lý xuất kho</h1>
         </div>
 
+        <!-- PHẦN THÂN CHÍNH: CHỨA NỘI DUNG CỦA TRANG -->
         <div class="content-body p-8">
-            <!-- View 1: Danh sách phiếu xuất -->
+            
+            <!-- VIEW 1: DANH SÁCH PHIẾU XUẤT (MÀN HÌNH MẶC ĐỊNH) -->
+            <!-- Dùng id "exportListView" để JavaScript (hàm switchView ở cuối file này) có thể ẩn/hiện màn hình này -->
             <div id="exportListView" class="view-section active">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    
+                    <!-- KHỐI CÔNG CỤ: TÌM KIẾM, LỌC TRẠNG THÁI VÀ NÚT TẠO PHIẾU -->
                     <div class="mb-6 bg-gray-50 p-6 rounded-xl border border-gray-100">
                         <div class="flex flex-col md:flex-row gap-6 items-end justify-between">
+                            
+                            <!-- NHÓM BỘ LỌC BÊN TRÁI -->
                             <div class="flex flex-col md:flex-row gap-4 flex-1 items-end">
+                                <!-- Ô Tìm kiếm: Gõ tới đâu, bảng lọc tới đó (onkeyup) -->
                                 <div class="w-auto">
                                     <label class="block text-sm font-bold text-gray-700 mb-2">Tìm kiếm phiếu xuất</label>
                                     <div class="frm-search-box" style="width: 550px; max-width: none;">
+                                        
+                                        <!-- i class="fas fa-search": Biểu tượng cái kính lúp lấy từ thư viện FontAwesome -->
                                         <i class="fas fa-search"></i>
+                                        <!-- ID "exportSearchInput": Tên riêng để hàm filterTable() có thể tìm đúng ô này để lấy dữ liệu. -->
+                                        <!-- onkeyup="filterTable()": Sự kiện kích hoạt hàm filterTable() chạy mỗi khi bạn buông phím. -->
                                         <input type="text" id="exportSearchInput" placeholder="Tìm mã phiếu, khách hàng..." onkeyup="filterTable()" class="w-full">
                                     </div>
                                 </div>
+                                
+                                <!-- Dropdown Lọc Trạng thái: Hoàn thành, Phiếu tạm hoặc Hủy -->
                                 <div class="w-full md:w-48">
                                     <label class="block text-sm font-bold text-gray-700 mb-2">Trạng thái</label>
                                     <select id="exportStatusFilter" class="frm-select w-full" onchange="filterTable()">
@@ -77,16 +93,21 @@
                                         <option value="-1">Hủy</option>
                                     </select>
                                 </div>
+                                
+                                <!-- Nút Làm mới: Xóa các ô lọc về trạng thái ban đầu -->
                                 <button type="button" onclick="resetFilters()" class="bg-white hover:bg-gray-50 text-gray-700 h-[42px] px-4 whitespace-nowrap rounded-lg text-[13px] font-semibold transition-colors flex items-center gap-2 shadow-sm border border-gray-200">
                                     <i class="fa-solid fa-rotate"></i> Làm mới
                                 </button>
                             </div>
+                            
+                            <!-- NÚT TẠO PHIẾU MỚI: Gọi hàm openCreateExport để chuyển sang Màn hình tạo phiếu -->
                             <button type="button" onclick="openCreateExport()" class="bg-primary hover:bg-red-700 text-white h-[42px] px-6 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shadow-md">
                                 <i class="fa-solid fa-plus text-xs"></i> Tạo phiếu xuất kho
                             </button>
                         </div>
                     </div>
 
+                    <!-- BẢNG DỮ LIỆU CHÍNH -->
                     <div class="table-wrapper data-table-wrapper border border-gray-200 rounded-lg">
                         <table class="w-full border-collapse min-w-[900px]">
                             <thead>
@@ -101,13 +122,19 @@
                                 </tr>
                             </thead>
                             <tbody id="exportTableBody" class="text-sm">
+                                <!-- NGUỒN DỮ LIỆU: "outbound_records" được gửi từ hàm XuatKhoView trong file supplychain/khohang/views/nghiep_vu_kho.py -->
+                                <!-- Vòng lặp Django: Lấy từng bản ghi từ Database đổ vào bảng -->
                                 {% for record in outbound_records %}
                                 <tr class="border-b border-gray-100 hover:bg-gray-50/50 transition-colors" data-status="{{ record.trangThai }}">
                                     <td class="w-stt font-bold">{{ forloop.counter }}</td>
                                     <td class="w-code font-semibold text-gray-800">{{ record.maPhieuXuat }}</td>
+                                    <!-- Định dạng ngày tháng kiểu Việt Nam (Ngày/Tháng/Năm). Hàm |date này là của Django Template -->
                                     <td class="w-date text-gray-600">{{ record.ngayXuat|date:"d/m/Y H:i" }}</td>
+                                    <!-- NGUỒN DỮ LIỆU: "user" là biến hệ thống của Django chứa thông tin người đang đăng nhập -->
                                     <td class="py-4 px-4 text-gray-600 font-medium">{{ user.get_full_name|default:user.username|default:"Admin" }}</td>
                                     <td class="py-4 px-4 text-gray-600">{{ record.noiXuat }}</td>
+                                    
+                                    <!-- Cột Trạng thái: Dùng màu sắc để phân biệt (Xanh: OK, Vàng: Chờ, Đỏ: Hủy) -->
                                     <td class="w-status text-center">
                                         {% if record.trangThai == 1 %}
                                         <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-green-100 text-green-700 border border-green-200">
@@ -123,15 +150,19 @@
                                         </span>
                                         {% endif %}
                                     </td>
+                                    
+                                    <!-- Cột Thao tác: Xem chi tiết, Sửa hoặc Xóa (Có kiểm tra điều kiện trạng thái) -->
                                     <td class="w-action" onclick="event.stopPropagation()">
                                         <div class="flex items-center justify-center gap-2">
                                             <button onclick="viewExportDetail('{{ record.maPhieuXuat }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Xem chi tiết">
                                                 <i class="fas fa-eye text-xs"></i>
                                             </button>
+                                            <!-- Chỉ cho sửa nếu là Phiếu tạm (trangThai == 0) -->
                                             <button onclick="{% if record.trangThai == 0 %}editExport('{{ record.maPhieuXuat }}'){% else %}alert('Không thể chỉnh sửa phiếu đã hoàn thành hoặc đã hủy.'){% endif %}" 
                                                 class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-green-500 hover:bg-green-500 hover:text-white transition-all shadow-sm {% if record.trangThai != 0 %}opacity-50 grayscale cursor-not-allowed{% endif %}" title="Chỉnh sửa">
                                                 <i class="fas fa-edit text-xs"></i>
                                             </button>
+                                            <!-- Chỉ cho xóa nếu là Phiếu tạm (trangThai == 0) -->
                                             <button onclick="{% if record.trangThai == 0 %}deleteExport('{{ record.maPhieuXuat }}'){% else %}alert('Không thể xóa phiếu đã hoàn thành hoặc đã hủy.'){% endif %}" 
                                                 class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-red-500 hover:bg-primary hover:text-white transition-all shadow-sm {% if record.trangThai != 0 %}opacity-50 grayscale cursor-not-allowed{% endif %}" title="Xóa">
                                                 <i class="fas fa-trash-alt text-xs"></i>
@@ -140,6 +171,7 @@
                                     </td>
                                 </tr>
                                 {% empty %}
+                                <!-- Trường hợp danh sách rỗng -->
                                 <tr>
                                     <td colspan="7" class="text-center py-10 text-gray-500">Không có phiếu xuất kho nào</td>
                                 </tr>
@@ -769,10 +801,6 @@
         // --- KIỂM TRA NGHIỆP VỤ ---
         if (trangThai != -1) {
             for (let p of selectedProducts) {
-                if (!p.maViTri) {
-                    alert(`Vui lòng chọn vị trí cho sản phẩm "${p.tenSP}"!`);
-                    return;
-                }
                 const loc = p.locations.find(l => l.maViTri === p.maViTri);
                 if (loc && p.qty > loc.sl) {
                     alert(`Sản phẩm "${p.tenSP}" tại vị trí "${p.maViTri}" chỉ còn ${loc.sl}, không đủ để xuất ${p.qty}!`);
@@ -887,7 +915,7 @@
                             </div>
                             <div class="detail-field-box">
                                 <span class="detail-field-label">Người thực hiện</span>
-                                <div class="detail-field-value">Admin</div>
+                                <div class="detail-field-value">{{ user.get_full_name|default:user.username|default:"Admin" }}</div>
                             </div>
                             <div class="detail-field-box">
                                 <span class="detail-field-label">Nơi nhận hàng</span>
@@ -964,6 +992,7 @@
             document.getElementById('modalMaPhieu').value = data.maPhieuXuat;
             document.getElementById('modalNgayXuat').value = data.ngayXuat;
             document.getElementById('modalNoiXuat').value = data.noiXuat;
+            document.getElementById('modalNguoiXuat').value = "{{ user.get_full_name|default:user.username|default:'Admin' }}";
             document.getElementById('modalTrangThai').value = data.trangThai;
 
             document.getElementById('btnHuyPhieu').classList.remove('hidden');
@@ -994,12 +1023,23 @@
     }
 
     function filterTable() {
+        // 1. Lấy giá trị từ ô tìm kiếm và chuyển về chữ thường
         const search = document.getElementById('exportSearchInput').value.toLowerCase();
+        // 2. Lấy giá trị trạng thái đang chọn từ dropdown
         const status = document.getElementById('exportStatusFilter').value;
+        
+        // 3. Duyệt qua từng dòng (tr) trong thân bảng danh sách
         document.querySelectorAll('#exportTableBody tr').forEach(row => {
+            // Bỏ qua nếu dòng không có dữ liệu (ví dụ dòng thông báo trống)
             if (row.cells.length < 2) return;
+            
+            // 4. Kiểm tra xem Cột 2 (Mã phiếu) có chứa từ khóa tìm kiếm không
             const matchesSearch = row.cells[1].innerText.toLowerCase().includes(search);
+            
+            // 5. Kiểm tra xem trạng thái của dòng (lấy từ data-status) có khớp với lọc không
             const matchesStatus = status === 'all' || row.dataset.status === status;
+            
+            // 6. PHÁN QUYẾT: Nếu thỏa mãn cả 2 điều kiện thì hiện dòng đó (''), ngược lại thì ẩn đi ('none')
             row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
         });
     }

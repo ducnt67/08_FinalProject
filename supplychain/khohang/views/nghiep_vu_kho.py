@@ -749,10 +749,14 @@ def kiemke(request):
                 maKiemKe=maKiemKe,
                 defaults={
                     'ngayKiem': parsed_date,
-                    'nguoiKiem': request.user.get_full_name() or request.user.username,
                     'trangThai': trangThai
                 }
             )
+
+            # Chỉ gán người kiểm nếu là phiếu mới tạo
+            if created or not check_record.nguoiKiem:
+                check_record.nguoiKiem = request.user.get_full_name() or request.user.username
+                check_record.save()
 
             if not created:
                 check_record.kiemke_ct_set.all().delete()

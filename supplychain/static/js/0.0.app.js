@@ -3,13 +3,17 @@ let hasUnsavedChanges = false;
 
 document.addEventListener("DOMContentLoaded", function () {
     // 1. Sidebar is now included via Django template, no need to fetch
-    // Find the active menu item
+    // 1. Lấy địa chỉ trang hiện tại người dùng đang xem
     let currentPage = window.location.pathname;
-    if (currentPage === "/") currentPage = "/tongquan/";  // Default to overview if root
-
+    if (currentPage === "/") currentPage = "/tongquan/";  // // Mặc định về tổng quan nếu là trang chủ
+    // 2. Tìm tất cả các nút trên thanh Menu (có class là .menu-link)
     let links = document.querySelectorAll(".menu-link");
+    // 3. Chạy vòng lặp kiểm tra từng nút
     links.forEach(link => {
+
+        // Nếu địa chỉ của nút KHỚP với địa chỉ trang đang xem
         if (link.getAttribute("href") === currentPage) {
+            // Thì thêm cho class "active" (để nó hiện màu đỏ lên)
             link.classList.add("active");
         }
 
@@ -36,6 +40,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 window.location.href = "/dangnhap/";
             }
         });
+    }
+
     // 4. Chặn nút Back/F5 của trình duyệt nếu có dữ liệu chưa lưu
     window.addEventListener('beforeunload', function (e) {
         if (hasUnsavedChanges) {
