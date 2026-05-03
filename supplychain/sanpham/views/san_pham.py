@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, render
 
 from sanpham.models import ChiTiet_Sach, DanhMuc, SanPham
 from nhacungcap.models import NhaCungCap
+from khohang.models import TonKho
 
 
 def _generate_product_code():
@@ -208,6 +209,13 @@ def sanpham(request):
 
             if remove_image or uploaded_image:
                 product.save()
+
+            # Nếu sản phẩm vừa được tạo mới, tự động thêm vào tồn kho với số lượng 0 (Hết hàng).
+            if created:
+                TonKho.objects.get_or_create(
+                    sanPham=product,
+                    defaults={'soluongTon': 0, 'trangthaiCanhBao': 2}
+                )
 
             if tacGia or nhaXuatBan or namXuatBan:
                 ChiTiet_Sach.objects.update_or_create(
