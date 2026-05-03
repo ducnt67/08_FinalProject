@@ -9,7 +9,8 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap"
+          rel="stylesheet">
 
     <link rel="stylesheet" href="{% static 'css/0.0.style.css' %}">
 
@@ -17,489 +18,981 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { primary: '#DC2626', bglight: '#F4F6F8' },
-                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
+                    colors: {
+                        primary: '#DC2626',
+                        bglight: '#F4F6F8'
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif']
+                    }
                 }
             }
         }
     </script>
 
     <style>
-        /* Ghi đè một số style để khớp với hệ thống */
-        .main-content { background-color: #F3F4F6; min-height: 100vh; }
-        /* Modal Style */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 9999; display: none;
-            justify-content: center; align-items: center;
+        .main-content {
+            background-color: #F3F4F6;
+            min-height: 100vh;
         }
 
-        /* Animation Categories */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
         @keyframes fadeSlideDown {
-            0% { opacity: 0; transform: translateY(-8px); }
-            100% { opacity: 1; transform: translateY(0); }
+            0% {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         @keyframes fadeSlideUp {
-            0% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-8px); }
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
         }
+
         .child-row.show-row {
             display: table-row !important;
             animation: fadeSlideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+
         .child-row.hide-row {
             animation: fadeSlideUp 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        .cat-name-wrap { display: flex; align-items: center; gap: 8px; }
-        .cat-child-indent { padding-left: 20px; }
+        .cat-name-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cat-child-indent {
+            padding-left: 28px;
+        }
+
+        .readonly-status {
+            opacity: 0.65;
+            cursor: not-allowed !important;
+        }
+
+        .readonly-status * {
+            cursor: not-allowed !important;
+        }
     </style>
 </head>
+
 <body>
 
-  <nav class="sidebar" id="sidebar-container">
+<nav class="sidebar" id="sidebar-container">
     {% include 'partials/thanh_ben.html' %}
-  </nav>
+</nav>
 
-  <main class="main-content">
-        <div class="content-header shrink-0">
-            <h1>Quản lý danh mục</h1>
-        </div>
+<main class="main-content">
+    <div class="content-header shrink-0">
+        <h1>Quản lý danh mục</h1>
+    </div>
 
-        <div class="content-body p-8 flex flex-col min-h-0">
-            
-            <div class="mb-6 bg-gray-50 p-6 rounded-xl border border-gray-100">
-                <div class="flex flex-col md:flex-row gap-6 items-end justify-between">
-                    <div class="flex flex-col md:flex-row gap-4 flex-1 items-end">
-                        <div class="w-auto">
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Tìm kiếm danh mục</label>
-                            <div class="frm-search-box" style="width: 550px; max-width: none;">
-                                <i class="fas fa-search"></i>
-                                <input type="text" id="searchCat" placeholder="Tên danh mục..." oninput="filterCategories()" onkeyup="filterCategories()" class="w-full">
-                            </div>
+    <div class="content-body p-8 flex flex-col min-h-0">
+
+        <div class="mb-6 bg-gray-50 p-6 rounded-xl border border-gray-100">
+            <div class="flex flex-col md:flex-row gap-6 items-end justify-between">
+                <div class="flex flex-col md:flex-row gap-4 flex-1 items-end">
+                    <div class="w-auto">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">
+                            Tìm kiếm danh mục
+                        </label>
+                        <div class="frm-search-box" style="width: 550px; max-width: none;">
+                            <i class="fas fa-search"></i>
+                            <input
+                                    type="text"
+                                    id="searchCat"
+                                    placeholder="Tên danh mục..."
+                                    oninput="filterCategories()"
+                                    onkeyup="filterCategories()"
+                                    class="w-full"
+                            >
                         </div>
-                        
-                        <div class="w-full md:w-56">
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Trạng thái</label>
-                            <select id="statusCat" class="frm-select w-full" onchange="filterCategories()">
-                                <option value="all">Tất cả trạng thái</option>
-                                <option value="1">Đang hoạt động</option>
-                                <option value="0">Ngừng hoạt động</option>
-                            </select>
-                        </div>
-                        
-                        <button onclick="location.reload()" class="bg-white hover:bg-gray-50 text-gray-700 h-[42px] px-4 whitespace-nowrap rounded-lg text-[13px] font-semibold transition-colors flex items-center gap-2 shadow-sm border border-gray-200">
-                            <i class="fa-solid fa-rotate"></i> Làm mới
-                        </button>
                     </div>
 
-                    <button onclick="openCatModal('create')" class="bg-primary hover:bg-red-700 text-white h-[42px] px-6 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shadow-md whitespace-nowrap active:scale-95">
-                        <i class="fa-solid fa-plus text-xs"></i> Thêm danh mục
+                    <div class="w-full md:w-56">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">
+                            Trạng thái
+                        </label>
+                        <select id="statusCat" class="frm-select w-full" onchange="filterCategories()">
+                            <option value="all">Tất cả trạng thái</option>
+                            <option value="1">Đang hoạt động</option>
+                            <option value="0">Ngừng hoạt động</option>
+                        </select>
+                    </div>
+
+                    <button
+                            onclick="resetFilters()"
+                            class="bg-white hover:bg-gray-50 text-gray-700 h-[42px] px-4 whitespace-nowrap rounded-lg text-[13px] font-semibold transition-colors flex items-center gap-2 shadow-sm border border-gray-200"
+                    >
+                        <i class="fa-solid fa-rotate"></i>
+                        Làm mới
                     </button>
                 </div>
-            </div>
 
-            <div class="bg-white rounded-xl shadow-sm p-6 flex flex-col min-h-0 overflow-hidden">
-                <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2 shrink-0">
-                    <i class="fa-solid fa-list-ul text-primary"></i>
-                    Danh sách danh mục sản phẩm
-                </h2>
-                
-                <div class="table-wrapper data-table-wrapper bg-white">
-                    <table class="table-custom w-full category-table">
-                        <thead>
-                            <tr class="bg-gray-50 border-y border-gray-200">
-                                <th style="width: 5%; text-align: center !important;">STT</th>
-                                <th style="width: 20%; text-align: left !important;">Tên danh mục</th>
-                                <th style="width: 20%; text-align: center !important;">Mã danh mục</th>
-                                <th style="width: 20%; text-align: left !important;">Danh mục cha</th>
-                                <th style="width: 20%; text-align: center !important;">Trạng thái</th>
-                                <th style="width: 15%; text-align: center !important;">Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody id="catTableBody" class="text-sm">
-                            <tr id="noCatResult" class="hidden"><td colspan="6" class="text-center py-8 text-gray-500 italic">Không tìm thấy danh mục nào.</td></tr>
-                            {% for category in categories %}
-                            <tr class="cat-row {% if not category.maDanhMucCha %}parent-row{% else %}child-row show-row{% endif %}" data-status="{{ category.trangThai }}" data-id="{{ category.maDanhMuc }}" {% if category.maDanhMucCha %}data-parent="{{ category.maDanhMucCha.maDanhMuc }}"{% endif %} style="cursor: pointer;" {% if not category.maDanhMucCha %}onclick="toggleChildren('{{ category.maDanhMuc }}')"{% endif %}>
-                                <td class="font-semibold text-gray-800 text-center col-index font-bold">{{ forloop.counter }}</td>
-                                <td class="font-medium text-gray-800" style="text-align: left !important;">
-                                    <div class="cat-name-wrap {% if category.maDanhMucCha %}cat-child-indent{% endif %}">
-                                        {% if not category.maDanhMucCha %}
-                                        <i id="icon-{{ category.maDanhMuc }}" class="fa-solid fa-angle-right text-gray-400 text-xs w-3 transition-transform duration-200 rotate-90"></i>
-                                        {% endif %}
-                                        <span class="cat-name">{{ category.tenDanhMuc }}</span>
-                                    </div>
-                                </td>
-                                <td class="text-gray-600 cat-code text-center">{{ category.maDanhMuc }}</td>
-                                <td class="text-gray-600 cat-parent" style="text-align: left !important;">{% if category.maDanhMucCha %}{{ category.maDanhMucCha.tenDanhMuc }}{% else %}-{% endif %}</td>
-                                <td class="text-center">
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium {% if category.trangThai %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">{% if category.trangThai %}Đang hoạt động{% else %}Ngừng hoạt động{% endif %}</span>
-                                </td>
-                                <td onclick="event.stopPropagation()">
-                                    <div class="flex items-center justify-center gap-2">
-                                        <button onclick="openCatModal('view', '{{ category.maDanhMuc }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Xem chi tiết">
-                                            <i class="fas fa-eye text-xs"></i>
-                                        </button>
-                                        <button onclick="openCatModal('edit', '{{ category.maDanhMuc }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-green-500 hover:bg-green-500 hover:text-white transition-all shadow-sm" title="Chỉnh sửa">
-                                            <i class="fas fa-edit text-xs"></i>
-                                        </button>
-                                        <button onclick="deleteCat('{{ category.maDanhMuc }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-red-500 hover:bg-primary hover:text-white transition-all shadow-sm" title="Xóa">
-                                            <i class="fas fa-trash-alt text-xs"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-  </main>
-
-    <!-- UNIFIED CATEGORY MODAL -->
-    <div id="catModal" class="modal-overlay">
-        <div class="w-full max-w-[680px] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col border border-gray-300">
-            
-            <div class="bg-primary text-white px-5 py-4 flex items-center justify-between shrink-0">
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-list-ul text-lg"></i>
-                    <h2 id="modalTitle" class="text-[17px] font-semibold tracking-wide">Thêm danh mục</h2>
-                </div>
-                <button onclick="closeCatModal()" class="text-white hover:text-white/80 transition-colors outline-none">
-                    <i class="fa-solid fa-xmark text-xl"></i>
+                <button
+                        onclick="openCatModal('create')"
+                        class="bg-primary hover:bg-red-700 text-white h-[42px] px-6 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shadow-md whitespace-nowrap active:scale-95"
+                >
+                    <i class="fa-solid fa-plus text-xs"></i>
+                    Thêm danh mục
                 </button>
             </div>
+        </div>
 
-            <div class="p-6 space-y-6">
-                
-                <div class="grid grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-[14px] font-bold text-gray-800 mb-2">
-                            Mã danh mục <span class="text-primary font-bold">*</span>
-                        </label>
-                        <input type="text" id="modalCatCode" placeholder="Hệ thống tự tạo" disabled
-                               class="w-full px-3 py-2.5 border border-gray-200 bg-gray-50/50 text-gray-500 rounded-lg text-[14px] focus:outline-none cursor-not-allowed">
-                    </div>
-                    <div>
-                        <label class="block text-[14px] font-bold text-gray-800 mb-2">
-                            Danh mục cha
-                        </label>
-                        <div class="relative">
-                            <select id="modalCatParent" class="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-700 rounded-lg text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
-                                <option value="">-- Không có (Là danh mục gốc) --</option>
-                                {% for category in categories %}
-                                    {% if not category.maDanhMucCha %}
-                                        <option value="{{ category.maDanhMuc }}">{{ category.tenDanhMuc }}</option>
+        <div class="bg-white rounded-xl shadow-sm p-6 flex flex-col min-h-0 overflow-hidden">
+            <h2 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2 shrink-0">
+                <i class="fa-solid fa-list-ul text-primary"></i>
+                Danh sách danh mục sản phẩm
+            </h2>
+
+            <div class="table-wrapper data-table-wrapper bg-white">
+                <table class="table-custom w-full category-table">
+                    <thead>
+                    <tr class="bg-gray-50 border-y border-gray-200">
+                        <th style="width: 5%; text-align: center !important;">STT</th>
+                        <th style="width: 20%; text-align: left !important;">Tên danh mục</th>
+                        <th style="width: 20%; text-align: center !important;">Mã danh mục</th>
+                        <th style="width: 20%; text-align: left !important;">Danh mục cha</th>
+                        <th style="width: 20%; text-align: center !important;">Trạng thái</th>
+                        <th style="width: 15%; text-align: center !important;">Thao tác</th>
+                    </tr>
+                    </thead>
+
+                    <tbody id="catTableBody" class="text-sm">
+                    <tr id="noCatResult" class="hidden">
+                        <td colspan="6" class="text-center py-8 text-gray-500 italic">
+                            Không tìm thấy danh mục phù hợp.
+                        </td>
+                    </tr>
+
+                    {% for category in categories %}
+                    <tr
+                            class="cat-row {% if not category.maDanhMucCha %}parent-row{% else %}child-row hidden{% endif %}"
+                            data-status="{{ category.trangThai }}"
+                            data-id="{{ category.maDanhMuc }}"
+                            data-name="{{ category.tenDanhMuc|lower }}"
+                            data-code="{{ category.maDanhMuc|lower }}"
+                            data-is-parent="{% if not category.maDanhMucCha %}1{% else %}0{% endif %}"
+                            {% if category.maDanhMucCha %}
+                            data-parent="{{ category.maDanhMucCha.maDanhMuc }}"
+                            {% endif %}
+                            style="cursor: pointer;"
+                            {% if not category.maDanhMucCha %}
+                            onclick="toggleChildren('{{ category.maDanhMuc }}')"
+                            {% endif %}
+                    >
+                        <td class="font-semibold text-gray-800 text-center col-index font-bold">
+                            {{ forloop.counter }}
+                        </td>
+
+                        <td class="font-medium text-gray-800" style="text-align: left !important;">
+                            <div class="cat-name-wrap {% if category.maDanhMucCha %}cat-child-indent{% endif %}">
+                                {% if not category.maDanhMucCha %}
+                                <i
+                                        id="icon-{{ category.maDanhMuc }}"
+                                        class="fa-solid fa-angle-right text-gray-400 text-xs w-3 transition-transform duration-200"
+                                ></i>
+                                {% else %}
+                                <i class="fa-solid fa-minus text-gray-300 text-[10px] w-3"></i>
+                                {% endif %}
+
+                                <span class="cat-name">
+                                        {{ category.tenDanhMuc }}
+                                    </span>
+                            </div>
+                        </td>
+
+                        <td class="text-gray-600 cat-code text-center">
+                            {{ category.maDanhMuc }}
+                        </td>
+
+                        <td class="text-gray-600 cat-parent" style="text-align: left !important;">
+                            {% if category.maDanhMucCha %}
+                            {{ category.maDanhMucCha.tenDanhMuc }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+
+                        <td class="text-center">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium {% if category.trangThai %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+                                    {% if category.trangThai %}
+                                        Đang hoạt động
+                                    {% else %}
+                                        Ngừng hoạt động
                                     {% endif %}
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
+                                </span>
+                        </td>
+
+                        <td onclick="event.stopPropagation()">
+                            <div class="flex items-center justify-center gap-2">
+
+                                {% if category.maDanhMucCha %}
+                                <button
+                                        onclick="openCatModal('view', '{{ category.maDanhMuc }}')"
+                                        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm"
+                                        title="Xem chi tiết danh mục con"
+                                >
+                                    <i class="fas fa-eye text-xs"></i>
+                                </button>
+                                {% else %}
+                                <span class="w-8 h-8 inline-flex shrink-0"></span>
+                                {% endif %}
+
+                                {% if category.trangThai %}
+                                <button
+                                        onclick="openCatModal('edit', '{{ category.maDanhMuc }}')"
+                                        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-green-500 hover:bg-green-500 hover:text-white transition-all shadow-sm"
+                                        title="Chỉnh sửa"
+                                >
+                                    <i class="fas fa-edit text-xs"></i>
+                                </button>
+                                {% else %}
+                                <button
+                                        disabled
+                                        class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 border border-gray-100 text-gray-400 cursor-not-allowed shadow-sm"
+                                        title="Chỉ được chỉnh sửa danh mục đang hoạt động"
+                                >
+                                    <i class="fas fa-edit text-xs"></i>
+                                </button>
+                                {% endif %}
+
+                                <button
+                                        onclick="deleteCat('{{ category.maDanhMuc }}')"
+                                        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-gray-100 text-red-500 hover:bg-primary hover:text-white transition-all shadow-sm"
+                                        title="Xóa"
+                                >
+                                    <i class="fas fa-trash-alt text-xs"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- CATEGORY MODAL -->
+<div id="catModal" class="modal-overlay">
+    <div class="w-full max-w-[760px] bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col border border-gray-300 max-h-[90vh]">
+
+        <div class="bg-primary text-white px-5 py-4 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-list-ul text-lg"></i>
+                <h2 id="modalTitle" class="text-[17px] font-semibold tracking-wide">
+                    Thêm danh mục
+                </h2>
+            </div>
+
+            <button
+                    onclick="closeCatModal()"
+                    class="text-white hover:text-white/80 transition-colors outline-none"
+            >
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+
+        <div class="p-6 space-y-6 overflow-y-auto">
+
+            <div class="grid grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-[14px] font-bold text-gray-800 mb-2">
+                        Mã danh mục <span class="text-primary font-bold">*</span>
+                    </label>
+                    <input
+                            type="text"
+                            id="modalCatCode"
+                            placeholder="Hệ thống tự tạo"
+                            disabled
+                            class="w-full px-3 py-2.5 border border-gray-200 bg-gray-50/50 text-gray-500 rounded-lg text-[14px] focus:outline-none cursor-not-allowed"
+                    >
                 </div>
 
                 <div>
                     <label class="block text-[14px] font-bold text-gray-800 mb-2">
-                        Tên danh mục <span class="text-primary font-bold">*</span>
+                        Danh mục cha
                     </label>
-                    <input type="text" id="modalCatName" placeholder="Nhập tên danh mục (VD: Tiểu thuyết, Bút bi...)"
-                           class="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-800 placeholder-gray-400 rounded-lg text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
-                </div>
 
-                <div class="border border-gray-200 rounded-lg p-4 flex items-center justify-between bg-white mt-2 shadow-sm">
-                    <div>
-                        <h3 class="font-bold text-gray-900 text-[14px]">Trạng thái hoạt động</h3>
-                        <p class="text-[13px] text-gray-500 mt-1">Danh mục sẽ được hiển thị trên hệ thống bán hàng.</p>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="modalCatStatus" checked class="sr-only peer">
-                            <div class="w-12 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                        </label>
-                        <span class="text-[14px] font-bold text-green-600" id="modalCatStatusText">Đang hoạt động</span>
+                    <div class="relative">
+                        <select
+                                id="modalCatParent"
+                                class="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-700 rounded-lg text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary appearance-none cursor-pointer"
+                        >
+                            <option value="">-- Không có (Là danh mục gốc) --</option>
+
+                            {% for category in categories %}
+                            {% if not category.maDanhMucCha %}
+                            <option value="{{ category.maDanhMuc }}">
+                                {{ category.tenDanhMuc }}
+                            </option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
                     </div>
                 </div>
-
             </div>
 
-            <div class="px-6 py-4 border-t border-gray-200 bg-white flex items-center justify-end gap-3 shrink-0">
-                <button onclick="closeCatModal()" class="px-4 py-2 whitespace-nowrap bg-gray-200 hover:bg-gray-300 text-gray-800 text-[14px] font-semibold rounded-lg transition-colors">
-                    Hủy bỏ
-                </button>
-                <button id="btnSaveModal" onclick="saveCat()" class="px-6 py-2.5 bg-primary hover:bg-red-700 text-white text-[14px] font-semibold rounded-lg transition-colors flex items-center gap-2">
-                    <i class="fa-regular fa-floppy-disk text-base"></i> Lưu danh mục
-                </button>
+            <div>
+                <label class="block text-[14px] font-bold text-gray-800 mb-2">
+                    Tên danh mục <span class="text-primary font-bold">*</span>
+                </label>
+                <input
+                        type="text"
+                        id="modalCatName"
+                        placeholder="Nhập tên danh mục (VD: Tiểu thuyết, Bút bi...)"
+                        class="w-full px-3 py-2.5 border border-gray-200 bg-white text-gray-800 placeholder-gray-400 rounded-lg text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                >
+            </div>
+
+            <div class="border border-gray-200 rounded-lg p-4 flex items-center justify-between bg-white mt-2 shadow-sm">
+                <div>
+                    <h3 class="font-bold text-gray-900 text-[14px]">
+                        Trạng thái hoạt động
+                    </h3>
+                    <p id="modalCatStatusNote" class="text-[13px] text-gray-500 mt-1">
+                        Trạng thái mặc định là Đang hoạt động và chỉ được thay đổi khi xóa danh mục.
+                    </p>
+                </div>
+
+                <div class="flex items-center gap-3" id="modalStatusWrapper">
+                    <label class="relative inline-flex items-center cursor-not-allowed">
+                        <input
+                                type="checkbox"
+                                id="modalCatStatus"
+                                checked
+                                disabled
+                                class="sr-only peer"
+                        >
+                        <div class="w-12 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                    </label>
+
+                    <span class="text-[14px] font-bold text-green-600" id="modalCatStatusText">
+                        Đang hoạt động
+                    </span>
+                </div>
+            </div>
+
+            <!-- Bảng sản phẩm thuộc danh mục con - chỉ hiển thị khi xem chi tiết -->
+            <div id="categoryProductsSection" class="hidden border border-gray-200 rounded-xl bg-white overflow-hidden">
+                <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+                    <h3 class="font-bold text-gray-800 text-[14px] flex items-center gap-2">
+                        <i class="fa-solid fa-boxes-stacked text-primary"></i>
+                        Danh sách sản phẩm thuộc danh mục con
+                    </h3>
+                    <span id="productCountBadge" class="text-xs font-semibold text-gray-500">
+                        0 sản phẩm
+                    </span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                        <tr class="bg-white border-b border-gray-100">
+                            <th class="px-4 py-3 text-left font-bold text-gray-700">Mã sản phẩm</th>
+                            <th class="px-4 py-3 text-left font-bold text-gray-700">Tên sản phẩm</th>
+                            <th class="px-4 py-3 text-center font-bold text-gray-700">Số lượng tồn</th>
+                        </tr>
+                        </thead>
+                        <tbody id="productListBody">
+                        <tr>
+                            <td colspan="3" class="px-4 py-6 text-center text-gray-500 italic">
+                                Không có dữ liệu sản phẩm thuộc Danh mục này.
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
         </div>
+
+        <div class="px-6 py-4 border-t border-gray-200 bg-white flex items-center justify-end gap-3 shrink-0">
+            <button
+                    onclick="closeCatModal()"
+                    class="px-4 py-2 whitespace-nowrap bg-gray-200 hover:bg-gray-300 text-gray-800 text-[14px] font-semibold rounded-lg transition-colors"
+            >
+                Hủy bỏ
+            </button>
+
+            <button
+                    id="btnSaveModal"
+                    onclick="saveCat()"
+                    class="px-6 py-2.5 bg-primary hover:bg-red-700 text-white text-[14px] font-semibold rounded-lg transition-colors flex items-center gap-2"
+            >
+                <i class="fa-regular fa-floppy-disk text-base"></i>
+                Lưu danh mục
+            </button>
+        </div>
     </div>
+</div>
 
+<script src="{% static 'js/0.0.app.js' %}"></script>
 
-  <script src="{% static 'js/0.0.app.js' %}"></script>
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
 
-    <script>
-        // Lấy CSRF token từ cookie
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
                 }
             }
-            return cookieValue;
-        }
-        const csrftoken = getCookie('csrftoken');
-
-        const allParentRows = Array.from(document.querySelectorAll('.parent-row'));
-        const allChildRows = Array.from(document.querySelectorAll('.child-row'));
-        let filteredParents = [...allParentRows];
-
-        function filterCategories() {
-            const search = document.getElementById('searchCat').value.toLowerCase();
-            const status = document.getElementById('statusCat').value;
-
-            filteredParents = allParentRows.filter(row => {
-                const text = row.innerText.toLowerCase();
-                const rowStatus = row.getAttribute('data-status');
-                
-                const matchSearch = text.includes(search);
-                const matchStatus = (status === 'all' || rowStatus === status);
-                return matchSearch && matchStatus;
-            });
-
-            renderTable();
         }
 
-        function renderTable() {
-            allParentRows.forEach(r => r.classList.add('hidden'));
-            allChildRows.forEach(r => r.classList.add('hidden')); 
-            
-            const noResult = document.getElementById('noCatResult');
-            
-            if (filteredParents.length === 0) {
-                if (noResult) noResult.classList.remove('hidden');
-                return;
-            }
-            if (noResult) noResult.classList.add('hidden');
+        return cookieValue;
+    }
 
-            filteredParents.forEach(pRow => {
-                pRow.classList.remove('hidden');
-                const pid = pRow.getAttribute('data-id');
-                const icon = document.getElementById('icon-' + pid);
-                if (icon && icon.classList.contains('rotate-90')) {
-                    const children = allChildRows.filter(c => c.getAttribute('data-parent') === pid);
-                    children.forEach(c => {
-                        c.classList.remove('hidden');
-                        c.classList.remove('hide-row');
-                        c.classList.add('show-row');
-                    });
-                }
-            });
-        }
+    const csrftoken = getCookie('csrftoken');
 
-        function toggleChildren(parentId) {
-            const children = allChildRows.filter(c => c.getAttribute('data-parent') === parentId);
+    let allCategoryRows = [];
+    let allParentRows = [];
+    let allChildRows = [];
+    let currentModalMode = '';
+
+    function normalizeText(value) {
+        return (value || '').toString().trim().toLowerCase();
+    }
+
+    function getSearchText(row) {
+        const name = row.getAttribute('data-name') || '';
+        const code = row.getAttribute('data-code') || '';
+        const fullText = row.innerText || '';
+
+        return normalizeText(`${name} ${code} ${fullText}`);
+    }
+
+    function isDefaultFilter(searchValue, statusValue) {
+        return searchValue === '' && statusValue === 'all';
+    }
+
+    function isRowMatched(row, searchValue, statusValue) {
+        const rowText = getSearchText(row);
+        const rowStatus = row.getAttribute('data-status');
+
+        const matchSearch = searchValue === '' || rowText.includes(searchValue);
+        const matchStatus = statusValue === 'all' || rowStatus === statusValue;
+
+        return matchSearch && matchStatus;
+    }
+
+    function hideAllRows() {
+        allCategoryRows.forEach(row => {
+            row.classList.add('hidden');
+            row.classList.remove('show-row', 'hide-row');
+        });
+    }
+
+    function collapseAllIcons() {
+        allParentRows.forEach(parentRow => {
+            const parentId = parentRow.getAttribute('data-id');
             const icon = document.getElementById('icon-' + parentId);
 
-            if (!icon) return; // Prevent error if icon not found
-
-            if (icon.classList.contains('rotate-90')) {
+            if (icon) {
                 icon.classList.remove('rotate-90');
-                children.forEach(c => {
-                    c.classList.remove('show-row');
-                    c.classList.add('hide-row');
-                    setTimeout(() => {
-                        c.classList.remove('hide-row');
-                        c.classList.add('hidden');
-                    }, 180);
-                });
+            }
+        });
+    }
+
+    function showOnlyParentCategories() {
+        const noResult = document.getElementById('noCatResult');
+
+        hideAllRows();
+        collapseAllIcons();
+
+        allParentRows.forEach(row => {
+            row.classList.remove('hidden');
+        });
+
+        if (noResult) {
+            noResult.classList.add('hidden');
+        }
+
+        updateVisibleIndex();
+    }
+
+    function filterCategories() {
+        const searchInput = document.getElementById('searchCat');
+        const statusInput = document.getElementById('statusCat');
+        const noResult = document.getElementById('noCatResult');
+
+        const searchValue = normalizeText(searchInput ? searchInput.value : '');
+        const statusValue = statusInput ? statusInput.value : 'all';
+
+        if (isDefaultFilter(searchValue, statusValue)) {
+            showOnlyParentCategories();
+            return;
+        }
+
+        let visibleCount = 0;
+
+        hideAllRows();
+        collapseAllIcons();
+
+        allParentRows.forEach(parentRow => {
+            const parentId = parentRow.getAttribute('data-id');
+            const parentMatched = isRowMatched(parentRow, searchValue, statusValue);
+
+            const matchedChildren = allChildRows.filter(childRow => {
+                const childParentId = childRow.getAttribute('data-parent');
+                return childParentId === parentId && isRowMatched(childRow, searchValue, statusValue);
+            });
+
+            if (parentMatched || matchedChildren.length > 0) {
+                parentRow.classList.remove('hidden');
+                visibleCount++;
+
+                if (matchedChildren.length > 0) {
+                    const icon = document.getElementById('icon-' + parentId);
+
+                    if (icon) {
+                        icon.classList.add('rotate-90');
+                    }
+
+                    matchedChildren.forEach(childRow => {
+                        childRow.classList.remove('hidden');
+                        childRow.classList.remove('hide-row');
+                        childRow.classList.add('show-row');
+                        visibleCount++;
+                    });
+                }
+            }
+        });
+
+        if (noResult) {
+            if (visibleCount === 0) {
+                noResult.classList.remove('hidden');
             } else {
-                icon.classList.add('rotate-90');
-                children.forEach(c => {
-                    c.classList.remove('hidden');
-                    c.classList.remove('hide-row');
-                    c.classList.add('show-row');
-                });
+                noResult.classList.add('hidden');
             }
         }
 
-        // --- UNIFIED MODAL LOGIC ---
-        let currentModalMode = '';
+        updateVisibleIndex();
+    }
 
-        function openCatModal(mode, code = '') {
-            currentModalMode = mode;
-            const modal = document.getElementById('catModal');
-            const title = document.getElementById('modalTitle');
-            const btnSave = document.getElementById('btnSaveModal');
-            
-            const codeInput = document.getElementById('modalCatCode');
-            const nameInput = document.getElementById('modalCatName');
-            const parentInput = document.getElementById('modalCatParent');
-            const statusInput = document.getElementById('modalCatStatus');
-            const statusText = document.getElementById('modalCatStatusText');
+    function updateVisibleIndex() {
+        const visibleRows = allCategoryRows.filter(row => {
+            return !row.classList.contains('hidden');
+        });
 
-            // Handle Checkbox Change
-            statusInput.onchange = function() {
-                statusText.textContent = this.checked ? 'Đang hoạt động' : 'Ngừng hoạt động';
-                statusText.className = this.checked ? 'text-[14px] font-bold text-green-600' : 'text-[14px] font-bold text-red-600';
-            };
+        visibleRows.forEach((row, index) => {
+            const indexCell = row.querySelector('.col-index');
 
+            if (indexCell) {
+                indexCell.textContent = index + 1;
+            }
+        });
+    }
+
+    function toggleChildren(parentId) {
+        const searchInput = document.getElementById('searchCat');
+        const statusInput = document.getElementById('statusCat');
+
+        const searchValue = normalizeText(searchInput ? searchInput.value : '');
+        const statusValue = statusInput ? statusInput.value : 'all';
+
+        const icon = document.getElementById('icon-' + parentId);
+        if (!icon) return;
+
+        const isDefault = isDefaultFilter(searchValue, statusValue);
+
+        const children = allChildRows.filter(childRow => {
+            const childParentId = childRow.getAttribute('data-parent');
+
+            if (childParentId !== parentId) {
+                return false;
+            }
+
+            if (isDefault) {
+                return true;
+            }
+
+            return isRowMatched(childRow, searchValue, statusValue);
+        });
+
+        if (children.length === 0) {
+            alert('Chưa có danh mục con');
+            return;
+        }
+
+        const isExpanded = icon.classList.contains('rotate-90');
+
+        if (isExpanded) {
+            icon.classList.remove('rotate-90');
+
+            children.forEach(childRow => {
+                childRow.classList.remove('show-row');
+                childRow.classList.add('hide-row');
+
+                setTimeout(() => {
+                    childRow.classList.remove('hide-row');
+                    childRow.classList.add('hidden');
+                    updateVisibleIndex();
+                }, 180);
+            });
+        } else {
+            icon.classList.add('rotate-90');
+
+            children.forEach(childRow => {
+                childRow.classList.remove('hidden');
+                childRow.classList.remove('hide-row');
+                childRow.classList.add('show-row');
+            });
+        }
+
+        updateVisibleIndex();
+    }
+
+    function sortCategoryTreeRows() {
+        const tbody = document.getElementById('catTableBody');
+
+        if (!tbody) return;
+
+        const parents = Array.from(tbody.querySelectorAll('.parent-row'));
+        const children = Array.from(tbody.querySelectorAll('.child-row'));
+
+        parents.forEach(parentRow => {
+            const parentId = parentRow.getAttribute('data-id');
+
+            const childRows = children.filter(childRow => {
+                return childRow.getAttribute('data-parent') === parentId;
+            });
+
+            let lastRow = parentRow;
+
+            childRows.forEach(childRow => {
+                lastRow.after(childRow);
+                lastRow = childRow;
+            });
+        });
+    }
+
+    function resetFilters() {
+        const searchInput = document.getElementById('searchCat');
+        const statusInput = document.getElementById('statusCat');
+
+        if (searchInput) {
+            searchInput.value = '';
+        }
+
+        if (statusInput) {
+            statusInput.value = 'all';
+        }
+
+        showOnlyParentCategories();
+    }
+
+    function updateStatusVisual() {
+        const statusInput = document.getElementById('modalCatStatus');
+        const statusText = document.getElementById('modalCatStatusText');
+
+        if (!statusInput || !statusText) return;
+
+        if (statusInput.checked) {
+            statusText.textContent = 'Đang hoạt động';
+            statusText.className = 'text-[14px] font-bold text-green-600';
+        } else {
+            statusText.textContent = 'Ngừng hoạt động';
+            statusText.className = 'text-[14px] font-bold text-red-600';
+        }
+    }
+
+    function resetProductList() {
+        const productListBody = document.getElementById('productListBody');
+        const productCountBadge = document.getElementById('productCountBadge');
+
+        if (productListBody) {
+            productListBody.innerHTML = `
+                <tr>
+                    <td colspan="3" class="px-4 py-6 text-center text-gray-500 italic">
+                        Không có dữ liệu sản phẩm thuộc Danh mục này.
+                    </td>
+                </tr>
+            `;
+        }
+
+        if (productCountBadge) {
+            productCountBadge.textContent = '0 sản phẩm';
+        }
+    }
+
+    function renderProductList(products) {
+    const productListBody = document.getElementById('productListBody');
+    const productCountBadge = document.getElementById('productCountBadge');
+
+    if (!productListBody) return;
+
+    if (!Array.isArray(products) || products.length === 0) {
+        productListBody.innerHTML = `
+            <tr>
+                <td colspan="3" class="px-4 py-6 text-center text-gray-500 italic">
+                    Không có dữ liệu sản phẩm thuộc Danh mục này.
+                </td>
+            </tr>
+        `;
+
+        if (productCountBadge) {
+            productCountBadge.textContent = '0 sản phẩm';
+        }
+
+        return;
+    }
+
+    if (productCountBadge) {
+        productCountBadge.textContent = `${products.length} sản phẩm`;
+    }
+
+    productListBody.innerHTML = products.map(product => {
+        const maSP = product.maSP || '';
+        const tenSP = product.tenSP || '';
+        const soLuongTon = product.soLuongTon ?? 0;
+
+        return `
+            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                <td class="px-4 py-3 text-gray-700 font-semibold">
+                    ${maSP}
+                </td>
+                <td class="px-4 py-3 text-gray-800">
+                    ${tenSP}
+                </td>
+                <td class="px-4 py-3 text-center text-gray-700 font-medium">
+                    ${soLuongTon}
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+    function toggleInputs(mode) {
+        const nameInput = document.getElementById('modalCatName');
+        const parentInput = document.getElementById('modalCatParent');
+        const statusInput = document.getElementById('modalCatStatus');
+        const statusWrapper = document.getElementById('modalStatusWrapper');
+        const statusNote = document.getElementById('modalCatStatusNote');
+        const productSection = document.getElementById('categoryProductsSection');
+
+        const isViewMode = mode === 'view';
+
+        nameInput.readOnly = isViewMode;
+        parentInput.disabled = isViewMode;
+
+        statusInput.disabled = true;
+
+        if (isViewMode) {
+            nameInput.classList.add('bg-gray-50', 'text-gray-500');
+            parentInput.classList.add('bg-gray-50', 'text-gray-500');
+        } else {
+            nameInput.classList.remove('bg-gray-50', 'text-gray-500');
+            parentInput.classList.remove('bg-gray-50', 'text-gray-500');
+        }
+
+        if (statusWrapper) {
+            statusWrapper.classList.add('readonly-status');
+        }
+
+        if (statusNote) {
             if (mode === 'create') {
-                title.textContent = 'Thêm mới danh mục';
-                codeInput.value = '';
-                nameInput.value = '';
-                parentInput.value = '';
-                statusInput.checked = true;
-                statusInput.onchange(); // trigger visual update
-
-                toggleInputs(false);
-                btnSave.style.display = 'flex';
-                modal.style.display = 'flex';
-            }
-            else if (mode === 'edit' || mode === 'view') {
-                // Fetch data via AJAX
-                fetch(`?maDanhMuc=${code}`, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    title.textContent = mode === 'edit' ? 'Chỉnh sửa danh mục' : 'Chi tiết danh mục';
-
-                    codeInput.value = data.maDanhMuc;
-                    nameInput.value = data.tenDanhMuc;
-                    parentInput.value = data.maDanhMucCha;
-
-                    statusInput.checked = (data.trangThai === 1);
-                    statusInput.onchange(); // trigger visual update
-
-                    toggleInputs(mode === 'view');
-                    btnSave.style.display = mode === 'view' ? 'none' : 'flex';
-
-                    modal.style.display = 'flex';
-                })
-                .catch(error => {
-                    alert('Lỗi khi lấy thông tin danh mục: ' + error);
-                });
-            }
-        }
-
-        function closeCatModal() {
-            document.getElementById('catModal').style.display = 'none';
-        }
-
-        function toggleInputs(readOnly) {
-            document.getElementById('modalCatName').readOnly = readOnly;
-            document.getElementById('modalCatParent').disabled = readOnly;
-            document.getElementById('modalCatStatus').disabled = readOnly;
-
-            // Visual feedback for read-only
-            if (readOnly) {
-                document.getElementById('modalCatName').classList.add('bg-gray-50', 'text-gray-500');
-                document.getElementById('modalCatParent').classList.add('bg-gray-50', 'text-gray-500');
+                statusNote.textContent = 'Trạng thái mặc định khi tạo mới là Đang hoạt động.';
+            } else if (mode === 'edit') {
+                statusNote.textContent = 'Trạng thái chỉ được thay đổi thông qua chức năng Xóa danh mục.';
             } else {
-                document.getElementById('modalCatName').classList.remove('bg-gray-50', 'text-gray-500');
-                document.getElementById('modalCatParent').classList.remove('bg-gray-50', 'text-gray-500');
+                statusNote.textContent = 'Trạng thái hiện tại của danh mục.';
             }
         }
 
-        function saveCat() {
-            const maDanhMuc = document.getElementById('modalCatCode').value.trim();
-            const tenDanhMuc = document.getElementById('modalCatName').value.trim();
-            const maDanhMucCha = document.getElementById('modalCatParent').value;
-            const trangThai = document.getElementById('modalCatStatus').checked ? 1 : 0;
-
-            if(!tenDanhMuc) {
-                alert("Vui lòng nhập tên danh mục!");
-                return;
+        if (productSection) {
+            if (mode === 'view') {
+                productSection.classList.remove('hidden');
+            } else {
+                productSection.classList.add('hidden');
             }
-            
-            const data = {
-                maDanhMuc: maDanhMuc,
-                tenDanhMuc: tenDanhMuc,
-                maDanhMucCha: maDanhMucCha,
-                trangThai: trangThai
-            };
+        }
 
+        updateStatusVisual();
+    }
+
+    function openCatModal(mode, code = '') {
+        currentModalMode = mode;
+
+        const modal = document.getElementById('catModal');
+        const title = document.getElementById('modalTitle');
+        const btnSave = document.getElementById('btnSaveModal');
+
+        const codeInput = document.getElementById('modalCatCode');
+        const nameInput = document.getElementById('modalCatName');
+        const parentInput = document.getElementById('modalCatParent');
+        const statusInput = document.getElementById('modalCatStatus');
+
+        resetProductList();
+
+        if (mode === 'create') {
+            title.textContent = 'Thêm mới danh mục';
+
+            codeInput.value = '';
+            nameInput.value = '';
+            parentInput.value = '';
+            statusInput.checked = true;
+
+            toggleInputs('create');
+
+            btnSave.innerHTML = '<i class="fa-regular fa-floppy-disk text-base"></i> Lưu danh mục';
+            btnSave.style.display = 'flex';
+
+            modal.style.display = 'flex';
+        }
+
+        else if (mode === 'edit' || mode === 'view') {
+            fetch(`?maDanhMuc=${code}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'error') {
+                    alert(data.message);
+                    return;
+                }
+
+                title.textContent = mode === 'edit'
+                    ? 'Chỉnh sửa danh mục'
+                    : 'Chi tiết danh mục con';
+
+                codeInput.value = data.maDanhMuc;
+                nameInput.value = data.tenDanhMuc;
+                parentInput.value = data.maDanhMucCha || '';
+                statusInput.checked = Number(data.trangThai) === 1;
+
+                toggleInputs(mode);
+
+                if (mode === 'view') {
+                    renderProductList(data.products || data.sanPhamList || []);
+                }
+
+                btnSave.innerHTML = '<i class="fa-regular fa-floppy-disk text-base"></i> Cập nhật';
+                btnSave.style.display = mode === 'view' ? 'none' : 'flex';
+
+                modal.style.display = 'flex';
+            })
+            .catch(error => {
+                alert('Lỗi khi lấy thông tin danh mục: ' + error);
+            });
+        }
+    }
+
+    function closeCatModal() {
+        document.getElementById('catModal').style.display = 'none';
+    }
+
+    function saveCat() {
+        const maDanhMuc = document.getElementById('modalCatCode').value.trim();
+        const tenDanhMuc = document.getElementById('modalCatName').value.trim();
+        const maDanhMucCha = document.getElementById('modalCatParent').value;
+
+        if (!tenDanhMuc) {
+            alert('Vui lòng nhập tên danh mục!');
+            return;
+        }
+
+        const data = {
+            maDanhMuc: maDanhMuc,
+            tenDanhMuc: tenDanhMuc,
+            maDanhMucCha: maDanhMucCha
+        };
+
+        fetch(window.location.href, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert(data.message);
+                closeCatModal();
+                window.location.reload();
+            } else {
+                alert('Lỗi: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Lỗi khi lưu dữ liệu: ' + error);
+        });
+    }
+
+    function deleteCat(code) {
+        if (confirm(`Bạn có chắc chắn muốn xóa danh mục ${code}? Danh mục cha sẽ bị chặn nếu còn danh mục con đang hoạt động. Danh mục con sẽ bị chặn nếu còn sản phẩm đang bán.`)) {
             fetch(window.location.href, {
-                method: 'POST',
+                method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': csrftoken
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify({
+                    maDanhMuc: code
+                })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
                     alert(data.message);
-                    closeCatModal();
                     window.location.reload();
                 } else {
                     alert('Lỗi: ' + data.message);
                 }
             })
             .catch(error => {
-                alert('Lỗi khi lưu dữ liệu: ' + error);
+                alert('Lỗi khi xóa dữ liệu: ' + error);
             });
         }
+    }
 
-        function deleteCat(code) {
-            if(confirm(`Bạn có chắc chắn muốn xóa danh mục ${code}?`)) {
-                fetch(window.location.href, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrftoken
-                    },
-                    body: JSON.stringify({ maDanhMuc: code })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        alert(data.message);
-                        window.location.reload();
-                    } else {
-                        alert('Lỗi: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    alert('Lỗi khi xóa dữ liệu: ' + error);
-                });
-            }
-        }
+    document.addEventListener('DOMContentLoaded', () => {
+        sortCategoryTreeRows();
 
-        function resetFilters() {
-            document.getElementById('searchCat').value = '';
-            document.getElementById('statusCat').value = 'all';
-            filterCategories();
-        }
+        allCategoryRows = Array.from(document.querySelectorAll('.cat-row'));
+        allParentRows = Array.from(document.querySelectorAll('.parent-row'));
+        allChildRows = Array.from(document.querySelectorAll('.child-row'));
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // Sắp xếp lại thứ tự dòng: di chuyển con về ngay dưới cha của nó
-            const tbody = document.getElementById('catTableBody');
-            const parents = Array.from(tbody.querySelectorAll('.parent-row'));
-            const children = Array.from(tbody.querySelectorAll('.child-row'));
+        showOnlyParentCategories();
+    });
+</script>
 
-            parents.forEach(pRow => {
-                const pid = pRow.getAttribute('data-id');
-                const pChildren = children.filter(cRow => cRow.getAttribute('data-parent') === pid);
-                
-                // Chèn các dòng con ngay sau dòng cha
-                let lastRow = pRow;
-                pChildren.forEach(cRow => {
-                    lastRow.after(cRow);
-                    lastRow = cRow;
-                });
-            });
-
-            filterCategories();
-        });
-    </script>
 </body>
 </html>
-
