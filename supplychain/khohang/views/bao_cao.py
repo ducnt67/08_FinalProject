@@ -4,7 +4,6 @@ from django.db.models import Count, DecimalField, ExpressionWrapper, F, Sum
 from django.db.models.functions import TruncMonth
 from django.shortcuts import render
 from django.utils import timezone
-
 from khohang.models import KiemKe, NhapKho, PhieuXuat_CT, TonKho, XuatKho
 
 
@@ -15,7 +14,6 @@ def baocao(request):
     NHAP_KHO_HOAN_THANH = 1
     XUAT_KHO_HOAN_THANH = 1
 
-    # Nếu model KiemKe của bạn có quy ước khác, hãy đổi lại giá trị này.
     KIEM_KE_HOAN_THANH = 1
 
     now = timezone.now()
@@ -43,7 +41,6 @@ def baocao(request):
     # 1. KPI CARDS - SỐ LIỆU HIỆN TẠI
     # =====================================================
 
-    # Giá trị tồn kho hiện tại = SUM(soluongTon * giaBan)
     inventory_items = TonKho.objects.select_related('sanPham').all()
 
     total_value = sum(
@@ -53,16 +50,11 @@ def baocao(request):
 
     inventory_value_tr = float(total_value) / 1_000_000
 
-    # Sản phẩm sắp hết:
-    # Chỉ tính sản phẩm còn tồn > 0 và <= tồn kho tối thiểu.
-    # Không tính sản phẩm đã hết hàng để tránh trùng với nhóm "Hết hàng".
     low_stock_count = TonKho.objects.filter(
         soluongTon__lte=F('sanPham__tonKhoToiThieu'),
         soluongTon__gt=0
     ).count()
 
-    # Giao dịch hôm nay:
-    # Chỉ tính phiếu đã hoàn thành, không tính phiếu nháp/hủy.
     today_nhap = NhapKho.objects.filter(
         ngayNhap__date=today,
         trangthaiNhap=NHAP_KHO_HOAN_THANH
@@ -83,7 +75,6 @@ def baocao(request):
     # =====================================================
     # 2. BIỂU ĐỒ XUẤT/NHẬP KHO THEO THÁNG
     # =====================================================
-    # Dựa trên năm được chọn.
     monthly_imports = [0] * 12
     monthly_exports = [0] * 12
 
@@ -122,7 +113,6 @@ def baocao(request):
     # =====================================================
     # 3. TOP SẢN PHẨM XUẤT NHIỀU NHẤT
     # =====================================================
-    # Dựa trên tháng + năm được chọn.
     top_items = (
         PhieuXuat_CT.objects
         .filter(
@@ -172,8 +162,6 @@ def baocao(request):
     # =====================================================
     # 5. DOANH THU TẠM TÍNH THEO DANH MỤC
     # =====================================================
-    # Hiện tại hệ thống chưa có đơn giá bán thực tế tại thời điểm xuất,
-    # nên doanh thu tạm tính = soluongXuat * giá bán hiện tại của sản phẩm.
     revenue_expression = ExpressionWrapper(
         F('soluongXuat') * F('sanPham__giaBan'),
         output_field=DecimalField(max_digits=20, decimal_places=2)
