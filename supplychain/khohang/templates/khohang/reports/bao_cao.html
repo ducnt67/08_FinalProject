@@ -8,7 +8,8 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap"
+          rel="stylesheet">
 
     <link rel="stylesheet" href="{% static 'css/0.0.style.css' %}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -129,9 +130,9 @@
                                 class="text-sm border border-gray-200 rounded-lg px-3 py-2 min-w-[140px]"
                                 onchange="this.form.submit()">
                             {% for month in available_months %}
-                                <option value="{{ month.value }}" {% if month.value == selected_month %}selected{% endif %}>
-                                    {{ month.label }}
-                                </option>
+                            <option value="{{ month.value }}" {% if month.value== selected_month %}selected{% endif %}>
+                                {{ month.label }}
+                            </option>
                             {% endfor %}
                         </select>
                     </div>
@@ -144,9 +145,9 @@
                                 class="text-sm border border-gray-200 rounded-lg px-3 py-2 min-w-[120px]"
                                 onchange="this.form.submit()">
                             {% for year in available_years %}
-                                <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>
-                                    {{ year }}
-                                </option>
+                            <option value="{{ year }}" {% if year== selected_year %}selected{% endif %}>
+                                {{ year }}
+                            </option>
                             {% endfor %}
                         </select>
                     </div>
@@ -178,9 +179,9 @@
                         <h3 class="text-[13px] font-bold text-[#64748b] mb-1">Giá trị tồn kho hiện tại</h3>
                         <div class="text-[30px] font-extrabold text-[#111827] leading-none">
                             {% if inventory_value %}
-                                {{ inventory_value|floatformat:1 }}
+                            {{ inventory_value|floatformat:1 }}
                             {% else %}
-                                0
+                            0
                             {% endif %}
                             <span class="text-[16px] font-medium text-gray-400">triệu</span>
                         </div>
@@ -201,9 +202,9 @@
                         <h3 class="text-[13px] font-bold text-[#64748b] mb-1">Sắp hết hàng hiện tại</h3>
                         <div class="text-[30px] font-extrabold text-[#ef4444] leading-none">
                             {% if low_stock_count %}
-                                {{ low_stock_count }}
+                            {{ low_stock_count }}
                             {% else %}
-                                0
+                            0
                             {% endif %}
                             <span class="text-[16px] font-medium text-gray-400">SP</span>
                         </div>
@@ -224,9 +225,9 @@
                         <h3 class="text-[13px] font-bold text-[#64748b] mb-1">Giao dịch hôm nay</h3>
                         <div class="text-[30px] font-extrabold text-[#111827] leading-none">
                             {% if today_transactions %}
-                                {{ today_transactions }}
+                            {{ today_transactions }}
                             {% else %}
-                                0
+                            0
                             {% endif %}
                             <span class="text-[16px] font-medium text-gray-400">GD</span>
                         </div>
@@ -264,11 +265,11 @@
                 </div>
 
                 {% if top_products_labels %}
-                    <canvas id="topProductsChart" width="400" height="200"></canvas>
+                <canvas id="topProductsChart" width="400" height="200"></canvas>
                 {% else %}
-                    <div class="chart-empty">
-                        Chưa có dữ liệu sản phẩm xuất trong tháng {{ selected_month }}/{{ selected_year }}.
-                    </div>
+                <div class="chart-empty">
+                    Chưa có dữ liệu sản phẩm xuất trong tháng {{ selected_month }}/{{ selected_year }}.
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -300,11 +301,11 @@
                 </div>
 
                 {% if revenue_labels %}
-                    <canvas id="revenueChart" width="600" height="200"></canvas>
+                <canvas id="revenueChart" width="600" height="200"></canvas>
                 {% else %}
-                    <div class="chart-empty">
-                        Chưa có dữ liệu doanh thu theo danh mục trong tháng {{ selected_month }}/{{ selected_year }}.
-                    </div>
+                <div class="chart-empty">
+                    Chưa có dữ liệu doanh thu theo danh mục trong tháng {{ selected_month }}/{{ selected_year }}.
+                </div>
                 {% endif %}
             </div>
         </div>

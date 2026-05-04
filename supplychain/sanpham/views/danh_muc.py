@@ -2,19 +2,12 @@ import json
 
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
-
-from sanpham.models import DanhMuc, SanPham
 from khohang.models import TonKho
+from sanpham.models import DanhMuc, SanPham
 
 
+# Hàm xử lý danh sách
 def build_category_tree_list():
-    """
-    Tạo danh sách danh mục theo đúng thứ tự hiển thị:
-    - Danh mục cha đứng trước
-    - Danh mục con nằm ngay dưới danh mục cha
-    - STT sẽ được xử lý lại ở frontend khi lọc
-    """
-
     parent_categories = DanhMuc.objects.filter(
         maDanhMucCha__isnull=True
     ).order_by('maDanhMuc')
@@ -39,10 +32,6 @@ def build_category_tree_list():
 
 
 def generate_category_code():
-    """
-    Sinh mã danh mục tự động dạng DM0001, DM0002,...
-    """
-
     last_cat = DanhMuc.objects.order_by('-maDanhMuc').first()
 
     if last_cat and last_cat.maDanhMuc.startswith('DM'):
@@ -56,14 +45,6 @@ def generate_category_code():
 
 
 def is_duplicate_category_name(ten_danh_muc, parent_cat, current_ma_danh_muc=None):
-    """
-    Kiểm tra trùng tên danh mục trong cùng một danh mục cha.
-
-    Quy tắc:
-    - Không cho phép trùng tên trong cùng cấp cha.
-    - Khi chỉnh sửa thì loại trừ chính danh mục hiện tại.
-    """
-
     query = DanhMuc.objects.filter(
         tenDanhMuc__iexact=ten_danh_muc,
         maDanhMucCha=parent_cat
@@ -100,9 +81,6 @@ def danhmuc(request):
                     maDanhMuc=maDanhMucCha_id
                 )
 
-                # Hệ thống chỉ hỗ trợ 2 cấp:
-                # Danh mục cha và danh mục con.
-                # Vì vậy danh mục cha được chọn không được là danh mục con.
                 if parent_cat.maDanhMucCha is not None:
                     return JsonResponse({
                         'status': 'error',
@@ -149,21 +127,18 @@ def danhmuc(request):
                 maDanhMuc=maDanhMuc
             )
 
-            # Theo đặc tả: chỉ chỉnh sửa danh mục có trạng thái Đang hoạt động.
             if category.trangThai != 1:
                 return JsonResponse({
                     'status': 'error',
                     'message': 'Chỉ được chỉnh sửa danh mục đang hoạt động.'
                 }, status=400)
 
-            # Theo đặc tả: danh mục cha không cho phép thay đổi danh mục cha.
             if category.maDanhMucCha is None and parent_cat is not None:
                 return JsonResponse({
                     'status': 'error',
                     'message': 'Danh mục cha không được thay đổi danh mục cha.'
                 }, status=400)
 
-            # Theo đặc tả: danh mục con không được chuyển thành danh mục cha.
             if category.maDanhMucCha is not None and parent_cat is None:
                 return JsonResponse({
                     'status': 'error',
@@ -179,8 +154,6 @@ def danhmuc(request):
             category.tenDanhMuc = tenDanhMuc
             category.maDanhMucCha = parent_cat
 
-            # KHÔNG cập nhật category.trangThai tại chức năng chỉnh sửa.
-            # Trạng thái chỉ được thay đổi thông qua luồng xóa/ngừng hoạt động.
             category.save(update_fields=['tenDanhMuc', 'maDanhMucCha'])
 
             return JsonResponse({
@@ -228,12 +201,6 @@ def danhmuc(request):
 
                 )
 
-                # Ràng buộc mới:
-
-                # Danh mục cha không thể xóa hoặc chuyển sang Ngừng hoạt động
-
-                # nếu vẫn còn danh mục con có trạng thái Đang hoạt động.
-
                 active_child_exists = child_categories.filter(
 
                     trangThai=1
@@ -250,12 +217,6 @@ def danhmuc(request):
                     }, status=400)
 
                 has_child_categories = child_categories.exists()
-
-                # Phòng trường hợp dữ liệu bị gán trực tiếp sản phẩm vào danh mục cha.
-
-                # Theo đặc tả, sản phẩm chỉ nên được gán vào danh mục con,
-
-                # nhưng check thêm để tránh lỗi dữ liệu.
 
                 parent_has_active_products = SanPham.objects.filter(
 
@@ -286,10 +247,6 @@ def danhmuc(request):
 
                 ).exists()
 
-                # Nếu không còn danh mục con và không còn sản phẩm nào liên quan
-
-                # => cho phép xóa cứng danh mục cha.
-
                 if not has_child_categories and not parent_has_any_products:
                     category.delete()
 
@@ -300,14 +257,6 @@ def danhmuc(request):
                         'message': 'Xóa danh mục cha thành công!'
 
                     })
-
-                # Đến đây nghĩa là:
-
-                # - Không còn danh mục con đang hoạt động
-
-                # - Nhưng vẫn còn danh mục con ngừng hoạt động hoặc dữ liệu liên quan
-
-                # => không xóa cứng, chuyển chính danh mục cha sang Ngừng hoạt động.
 
                 if category.trangThai == 0:
                     return JsonResponse({
@@ -336,12 +285,6 @@ def danhmuc(request):
 
             # =====================================================
 
-            # Ràng buộc mới:
-
-            # Danh mục con không thể xóa hoặc chuyển sang Ngừng hoạt động
-
-            # nếu vẫn còn sản phẩm có trạng thái Đang bán.
-
             active_product_exists = SanPham.objects.filter(
 
                 danhMuc=category,
@@ -365,10 +308,6 @@ def danhmuc(request):
 
             ).exists()
 
-            # Nếu danh mục con không còn sản phẩm nào
-
-            # => cho phép xóa cứng.
-
             if not has_any_products:
                 category.delete()
 
@@ -379,12 +318,6 @@ def danhmuc(request):
                     'message': 'Xóa danh mục con thành công!'
 
                 })
-
-            # Nếu danh mục con không còn sản phẩm Đang bán,
-
-            # nhưng vẫn còn sản phẩm khác, ví dụ Ngừng bán
-
-            # => không xóa cứng, chuyển danh mục con sang Ngừng hoạt động.
 
             if category.trangThai == 0:
                 return JsonResponse({
@@ -437,7 +370,7 @@ def danhmuc(request):
 
         products = []
 
-        # Chỉ danh mục con mới có danh sách sản phẩm.
+        # Danh sách sản phẩm.
         if category.maDanhMucCha is not None:
             product_queryset = SanPham.objects.filter(
                 danhMuc=category
